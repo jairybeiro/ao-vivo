@@ -1,1 +1,4 @@
 project_id = "fidvjfsawgmdjtivlcpi"
+
+[functions.get-stream-url]
+verify_jwt = false

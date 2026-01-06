@@ -8,6 +8,7 @@ export interface DBChannel {
   category: string;
   logo: string | null;
   streamUrls: string[];
+  embedUrl: string | null;
   isLive: boolean;
 }
 
@@ -32,6 +33,7 @@ export const useChannels = () => {
             category: "Notícias",
             logo: ch.logo || null,
             streamUrls: ch.streamUrls,
+            embedUrl: null,
             isLive: true,
           }))
         );
@@ -43,6 +45,7 @@ export const useChannels = () => {
             category: ch.category,
             logo: ch.logo,
             streamUrls: ch.stream_urls,
+            embedUrl: (ch as any).embed_url || null,
             isLive: ch.is_live ?? true,
           }))
         );
@@ -55,6 +58,7 @@ export const useChannels = () => {
             category: "Notícias",
             logo: ch.logo || null,
             streamUrls: ch.streamUrls,
+            embedUrl: null,
             isLive: true,
           }))
         );

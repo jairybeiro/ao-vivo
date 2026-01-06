@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          embed_url: string | null
           id: string
           is_live: boolean | null
           logo: string | null
@@ -28,6 +29,7 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          embed_url?: string | null
           id?: string
           is_live?: boolean | null
           logo?: string | null
@@ -38,6 +40,7 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          embed_url?: string | null
           id?: string
           is_live?: boolean | null
           logo?: string | null

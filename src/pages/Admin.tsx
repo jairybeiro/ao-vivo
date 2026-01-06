@@ -14,6 +14,7 @@ interface Channel {
   category: string;
   logo: string | null;
   streamUrls: string[];
+  embedUrl?: string | null;
   isLive: boolean;
 }
 
@@ -43,6 +44,7 @@ const Admin = () => {
           category: ch.category,
           logo: ch.logo,
           streamUrls: ch.stream_urls,
+          embedUrl: (ch as any).embed_url || null,
           isLive: ch.is_live ?? true,
         }))
       );
