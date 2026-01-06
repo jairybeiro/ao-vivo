@@ -1,11 +1,9 @@
 import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
 import VideoPlayer from "@/components/VideoPlayer";
 import ChannelList from "@/components/ChannelList";
 import CategoryTabs from "@/components/CategoryTabs";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
-import { Tv, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Tv } from "lucide-react";
 
 const CATEGORIES = ["Notícias", "Esporte", "Filmes", "Séries"];
 
@@ -37,35 +35,29 @@ const Index = () => {
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      {/* Header - Fixed */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm flex-shrink-0 z-50">
-        <div className="px-3 md:px-4 py-2 md:py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
-                <Tv className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-base md:text-xl font-bold text-foreground">StreamPlayer</h1>
-                <p className="text-xs text-muted-foreground hidden md:block">Transmissões ao vivo</p>
-              </div>
+      {/* Header with Logo + Categories - Fixed */}
+      <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
+        <div className="flex items-center gap-4">
+          {/* Logo and Title */}
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
+              <Tv className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
             </div>
-            <Link to="/admin/login">
-              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10">
-                <Settings className="w-4 h-4 md:w-5 md:h-5" />
-              </Button>
-            </Link>
+            <div className="hidden lg:block">
+              <h1 className="text-base md:text-xl font-bold text-foreground">StreamPlayer</h1>
+              <p className="text-xs text-muted-foreground">Transmissões ao vivo</p>
+            </div>
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex-1">
+            <CategoryTabs
+              categories={CATEGORIES}
+              selectedCategory={selectedCategory}
+              onSelectCategory={handleCategoryChange}
+            />
           </div>
         </div>
-      </header>
-
-      {/* Category Tabs - Fixed */}
-      <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0">
-        <CategoryTabs
-          categories={CATEGORIES}
-          selectedCategory={selectedCategory}
-          onSelectCategory={handleCategoryChange}
-        />
       </div>
 
       {/* Main Content - Flex layout */}
