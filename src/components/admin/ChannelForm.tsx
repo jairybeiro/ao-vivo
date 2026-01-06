@@ -17,6 +17,7 @@ interface ChannelFormProps {
     category: string;
     logo: string | null;
     streamUrls: string[];
+    embedUrl?: string | null;
   } | null;
   onSuccess: () => void;
   onCancel?: () => void;
@@ -26,6 +27,7 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Notícias");
   const [logo, setLogo] = useState("");
+  const [embedUrl, setEmbedUrl] = useState("");
   const [streamUrls, setStreamUrls] = useState(["", "", ""]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -36,6 +38,7 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
       setName(editingChannel.name);
       setCategory(editingChannel.category);
       setLogo(editingChannel.logo || "");
+      setEmbedUrl(editingChannel.embedUrl || "");
       const urls = [...editingChannel.streamUrls];
       while (urls.length < 3) urls.push("");
       setStreamUrls(urls.slice(0, 3));
@@ -48,6 +51,7 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
     setName("");
     setCategory("Notícias");
     setLogo("");
+    setEmbedUrl("");
     setStreamUrls(["", "", ""]);
   };
 
@@ -76,8 +80,9 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
           name,
           category,
           logo: logo || null,
+          embed_url: embedUrl || null,
           stream_urls: validUrls,
-        })
+        } as any)
         .eq("id", editingChannel.id);
 
       if (error) {
@@ -92,8 +97,9 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
         name,
         category,
         logo: logo || null,
+        embed_url: embedUrl || null,
         stream_urls: validUrls,
-      });
+      } as any);
 
       if (error) {
         toast.error("Erro ao adicionar canal", { description: error.message });
@@ -146,6 +152,19 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
               value={logo}
               onChange={(e) => setLogo(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="embedUrl">URL do Embed (opcional - para atualização automática)</Label>
+            <Input
+              id="embedUrl"
+              placeholder="https://exemplo.embedtv.best/canal"
+              value={embedUrl}
+              onChange={(e) => setEmbedUrl(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Se preenchido, o sistema tentará extrair automaticamente o m3u8 atualizado desta URL.
+            </p>
           </div>
 
           <div className="space-y-3">
