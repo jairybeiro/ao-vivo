@@ -12,34 +12,22 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (isSignUp) {
-      const { error } = await signUp(email, password);
-      if (error) {
-        toast.error("Erro ao criar conta", {
-          description: error.message,
-        });
-      } else {
-        toast.success("Conta criada! Agora faça login.");
-        setIsSignUp(false);
-      }
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      toast.error("Erro ao fazer login", {
+        description: error.message,
+      });
     } else {
-      const { error } = await signIn(email, password);
-      if (error) {
-        toast.error("Erro ao fazer login", {
-          description: error.message,
-        });
-      } else {
-        toast.success("Login realizado com sucesso!");
-        navigate("/admin");
-      }
+      toast.success("Login realizado com sucesso!");
+      navigate("/admin");
     }
     
     setIsLoading(false);
@@ -52,13 +40,9 @@ const AdminLogin = () => {
           <div className="w-16 h-16 rounded-xl bg-primary flex items-center justify-center mx-auto mb-4">
             <Tv className="w-8 h-8 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">
-            {isSignUp ? "Criar Conta" : "Admin Login"}
-          </CardTitle>
+          <CardTitle className="text-2xl">Admin Login</CardTitle>
           <CardDescription>
-            {isSignUp 
-              ? "Crie sua conta de administrador" 
-              : "Entre com suas credenciais de administrador"}
+            Entre com suas credenciais de administrador
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -90,28 +74,16 @@ const AdminLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
                   required
-                  minLength={6}
                 />
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading 
-                ? (isSignUp ? "Criando..." : "Entrando...") 
-                : (isSignUp ? "Criar Conta" : "Entrar")}
+              {isLoading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
           <Button
-            variant="link"
-            className="w-full mt-2"
-            onClick={() => setIsSignUp(!isSignUp)}
-          >
-            {isSignUp 
-              ? "Já tem conta? Faça login" 
-              : "Não tem conta? Cadastre-se"}
-          </Button>
-          <Button
             variant="ghost"
-            className="w-full mt-2"
+            className="w-full mt-4"
             onClick={() => navigate("/")}
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
