@@ -4,10 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tv, LogOut, ArrowLeft } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tv, LogOut, ArrowLeft, Plus } from "lucide-react";
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
-
 interface Channel {
   id: string;
   name: string;
@@ -23,6 +23,7 @@ const Admin = () => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelsLoading, setChannelsLoading] = useState(true);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchChannels = useCallback(async () => {
     setChannelsLoading(true);
@@ -95,16 +96,23 @@ const Admin = () => {
 
   const handleFormSuccess = () => {
     setEditingChannel(null);
+    setIsModalOpen(false);
     fetchChannels();
   };
 
   const handleEdit = (channel: Channel) => {
     setEditingChannel(channel);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setIsModalOpen(true);
   };
 
-  const handleCancelEdit = () => {
+  const handleCloseModal = () => {
     setEditingChannel(null);
+    setIsModalOpen(false);
+  };
+
+  const handleOpenAddModal = () => {
+    setEditingChannel(null);
+    setIsModalOpen(true);
   };
 
   return (
@@ -137,11 +145,12 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-6 space-y-6">
         <div className="max-w-4xl mx-auto space-y-6">
-          <ChannelForm
-            editingChannel={editingChannel}
-            onSuccess={handleFormSuccess}
-            onCancel={editingChannel ? handleCancelEdit : undefined}
-          />
+          <div className="flex justify-end">
+            <Button onClick={handleOpenAddModal}>
+              <Plus className="w-4 h-4 mr-2" />
+              Adicionar Canal
+            </Button>
+          </div>
           
           <ChannelList
             channels={channels}
@@ -151,6 +160,26 @@ const Admin = () => {
           />
         </div>
       </main>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingChannel ? "Editar Canal" : "Adicionar Canal"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingChannel 
+                ? "Atualize as informações do canal" 
+                : "Preencha as informações do novo canal"}
+            </DialogDescription>
+          </DialogHeader>
+          <ChannelForm
+            editingChannel={editingChannel}
+            onSuccess={handleFormSuccess}
+            onCancel={handleCloseModal}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

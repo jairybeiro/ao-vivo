@@ -108,17 +108,7 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {isEditing ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-          {isEditing ? "Editar Canal" : "Adicionar Canal"}
-        </CardTitle>
-        <CardDescription>
-          {isEditing ? "Atualize as informações do canal" : "Preencha as informações do novo canal"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -197,7 +187,6 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
             )}
           </div>
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 };
