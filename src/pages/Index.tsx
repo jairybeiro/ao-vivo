@@ -32,7 +32,7 @@ const Index = () => {
           <div className="lg:col-span-3">
             {selectedChannel ? (
               <VideoPlayer
-                src={selectedChannel.streamUrl}
+                streamUrls={selectedChannel.streamUrls}
                 channelName={selectedChannel.name}
               />
             ) : (

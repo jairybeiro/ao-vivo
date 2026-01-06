@@ -1,26 +1,39 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-import { Play, Pause, Loader2 } from "lucide-react";
+import { Play, Pause, Loader2, Volume2, VolumeX } from "lucide-react";
 import LiveIndicator from "./LiveIndicator";
 
 interface VideoPlayerProps {
-  src: string;
+  streamUrls: string[];
   channelName?: string;
 }
 
-const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
+const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
   const [showControls, setShowControls] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
   const hideControlsTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const currentUrl = streamUrls[currentUrlIndex];
+
+  const tryNextUrl = useCallback(() => {
+    if (currentUrlIndex < streamUrls.length - 1) {
+      setCurrentUrlIndex((prev) => prev + 1);
+      setError(null);
+    } else {
+      setError("Nenhuma opção disponível");
+    }
+  }, [currentUrlIndex, streamUrls.length]);
 
   const initPlayer = useCallback(() => {
     const video = videoRef.current;
-    if (!video || !src) return;
+    if (!video || !currentUrl) return;
 
     setIsLoading(true);
     setError(null);
@@ -37,7 +50,7 @@ const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
         lowLatencyMode: true,
       });
 
-      hls.loadSource(src);
+      hls.loadSource(currentUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -49,26 +62,32 @@ const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
 
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) {
-          setError("Erro ao carregar stream");
-          setIsLoading(false);
+          tryNextUrl();
         }
       });
 
       hlsRef.current = hls;
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       // Native HLS support (Safari)
-      video.src = src;
+      video.src = currentUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLoading(false);
         video.play().catch(() => {
           setIsPlaying(false);
         });
       });
+      video.addEventListener("error", () => {
+        tryNextUrl();
+      });
     } else {
       setError("Seu navegador não suporta HLS");
       setIsLoading(false);
     }
-  }, [src]);
+  }, [currentUrl, tryNextUrl]);
+
+  useEffect(() => {
+    setCurrentUrlIndex(0);
+  }, [streamUrls]);
 
   useEffect(() => {
     initPlayer();
@@ -113,6 +132,19 @@ const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
     }
   };
 
+  const toggleMute = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = !video.muted;
+    setIsMuted(video.muted);
+  };
+
+  const selectOption = (index: number) => {
+    if (index !== currentUrlIndex) {
+      setCurrentUrlIndex(index);
+    }
+  };
+
   const handleMouseMove = () => {
     setShowControls(true);
     if (hideControlsTimeout.current) {
@@ -142,6 +174,8 @@ const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
         ref={videoRef}
         className="w-full h-full object-contain"
         playsInline
+        muted
+        autoPlay
         onClick={togglePlay}
       />
 
@@ -150,8 +184,25 @@ const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
         <LiveIndicator isLive={isPlaying && !isLoading} />
       </div>
 
-      {/* Channel Name */}
-      <div className="absolute top-4 right-4 z-20">
+      {/* Channel Name & Options */}
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+        {streamUrls.length > 1 && (
+          <div className="glass px-2 py-1 rounded-lg flex gap-1">
+            {streamUrls.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => selectOption(index)}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                  currentUrlIndex === index
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground hover:bg-white/10"
+                }`}
+              >
+                Opção {index + 1}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="glass px-4 py-2 rounded-lg">
           <span className="text-sm font-medium text-foreground">{channelName}</span>
         </div>
@@ -170,7 +221,10 @@ const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
           <div className="text-center">
             <p className="text-destructive text-lg font-medium">{error}</p>
             <button
-              onClick={initPlayer}
+              onClick={() => {
+                setCurrentUrlIndex(0);
+                setError(null);
+              }}
               className="mt-4 px-6 py-2 glass rounded-lg text-foreground hover:bg-glass/60 transition-colors"
             >
               Tentar novamente
@@ -194,6 +248,25 @@ const VideoPlayer = ({ src, channelName = "Canal" }: VideoPlayerProps) => {
             <Pause className="w-10 h-10 text-foreground" />
           ) : (
             <Play className="w-10 h-10 text-foreground ml-1" />
+          )}
+        </button>
+      </div>
+
+      {/* Mute/Unmute Button */}
+      <div
+        className={`absolute bottom-4 right-4 z-20 transition-opacity duration-300 ${
+          showControls || !isPlaying ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <button
+          onClick={toggleMute}
+          className="w-12 h-12 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform duration-200"
+          aria-label={isMuted ? "Ativar som" : "Mutar"}
+        >
+          {isMuted ? (
+            <VolumeX className="w-6 h-6 text-foreground" />
+          ) : (
+            <Volume2 className="w-6 h-6 text-foreground" />
           )}
         </button>
       </div>
