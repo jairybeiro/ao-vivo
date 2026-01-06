@@ -8,7 +8,7 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const CATEGORIES = ["Notícias", "Esporte", "Filmes", "Séries"];
+const CATEGORIES = ["Notícias", "Esportes", "Filmes", "Variedades"];
 
 interface ChannelFormProps {
   editingChannel?: {
@@ -67,8 +67,9 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
 
     const validUrls = streamUrls.filter((url) => url.trim() !== "");
     
-    if (validUrls.length === 0) {
-      toast.error("Adicione pelo menos uma URL de stream");
+    // Permite canais apenas com embed_url (sem stream_urls obrigatórios)
+    if (validUrls.length === 0 && !embedUrl.trim()) {
+      toast.error("Adicione pelo menos uma URL de stream ou uma URL de embed");
       setIsSubmitting(false);
       return;
     }
@@ -81,7 +82,7 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
           category,
           logo: logo || null,
           embed_url: embedUrl || null,
-          stream_urls: validUrls,
+          stream_urls: validUrls.length > 0 ? validUrls : ["placeholder"],
         } as any)
         .eq("id", editingChannel.id);
 
@@ -98,7 +99,7 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
         category,
         logo: logo || null,
         embed_url: embedUrl || null,
-        stream_urls: validUrls,
+        stream_urls: validUrls.length > 0 ? validUrls : ["placeholder"],
       } as any);
 
       if (error) {
