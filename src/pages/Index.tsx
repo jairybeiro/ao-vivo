@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import VideoPlayer from "@/components/VideoPlayer";
+import EmbedPlayer from "@/components/EmbedPlayer";
 import ChannelList from "@/components/ChannelList";
 import CategoryTabs from "@/components/CategoryTabs";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
@@ -62,11 +62,11 @@ const Index = () => {
 
       {/* Main Content - Flex layout */}
       <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden">
-        {/* Video Player - Fixed on mobile */}
+        {/* Embed Player - Fixed on mobile */}
         <div className="flex-shrink-0 lg:flex-1">
-          {selectedChannel ? (
-            <VideoPlayer
-              streamUrls={selectedChannel.streamUrls}
+          {selectedChannel?.embedUrl ? (
+            <EmbedPlayer
+              embedUrl={selectedChannel.embedUrl}
               channelName={selectedChannel.name}
             />
           ) : (
@@ -74,7 +74,7 @@ const Index = () => {
               <div className="text-center">
                 <Tv className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-2 md:mb-4" />
                 <p className="text-sm md:text-base text-muted-foreground">
-                  {loading ? "Carregando canais..." : "Nenhum canal disponível nesta categoria"}
+                  {loading ? "Carregando canais..." : selectedChannel ? "Canal sem URL de embed configurada" : "Nenhum canal disponível nesta categoria"}
                 </p>
               </div>
             </div>
