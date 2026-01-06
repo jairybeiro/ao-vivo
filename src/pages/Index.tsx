@@ -36,31 +36,31 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
+      {/* Header - Fixed */}
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm flex-shrink-0 z-50">
+        <div className="px-3 md:px-4 py-2 md:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <Tv className="w-6 h-6 text-primary-foreground" />
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
+                <Tv className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">StreamPlayer</h1>
-                <p className="text-xs text-muted-foreground">Transmissões ao vivo</p>
+                <h1 className="text-base md:text-xl font-bold text-foreground">StreamPlayer</h1>
+                <p className="text-xs text-muted-foreground hidden md:block">Transmissões ao vivo</p>
               </div>
             </div>
             <Link to="/admin/login">
-              <Button variant="ghost" size="icon">
-                <Settings className="w-5 h-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10">
+                <Settings className="w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Category Tabs */}
-      <div className="container mx-auto px-4 py-4">
+      {/* Category Tabs - Fixed */}
+      <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0">
         <CategoryTabs
           categories={CATEGORIES}
           selectedCategory={selectedCategory}
@@ -68,37 +68,35 @@ const Index = () => {
         />
       </div>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 pb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Video Player */}
-          <div className="lg:col-span-3">
-            {selectedChannel ? (
-              <VideoPlayer
-                streamUrls={selectedChannel.streamUrls}
-                channelName={selectedChannel.name}
-              />
-            ) : (
-              <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Tv className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">
-                    {loading ? "Carregando canais..." : "Nenhum canal disponível nesta categoria"}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Channel List Sidebar */}
-          <div className="lg:col-span-1">
-            <ChannelList
-              channels={filteredChannels}
-              selectedChannel={selectedChannel}
-              onSelectChannel={setSelectedChannel}
-              loading={loading}
+      {/* Main Content - Flex layout */}
+      <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden">
+        {/* Video Player - Fixed on mobile */}
+        <div className="flex-shrink-0 lg:flex-1">
+          {selectedChannel ? (
+            <VideoPlayer
+              streamUrls={selectedChannel.streamUrls}
+              channelName={selectedChannel.name}
             />
-          </div>
+          ) : (
+            <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
+              <div className="text-center">
+                <Tv className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-2 md:mb-4" />
+                <p className="text-sm md:text-base text-muted-foreground">
+                  {loading ? "Carregando canais..." : "Nenhum canal disponível nesta categoria"}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Channel List - Scrollable */}
+        <div className="flex-1 lg:flex-none lg:w-80 min-h-0 overflow-hidden">
+          <ChannelList
+            channels={filteredChannels}
+            selectedChannel={selectedChannel}
+            onSelectChannel={setSelectedChannel}
+            loading={loading}
+          />
         </div>
       </main>
     </div>

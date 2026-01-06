@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
 import { Play, Pause, Loader2, Volume2, VolumeX } from "lucide-react";
-import LiveIndicator from "./LiveIndicator";
 
 interface VideoPlayerProps {
   streamUrls: string[];
@@ -145,7 +144,7 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) =>
     }
   };
 
-  const handleMouseMove = () => {
+  const handleInteraction = () => {
     setShowControls(true);
     if (hideControlsTimeout.current) {
       clearTimeout(hideControlsTimeout.current);
@@ -163,12 +162,16 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) =>
     }
   };
 
+  // Limit options to max 2 for mobile
+  const displayedUrls = streamUrls.slice(0, 2);
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-video bg-player-overlay rounded-lg overflow-hidden group"
-      onMouseMove={handleMouseMove}
+      className="relative w-full aspect-video bg-player-overlay rounded-lg lg:rounded-lg overflow-hidden group"
+      onMouseMove={handleInteraction}
       onMouseLeave={handleMouseLeave}
+      onTouchStart={handleInteraction}
     >
       <video
         ref={videoRef}
@@ -179,20 +182,22 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) =>
         onClick={togglePlay}
       />
 
-      {/* Live Indicator */}
-      <div className="absolute top-4 left-4 z-20">
-        <LiveIndicator isLive={isPlaying && !isLoading} />
-      </div>
-
-      {/* Channel Name & Options */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        {streamUrls.length > 1 && (
+      {/* Stream Options - Show on interaction only */}
+      <div
+        className={`absolute top-4 right-4 z-20 transition-opacity duration-300 ${
+          showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {displayedUrls.length > 1 && (
           <div className="glass px-2 py-1 rounded-lg flex gap-1">
-            {streamUrls.map((_, index) => (
+            {displayedUrls.map((_, index) => (
               <button
                 key={index}
-                onClick={() => selectOption(index)}
-                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                onClick={(e) => {
+                  e.stopPropagation();
+                  selectOption(index);
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
                   currentUrlIndex === index
                     ? "bg-primary text-primary-foreground"
                     : "text-foreground hover:bg-white/10"
@@ -203,9 +208,6 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) =>
             ))}
           </div>
         )}
-        <div className="glass px-4 py-2 rounded-lg">
-          <span className="text-sm font-medium text-foreground">{channelName}</span>
-        </div>
       </div>
 
       {/* Loading Overlay */}

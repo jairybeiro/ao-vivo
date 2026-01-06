@@ -27,20 +27,20 @@ const ChannelList = ({ channels, selectedChannel, onSelectChannel, loading }: Ch
   }
 
   return (
-    <div className="h-full bg-sidebar rounded-lg border border-sidebar-border overflow-hidden">
+    <div className="h-full bg-sidebar rounded-lg lg:rounded-lg border border-sidebar-border overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-sidebar-border">
+      <div className="p-3 md:p-4 border-b border-sidebar-border flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Radio className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-semibold text-sidebar-foreground">Canais</h2>
+          <Radio className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+          <h2 className="text-base md:text-lg font-semibold text-sidebar-foreground">Canais</h2>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-xs md:text-sm text-muted-foreground mt-1">
           {channels.length} {channels.length === 1 ? "canal disponível" : "canais disponíveis"}
         </p>
       </div>
 
-      {/* Channel List */}
-      <div className="p-2 space-y-1 overflow-y-auto max-h-[calc(100vh-400px)]">
+      {/* Channel List - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {channels.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <Radio className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -51,7 +51,7 @@ const ChannelList = ({ channels, selectedChannel, onSelectChannel, loading }: Ch
             <button
               key={channel.id}
               onClick={() => onSelectChannel(channel)}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
+              className={`w-full flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg transition-all duration-200 ${
                 selectedChannel?.id === channel.id
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-sidebar-accent text-sidebar-foreground"
@@ -61,21 +61,21 @@ const ChannelList = ({ channels, selectedChannel, onSelectChannel, loading }: Ch
                 <img
                   src={channel.logo}
                   alt={channel.name}
-                  className="w-10 h-10 rounded-md object-cover"
+                  className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-md bg-accent flex items-center justify-center">
-                  <Radio className="w-5 h-5" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-md bg-accent flex items-center justify-center">
+                  <Radio className="w-4 h-4 md:w-5 md:h-5" />
                 </div>
               )}
-              <div className="flex-1 text-left">
-                <p className="font-medium">{channel.name}</p>
+              <div className="flex-1 text-left min-w-0">
+                <p className="font-medium text-sm md:text-base truncate">{channel.name}</p>
                 <p className={`text-xs ${selectedChannel?.id === channel.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                  Transmissão ao vivo
+                  Ao vivo
                 </p>
               </div>
               {selectedChannel?.id === channel.id && (
-                <div className="w-2 h-2 rounded-full bg-live animate-live-pulse" />
+                <div className="w-2 h-2 rounded-full bg-live animate-live-pulse flex-shrink-0" />
               )}
             </button>
           ))
