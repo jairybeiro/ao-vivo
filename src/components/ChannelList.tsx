@@ -27,7 +27,7 @@ const ChannelList = ({ channels, selectedChannel, onSelectChannel, loading }: Ch
   }
 
   return (
-    <div className="h-full bg-sidebar rounded-lg lg:rounded-lg border border-sidebar-border overflow-hidden flex flex-col">
+    <div className="h-full bg-sidebar rounded-lg lg:rounded-lg border border-sidebar-border overflow-hidden flex flex-col lg:max-h-[280px]">
       {/* Header */}
       <div className="p-3 md:p-4 border-b border-sidebar-border flex-shrink-0">
         <div className="flex items-center gap-2">
@@ -39,7 +39,7 @@ const ChannelList = ({ channels, selectedChannel, onSelectChannel, loading }: Ch
         </p>
       </div>
 
-      {/* Channel List - Scrollable */}
+      {/* Channel List - Scrollable, limited to ~3 items on desktop */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {channels.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
