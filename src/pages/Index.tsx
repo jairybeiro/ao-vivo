@@ -103,46 +103,43 @@ const Index = () => {
 
       {/* Main Content - Flex layout */}
       <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden">
-        {/* Player Section with Sidebar Ad (Desktop) */}
-        <div className="flex-shrink-0 lg:flex-1 flex gap-4">
-          {/* Embed Player */}
-          <div className="flex-1">
-            {selectedChannel?.embedUrl ? (
-              <EmbedPlayer
-                embedUrl={selectedChannel.embedUrl}
-                channelName={selectedChannel.name}
-                preRollAd={prerollAdData}
-                enablePreRoll={!!prerollAd}
-              />
-            ) : (
-              <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Tv className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-2 md:mb-4" />
-                  <p className="text-sm md:text-base text-muted-foreground">
-                    {loading ? "Carregando canais..." : selectedChannel ? "Canal sem URL de embed configurada" : "Nenhum canal disponível nesta categoria"}
-                  </p>
-                </div>
+        {/* Player Section */}
+        <div className="flex-shrink-0 lg:flex-1">
+          {selectedChannel?.embedUrl ? (
+            <EmbedPlayer
+              embedUrl={selectedChannel.embedUrl}
+              channelName={selectedChannel.name}
+              preRollAd={prerollAdData}
+              enablePreRoll={!!prerollAd}
+            />
+          ) : (
+            <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
+              <div className="text-center">
+                <Tv className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-2 md:mb-4" />
+                <p className="text-sm md:text-base text-muted-foreground">
+                  {loading ? "Carregando canais..." : selectedChannel ? "Canal sem URL de embed configurada" : "Nenhum canal disponível nesta categoria"}
+                </p>
               </div>
-            )}
-
-            {/* Mobile Ad - Below Player */}
-            <div className="mt-3">
-              <BelowPlayerAd ad={belowPlayerAdData} />
             </div>
-          </div>
+          )}
 
-          {/* Desktop Sidebar Ad */}
-          <SidebarAd ad={sidebarAdData} />
+          {/* Mobile Ad - Below Player */}
+          <div className="mt-3 lg:hidden">
+            <BelowPlayerAd ad={belowPlayerAdData} />
+          </div>
         </div>
 
-        {/* Channel List - Scrollable */}
-        <div className="flex-1 lg:flex-none lg:w-80 min-h-0 overflow-hidden">
+        {/* Right Sidebar - Channel List + Ad (Desktop) */}
+        <div className="flex-1 lg:flex-none lg:w-80 min-h-0 overflow-hidden flex flex-col gap-3">
           <ChannelList
             channels={filteredChannels}
             selectedChannel={selectedChannel}
             onSelectChannel={setSelectedChannel}
             loading={loading}
           />
+          
+          {/* Desktop Ad - Below Channel List */}
+          <SidebarAd ad={sidebarAdData} />
         </div>
       </main>
     </div>
