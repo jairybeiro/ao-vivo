@@ -36,7 +36,11 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
   useEffect(() => {
     if (editingChannel) {
       setName(editingChannel.name);
-      setCategory(editingChannel.category);
+      // Normaliza categoria legada "Esporte" para "Esportes"
+      const normalizedCategory = editingChannel.category === "Esporte" 
+        ? "Esportes" 
+        : editingChannel.category;
+      setCategory(CATEGORIES.includes(normalizedCategory) ? normalizedCategory : "Notícias");
       setLogo(editingChannel.logo || "");
       setEmbedUrl(editingChannel.embedUrl || "");
       const urls = [...editingChannel.streamUrls];
