@@ -1,11 +1,17 @@
 import { useState, useMemo } from "react";
 import EmbedPlayer from "@/components/EmbedPlayer";
+import VideoPlayer from "@/components/VideoPlayer";
 import ChannelList from "@/components/ChannelList";
 import CategoryTabs from "@/components/CategoryTabs";
 import { SidebarAd, BelowPlayerAd } from "@/components/ads";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
 import { useActiveAds } from "@/hooks/useAds";
 import { Tv } from "lucide-react";
+
+// Helper para verificar se tem URLs de stream válidas (não placeholder)
+const hasValidStreamUrls = (urls: string[]) => {
+  return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.endsWith(".m3u8"));
+};
 
 const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades"];
 
@@ -106,18 +112,26 @@ const Index = () => {
         {/* Player Section */}
         <div className="flex-shrink-0 lg:flex-1">
           {selectedChannel?.embedUrl ? (
+            // Prioridade 1: Usar EmbedPlayer se tem embed_url
             <EmbedPlayer
               embedUrl={selectedChannel.embedUrl}
               channelName={selectedChannel.name}
               preRollAd={prerollAdData}
               enablePreRoll={!!prerollAd}
             />
+          ) : selectedChannel && hasValidStreamUrls(selectedChannel.streamUrls) ? (
+            // Prioridade 2: Usar VideoPlayer se tem URLs m3u8 válidas
+            <VideoPlayer
+              streamUrls={selectedChannel.streamUrls.filter(url => url.endsWith(".m3u8"))}
+              channelName={selectedChannel.name}
+            />
           ) : (
+            // Fallback: Placeholder
             <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <Tv className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-2 md:mb-4" />
                 <p className="text-sm md:text-base text-muted-foreground">
-                  {loading ? "Carregando canais..." : selectedChannel ? "Canal sem URL de embed configurada" : "Nenhum canal disponível nesta categoria"}
+                  {loading ? "Carregando canais..." : selectedChannel ? "Canal sem URL configurada" : "Nenhum canal disponível nesta categoria"}
                 </p>
               </div>
             </div>
