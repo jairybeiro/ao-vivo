@@ -34,7 +34,7 @@ const defaultAd: SidebarAdData = {
 
 const SidebarAd = ({ ad = defaultAd, className = "" }: SidebarAdProps) => {
   return (
-    <div className={`hidden lg:block w-64 flex-shrink-0 ${className}`}>
+    <div className={`hidden lg:block flex-shrink-0 ${className}`}>
       <AdSlot
         variant="card"
         title={ad.title}
