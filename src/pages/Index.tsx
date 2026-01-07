@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import EmbedPlayer from "@/components/EmbedPlayer";
 import ChannelList from "@/components/ChannelList";
 import CategoryTabs from "@/components/CategoryTabs";
+import { SidebarAd, BelowPlayerAd } from "@/components/ads";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
 import { Tv } from "lucide-react";
 
@@ -67,23 +68,34 @@ const Index = () => {
 
       {/* Main Content - Flex layout */}
       <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden">
-        {/* Embed Player - Fixed on mobile */}
-        <div className="flex-shrink-0 lg:flex-1">
-          {selectedChannel?.embedUrl ? (
-            <EmbedPlayer
-              embedUrl={selectedChannel.embedUrl}
-              channelName={selectedChannel.name}
-            />
-          ) : (
-            <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <Tv className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-2 md:mb-4" />
-                <p className="text-sm md:text-base text-muted-foreground">
-                  {loading ? "Carregando canais..." : selectedChannel ? "Canal sem URL de embed configurada" : "Nenhum canal disponível nesta categoria"}
-                </p>
+        {/* Player Section with Sidebar Ad (Desktop) */}
+        <div className="flex-shrink-0 lg:flex-1 flex gap-4">
+          {/* Embed Player */}
+          <div className="flex-1">
+            {selectedChannel?.embedUrl ? (
+              <EmbedPlayer
+                embedUrl={selectedChannel.embedUrl}
+                channelName={selectedChannel.name}
+              />
+            ) : (
+              <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Tv className="w-12 h-12 md:w-16 md:h-16 text-muted-foreground mx-auto mb-2 md:mb-4" />
+                  <p className="text-sm md:text-base text-muted-foreground">
+                    {loading ? "Carregando canais..." : selectedChannel ? "Canal sem URL de embed configurada" : "Nenhum canal disponível nesta categoria"}
+                  </p>
+                </div>
               </div>
+            )}
+
+            {/* Mobile Ad - Below Player */}
+            <div className="mt-3">
+              <BelowPlayerAd />
             </div>
-          )}
+          </div>
+
+          {/* Desktop Sidebar Ad */}
+          <SidebarAd />
         </div>
 
         {/* Channel List - Scrollable */}

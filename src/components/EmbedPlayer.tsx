@@ -1,19 +1,41 @@
-import { useState } from "react";
+/**
+ * EmbedPlayer - Player de vídeo com proteção contra popups e anúncios
+ * Inclui overlay protetor e suporte a Pre-Roll Ad
+ */
+
+import { useState, useCallback } from "react";
 import { Play } from "lucide-react";
+import { PreRollAd, type PreRollAdData } from "./ads";
 
 interface EmbedPlayerProps {
   embedUrl: string;
   channelName?: string;
+  /** Dados do anúncio pre-roll (opcional) */
+  preRollAd?: PreRollAdData;
+  /** Ativar pre-roll ad */
+  enablePreRoll?: boolean;
 }
 
-const EmbedPlayer = ({ embedUrl, channelName = "Canal" }: EmbedPlayerProps) => {
+const EmbedPlayer = ({ 
+  embedUrl, 
+  channelName = "Canal",
+  preRollAd,
+  enablePreRoll = true
+}: EmbedPlayerProps) => {
   // Estado controla se o overlay protetor está ativo
   const [overlayActive, setOverlayActive] = useState(true);
+  // Estado controla se o pre-roll está sendo exibido
+  const [showPreRoll, setShowPreRoll] = useState(enablePreRoll);
 
   // Handler que consome o primeiro clique e remove o overlay
-  const handleOverlayClick = () => {
+  const handleOverlayClick = useCallback(() => {
     setOverlayActive(false);
-  };
+  }, []);
+
+  // Handler quando o pre-roll termina
+  const handlePreRollComplete = useCallback(() => {
+    setShowPreRoll(false);
+  }, []);
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
@@ -37,12 +59,28 @@ const EmbedPlayer = ({ embedUrl, channelName = "Canal" }: EmbedPlayerProps) => {
       />
 
       {/* 
+        Pre-Roll Ad:
+        - Exibido antes do vídeo (overlay)
+        - Contador regressivo de 5 segundos
+        - Botão de pular após o contador
+        - Executado no máximo uma vez por sessão
+      */}
+      {showPreRoll && (
+        <PreRollAd
+          ad={preRollAd}
+          onComplete={handlePreRollComplete}
+          sessionKey={channelName}
+        />
+      )}
+
+      {/* 
         Overlay protetor:
         - Intercepta o primeiro clique antes de chegar ao iframe
         - Evita que scripts de anúncio capturem o clique inicial
         - Removido após interação do usuário
+        - Só aparece após o pre-roll terminar
       */}
-      {overlayActive && (
+      {!showPreRoll && overlayActive && (
         <button
           onClick={handleOverlayClick}
           className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/60 cursor-pointer transition-opacity hover:bg-black/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-black"
