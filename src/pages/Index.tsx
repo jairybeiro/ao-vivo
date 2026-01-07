@@ -5,14 +5,17 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
 import { Tv } from "lucide-react";
 
-const CATEGORIES = ["Notícias", "Esportes", "Filmes", "Variedades"];
+const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades"];
 
 const Index = () => {
   const { channels, loading } = useChannels();
-  const [selectedCategory, setSelectedCategory] = useState("Notícias");
+  const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
 
   const filteredChannels = useMemo(() => {
+    if (selectedCategory === "Todos") {
+      return channels;
+    }
     return channels.filter((ch) => ch.category === selectedCategory);
   }, [channels, selectedCategory]);
 
@@ -25,7 +28,9 @@ const Index = () => {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
-    const newFiltered = channels.filter((ch) => ch.category === category);
+    const newFiltered = category === "Todos" 
+      ? channels 
+      : channels.filter((ch) => ch.category === category);
     if (newFiltered.length > 0) {
       setSelectedChannel(newFiltered[0]);
     } else {
