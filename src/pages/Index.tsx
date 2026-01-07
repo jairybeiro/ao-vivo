@@ -4,12 +4,14 @@ import ChannelList from "@/components/ChannelList";
 import CategoryTabs from "@/components/CategoryTabs";
 import { SidebarAd, BelowPlayerAd } from "@/components/ads";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
+import { useActiveAds } from "@/hooks/useAds";
 import { Tv } from "lucide-react";
 
 const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades"];
 
 const Index = () => {
   const { channels, loading } = useChannels();
+  const { getSidebarAd, getBelowPlayerAd, getPrerollAd } = useActiveAds();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
 
@@ -38,6 +40,39 @@ const Index = () => {
       setSelectedChannel(null);
     }
   };
+
+  // Preparar dados dos anúncios para os componentes
+  const sidebarAd = getSidebarAd();
+  const belowPlayerAd = getBelowPlayerAd();
+  const prerollAd = getPrerollAd();
+
+  const sidebarAdData = sidebarAd ? {
+    id: sidebarAd.id,
+    title: sidebarAd.title,
+    description: sidebarAd.description,
+    ctaText: sidebarAd.ctaText,
+    ctaUrl: sidebarAd.ctaUrl || undefined,
+    imageUrl: sidebarAd.imageUrl || undefined,
+  } : undefined;
+
+  const belowPlayerAdData = belowPlayerAd ? {
+    id: belowPlayerAd.id,
+    title: belowPlayerAd.title,
+    description: belowPlayerAd.description,
+    ctaText: belowPlayerAd.ctaText,
+    ctaUrl: belowPlayerAd.ctaUrl || undefined,
+    imageUrl: belowPlayerAd.imageUrl || undefined,
+  } : undefined;
+
+  const prerollAdData = prerollAd ? {
+    id: prerollAd.id,
+    title: prerollAd.title,
+    description: prerollAd.description,
+    ctaText: prerollAd.ctaText,
+    ctaUrl: prerollAd.ctaUrl || undefined,
+    imageUrl: prerollAd.imageUrl || undefined,
+    duration: prerollAd.duration,
+  } : undefined;
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
@@ -76,6 +111,8 @@ const Index = () => {
               <EmbedPlayer
                 embedUrl={selectedChannel.embedUrl}
                 channelName={selectedChannel.name}
+                preRollAd={prerollAdData}
+                enablePreRoll={!!prerollAd}
               />
             ) : (
               <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
@@ -90,12 +127,12 @@ const Index = () => {
 
             {/* Mobile Ad - Below Player */}
             <div className="mt-3">
-              <BelowPlayerAd />
+              <BelowPlayerAd ad={belowPlayerAdData} />
             </div>
           </div>
 
           {/* Desktop Sidebar Ad */}
-          <SidebarAd />
+          <SidebarAd ad={sidebarAdData} />
         </div>
 
         {/* Channel List - Scrollable */}

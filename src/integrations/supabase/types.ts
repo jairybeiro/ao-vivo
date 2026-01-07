@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      ads: {
+        Row: {
+          created_at: string
+          cta_text: string | null
+          cta_url: string | null
+          description: string
+          duration: number | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          description: string
+          duration?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cta_text?: string | null
+          cta_url?: string | null
+          description?: string
+          duration?: number | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       channels: {
         Row: {
           category: string

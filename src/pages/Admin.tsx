@@ -1,13 +1,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useAds, type Ad } from "@/hooks/useAds";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Tv, LogOut, ArrowLeft, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone } from "lucide-react";
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
+import { AdForm } from "@/components/admin/AdForm";
+import { AdList } from "@/components/admin/AdList";
+
 interface Channel {
   id: string;
   name: string;
@@ -21,10 +26,17 @@ interface Channel {
 const Admin = () => {
   const { user, isAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
+  
+  // Estados para canais
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelsLoading, setChannelsLoading] = useState(true);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
+  
+  // Estados para anúncios
+  const { ads, loading: adsLoading, refetch: refetchAds } = useAds();
+  const [editingAd, setEditingAd] = useState<Ad | null>(null);
+  const [isAdModalOpen, setIsAdModalOpen] = useState(false);
 
   const fetchChannels = useCallback(async () => {
     setChannelsLoading(true);
@@ -96,25 +108,48 @@ const Admin = () => {
     );
   }
 
-  const handleFormSuccess = () => {
+  // Handlers para canais
+  const handleChannelFormSuccess = () => {
     setEditingChannel(null);
-    setIsModalOpen(false);
+    setIsChannelModalOpen(false);
     fetchChannels();
   };
 
-  const handleEdit = (channel: Channel) => {
+  const handleEditChannel = (channel: Channel) => {
     setEditingChannel(channel);
-    setIsModalOpen(true);
+    setIsChannelModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseChannelModal = () => {
     setEditingChannel(null);
-    setIsModalOpen(false);
+    setIsChannelModalOpen(false);
   };
 
-  const handleOpenAddModal = () => {
+  const handleOpenAddChannelModal = () => {
     setEditingChannel(null);
-    setIsModalOpen(true);
+    setIsChannelModalOpen(true);
+  };
+
+  // Handlers para anúncios
+  const handleAdFormSuccess = () => {
+    setEditingAd(null);
+    setIsAdModalOpen(false);
+    refetchAds();
+  };
+
+  const handleEditAd = (ad: Ad) => {
+    setEditingAd(ad);
+    setIsAdModalOpen(true);
+  };
+
+  const handleCloseAdModal = () => {
+    setEditingAd(null);
+    setIsAdModalOpen(false);
+  };
+
+  const handleOpenAddAdModal = () => {
+    setEditingAd(null);
+    setIsAdModalOpen(true);
   };
 
   return (
@@ -128,7 +163,7 @@ const Admin = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-foreground">Admin Panel</h1>
-                <p className="text-xs text-muted-foreground">Gerenciar canais</p>
+                <p className="text-xs text-muted-foreground">Gerenciar canais e anúncios</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -145,25 +180,64 @@ const Admin = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 space-y-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div className="flex justify-end">
-            <Button onClick={handleOpenAddModal}>
-              <Plus className="w-4 h-4 mr-2" />
-              Adicionar Canal
-            </Button>
-          </div>
-          
-          <ChannelList
-            channels={channels}
-            loading={channelsLoading}
-            onEdit={handleEdit}
-            onRefresh={fetchChannels}
-          />
+      <main className="container mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto">
+          <Tabs defaultValue="channels" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="channels" className="flex items-center gap-2">
+                <Tv className="w-4 h-4" />
+                Canais
+              </TabsTrigger>
+              <TabsTrigger value="ads" className="flex items-center gap-2">
+                <Megaphone className="w-4 h-4" />
+                Anúncios
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Tab de Canais */}
+            <TabsContent value="channels" className="space-y-6">
+              <div className="flex justify-end">
+                <Button onClick={handleOpenAddChannelModal}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Canal
+                </Button>
+              </div>
+              
+              <ChannelList
+                channels={channels}
+                loading={channelsLoading}
+                onEdit={handleEditChannel}
+                onRefresh={fetchChannels}
+              />
+            </TabsContent>
+
+            {/* Tab de Anúncios */}
+            <TabsContent value="ads" className="space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Gerencie os anúncios nativos exibidos na plataforma.
+                  </p>
+                </div>
+                <Button onClick={handleOpenAddAdModal}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Adicionar Anúncio
+                </Button>
+              </div>
+              
+              <AdList
+                ads={ads}
+                loading={adsLoading}
+                onEdit={handleEditAd}
+                onRefresh={refetchAds}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      {/* Modal de Canal */}
+      <Dialog open={isChannelModalOpen} onOpenChange={setIsChannelModalOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
@@ -177,8 +251,29 @@ const Admin = () => {
           </DialogHeader>
           <ChannelForm
             editingChannel={editingChannel}
-            onSuccess={handleFormSuccess}
-            onCancel={handleCloseModal}
+            onSuccess={handleChannelFormSuccess}
+            onCancel={handleCloseChannelModal}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Anúncio */}
+      <Dialog open={isAdModalOpen} onOpenChange={setIsAdModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingAd ? "Editar Anúncio" : "Adicionar Anúncio"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingAd 
+                ? "Atualize as informações do anúncio" 
+                : "Configure um novo anúncio nativo"}
+            </DialogDescription>
+          </DialogHeader>
+          <AdForm
+            editingAd={editingAd}
+            onSuccess={handleAdFormSuccess}
+            onCancel={handleCloseAdModal}
           />
         </DialogContent>
       </Dialog>
