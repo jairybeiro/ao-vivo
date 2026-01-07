@@ -13,7 +13,7 @@ const hasValidStreamUrls = (urls: string[]) => {
   return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.endsWith(".m3u8"));
 };
 
-const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades"];
+const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
 
 const Index = () => {
   const { channels, loading } = useChannels();

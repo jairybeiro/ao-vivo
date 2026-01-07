@@ -8,7 +8,7 @@ import { Plus, Trash2, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const CATEGORIES = ["Notícias", "Esportes", "Filmes", "Variedades"];
+const CATEGORIES = ["Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
 
 interface ChannelFormProps {
   editingChannel?: {
