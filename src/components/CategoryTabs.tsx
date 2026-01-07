@@ -9,7 +9,7 @@ interface CategoryTabsProps {
 const CategoryTabs = ({ categories, selectedCategory, onSelectCategory }: CategoryTabsProps) => {
   return (
     <Tabs value={selectedCategory} onValueChange={onSelectCategory} className="w-full">
-      <TabsList className="w-full grid grid-cols-5 bg-card border border-border h-10 md:h-12 p-0.5 md:p-1 gap-0.5 md:gap-1">
+      <TabsList className="w-full grid grid-cols-6 bg-card border border-border h-10 md:h-12 p-0.5 md:p-1 gap-0.5 md:gap-1">
         {categories.map((category) => (
           <TabsTrigger
             key={category}
