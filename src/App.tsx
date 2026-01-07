@@ -7,8 +7,6 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
-import TestEmbed from "./pages/TestEmbed";
-import IframeTest from "./pages/IframeTest";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,8 +22,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/test-embed" element={<TestEmbed />} />
-            <Route path="/iframe-test" element={<IframeTest />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
