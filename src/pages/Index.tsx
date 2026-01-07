@@ -5,7 +5,7 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
 import { Tv } from "lucide-react";
 
-const CATEGORIES = ["Notícias", "Esporte", "Filmes", "Séries"];
+const CATEGORIES = ["Notícias", "Esportes", "Filmes", "Variedades"];
 
 const Index = () => {
   const { channels, loading } = useChannels();
