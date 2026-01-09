@@ -5,9 +5,10 @@ import { Play, Pause, Loader2, Volume2, VolumeX, Volume1 } from "lucide-react";
 interface VideoPlayerProps {
   streamUrls: string[];
   channelName?: string;
+  onEnded?: () => void;
 }
 
-const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) => {
+const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -125,6 +126,10 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) =>
       setDuration(video.duration);
     };
 
+    const handleEnded = () => {
+      onEnded?.();
+    };
+
     video.addEventListener("play", handlePlay);
     video.addEventListener("pause", handlePause);
     video.addEventListener("waiting", handleWaiting);
@@ -132,6 +137,7 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) =>
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("durationchange", handleDurationChange);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("ended", handleEnded);
 
     return () => {
       video.removeEventListener("play", handlePlay);
@@ -141,8 +147,9 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal" }: VideoPlayerProps) =>
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("durationchange", handleDurationChange);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("ended", handleEnded);
     };
-  }, []);
+  }, [onEnded]);
 
   const togglePlay = () => {
     const video = videoRef.current;
