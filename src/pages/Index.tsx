@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import EmbedPlayer from "@/components/EmbedPlayer";
 import VideoPlayer from "@/components/VideoPlayer";
 import ChannelList from "@/components/ChannelList";
@@ -6,7 +7,8 @@ import CategoryTabs from "@/components/CategoryTabs";
 import { SidebarAd, BelowPlayerAd } from "@/components/ads";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
 import { useActiveAds } from "@/hooks/useAds";
-import { Tv } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tv, Lock } from "lucide-react";
 
 // Helper para verificar se tem URLs de stream válidas (não placeholder)
 const hasValidStreamUrls = (urls: string[]) => {
@@ -16,6 +18,7 @@ const hasValidStreamUrls = (urls: string[]) => {
 const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
 
 const Index = () => {
+  const navigate = useNavigate();
   const { channels, loading } = useChannels();
   const { getSidebarAd, getBelowPlayerAd, getPrerollAd } = useActiveAds();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
@@ -104,6 +107,17 @@ const Index = () => {
               onSelectCategory={handleCategoryChange}
             />
           </div>
+
+          {/* Premium Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/premium")}
+            className="flex-shrink-0 hidden sm:flex"
+          >
+            <Lock className="w-4 h-4 mr-2" />
+            Premium
+          </Button>
         </div>
       </div>
 

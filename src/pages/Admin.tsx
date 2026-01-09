@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tv, LogOut, ArrowLeft, Plus, Megaphone } from "lucide-react";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film } from "lucide-react";
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
 import { AdForm } from "@/components/admin/AdForm";
 import { AdList } from "@/components/admin/AdList";
+import PremiumContentList from "@/components/admin/PremiumContentList";
 
 interface Channel {
   id: string;
@@ -183,7 +184,7 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="channels" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="channels" className="flex items-center gap-2">
                 <Tv className="w-4 h-4" />
                 Canais
@@ -191,6 +192,10 @@ const Admin = () => {
               <TabsTrigger value="ads" className="flex items-center gap-2">
                 <Megaphone className="w-4 h-4" />
                 Anúncios
+              </TabsTrigger>
+              <TabsTrigger value="premium" className="flex items-center gap-2">
+                <Film className="w-4 h-4" />
+                Premium
               </TabsTrigger>
             </TabsList>
 
@@ -231,6 +236,11 @@ const Admin = () => {
                 onEdit={handleEditAd}
                 onRefresh={refetchAds}
               />
+            </TabsContent>
+
+            {/* Tab de Conteúdo Premium */}
+            <TabsContent value="premium" className="space-y-6">
+              <PremiumContentList />
             </TabsContent>
           </Tabs>
         </div>

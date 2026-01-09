@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
 import Install from "./pages/Install";
+import Premium from "./pages/Premium";
+import PremiumLogin from "./pages/PremiumLogin";
+import PremiumWatch from "./pages/PremiumWatch";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +27,9 @@ const App = () => (
             <Route path="/admin" element={<Admin />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/install" element={<Install />} />
+            <Route path="/premium" element={<Premium />} />
+            <Route path="/premium/login" element={<PremiumLogin />} />
+            <Route path="/premium/watch/:id" element={<PremiumWatch />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
