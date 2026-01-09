@@ -98,7 +98,15 @@ export const DesktopLessonPlayer = ({
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
+        lowLatencyMode: false,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        maxBufferSize: 60 * 1000 * 1000,
+        maxBufferHole: 0.5,
+        highBufferWatchdogPeriod: 2,
+        startLevel: -1,
+        abrEwmaDefaultEstimate: 500000,
+        backBufferLength: 30,
       });
 
       hls.loadSource(currentUrl);
