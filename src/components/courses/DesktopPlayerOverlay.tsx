@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Maximize2, Minimize2 } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, Volume1, SkipForward, SkipBack, Maximize2, Minimize2 } from "lucide-react";
 import { useState, useRef } from "react";
 
 interface DesktopPlayerOverlayProps {
@@ -288,18 +288,8 @@ export const DesktopPlayerOverlay = ({
             <span className="text-white/80 text-sm truncate">{lessonTitle}</span>
           </div>
 
-          {/* Right side: Completed indicator, Speed, Fullscreen */}
+          {/* Right side: Speed, Fullscreen */}
           <div className="flex items-center gap-1">
-            {/* Completion indicator - read only */}
-            {isCompleted && (
-              <div 
-                className="w-9 h-9 rounded-full flex items-center justify-center bg-green-500"
-                title="Aula concluída"
-              >
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
-            )}
-
             {/* Playback Speed */}
             {!isLive && (
               <div className="relative">
