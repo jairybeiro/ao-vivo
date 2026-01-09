@@ -31,6 +31,7 @@ const CourseView = () => {
 
   const [currentLesson, setCurrentLesson] = useState<CourseLesson | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userExitedPlayer, setUserExitedPlayer] = useState(false);
   const isMobile = useIsMobile();
 
   // Ordenar todas as aulas em sequência
@@ -44,8 +45,9 @@ const CourseView = () => {
   }, [modules, lessons]);
 
   // Definir aula inicial: prioriza aula com progresso parcial, depois primeira não concluída
+  // Só define automaticamente se o usuário NÃO saiu intencionalmente do player
   useEffect(() => {
-    if (!currentLesson && allLessonsOrdered.length > 0) {
+    if (!currentLesson && allLessonsOrdered.length > 0 && !userExitedPlayer) {
       // 1. Procurar aula com progresso parcial (segundos assistidos > 0 e não concluída)
       const lessonInProgress = allLessonsOrdered.find((l) => {
         const watchedSeconds = getWatchedSeconds(l.id);
@@ -68,7 +70,7 @@ const CourseView = () => {
       // 3. Se todas estiverem concluídas, voltar para a primeira
       setCurrentLesson(allLessonsOrdered[0]);
     }
-  }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted]);
+  }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted, userExitedPlayer]);
 
   // Redirecionar se não autenticado
   useEffect(() => {
@@ -111,11 +113,13 @@ const CourseView = () => {
   }, [currentLesson, markLessonComplete]);
 
   const handleSelectLesson = useCallback((lesson: CourseLesson) => {
+    setUserExitedPlayer(false);
     setCurrentLesson(lesson);
     setSidebarOpen(false);
   }, []);
 
   const handleBackFromMobile = useCallback(() => {
+    setUserExitedPlayer(true);
     setCurrentLesson(null);
   }, []);
 
