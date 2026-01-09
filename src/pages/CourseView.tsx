@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useCourseDetails, CourseLesson } from "@/hooks/useCourses";
 import { useAuth } from "@/hooks/useAuth";
 import { ModuleAccordion } from "@/components/courses/ModuleAccordion";
-import { LessonPlayer } from "@/components/courses/LessonPlayer";
+import { DesktopLessonPlayer } from "@/components/courses/DesktopLessonPlayer";
 import { MobileLessonPlayer } from "@/components/courses/MobileLessonPlayer";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -196,6 +196,38 @@ const CourseView = () => {
     );
   }
 
+  // Desktop: fullscreen player mode
+  if (!isMobile && currentLesson) {
+    return (
+      <div className="min-h-screen bg-black flex">
+        {/* Sidebar Desktop - can be toggled */}
+        <aside className="hidden lg:flex w-80 border-r border-white/10 flex-col bg-card/95 backdrop-blur">
+          <SidebarContent />
+        </aside>
+
+        {/* Player */}
+        <main className="flex-1 h-screen">
+          <DesktopLessonPlayer
+            key={currentLesson.id}
+            lesson={currentLesson}
+            courseName={course.title}
+            isCompleted={isLessonCompleted(currentLesson.id)}
+            hasNext={hasNext}
+            hasPrevious={hasPrevious}
+            nextLessonTitle={nextLesson?.title}
+            initialTime={getWatchedSeconds(currentLesson.id)}
+            onComplete={handleComplete}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onTimeUpdate={handleTimeUpdate}
+            onBack={() => navigate("/premium")}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  // Default: course overview (no lesson selected)
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar Desktop */}
@@ -219,31 +251,13 @@ const CourseView = () => {
           </Sheet>
           <div className="flex-1 min-w-0">
             <p className="text-sm text-muted-foreground truncate">{course.title}</p>
-            <p className="font-medium truncate">{currentLesson?.title || "Selecione uma aula"}</p>
+            <p className="font-medium truncate">Selecione uma aula</p>
           </div>
         </header>
 
-        {/* Player */}
-        <div className="flex-1">
-          {currentLesson ? (
-            <LessonPlayer
-              key={currentLesson.id}
-              lesson={currentLesson}
-              isCompleted={isLessonCompleted(currentLesson.id)}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              nextLessonTitle={nextLesson?.title}
-              initialTime={getWatchedSeconds(currentLesson.id)}
-              onComplete={handleComplete}
-              onNext={handleNext}
-              onPrevious={handlePrevious}
-              onTimeUpdate={handleTimeUpdate}
-            />
-          ) : (
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              Selecione uma aula para começar
-            </div>
-          )}
+        {/* Content area */}
+        <div className="flex-1 flex items-center justify-center text-muted-foreground">
+          Selecione uma aula para começar
         </div>
       </main>
     </div>
