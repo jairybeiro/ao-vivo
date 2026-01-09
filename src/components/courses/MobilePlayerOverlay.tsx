@@ -1,11 +1,10 @@
-import { ArrowLeft, ArrowRight, CheckCircle, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, X, Maximize2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft, CheckCircle, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, SkipForward } from "lucide-react";
 
 interface MobilePlayerOverlayProps {
   // Lesson info
   lessonTitle: string;
-  lessonDescription?: string;
   courseName: string;
+  moduleName?: string;
   
   // Player state
   isPlaying: boolean;
@@ -18,7 +17,6 @@ interface MobilePlayerOverlayProps {
   
   // Navigation
   hasNext: boolean;
-  hasPrevious: boolean;
   isCompleted: boolean;
   
   // Visibility
@@ -31,23 +29,21 @@ interface MobilePlayerOverlayProps {
   onSkipForward: () => void;
   onSkipBackward: () => void;
   onNext: () => void;
-  onPrevious: () => void;
   onComplete: () => void;
   onBack: () => void;
-  onToggleFullscreen: () => void;
 }
 
 const formatTime = (time: number) => {
-  if (!isFinite(time)) return "0:00";
+  if (!isFinite(time)) return "00:00";
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time % 60);
-  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
 export const MobilePlayerOverlay = ({
   lessonTitle,
-  lessonDescription,
   courseName,
+  moduleName,
   isPlaying,
   isLive,
   isMuted,
@@ -56,7 +52,6 @@ export const MobilePlayerOverlay = ({
   bufferedPercent,
   progressPercent,
   hasNext,
-  hasPrevious,
   isCompleted,
   visible,
   onTogglePlay,
@@ -65,10 +60,8 @@ export const MobilePlayerOverlay = ({
   onSkipForward,
   onSkipBackward,
   onNext,
-  onPrevious,
   onComplete,
   onBack,
-  onToggleFullscreen,
 }: MobilePlayerOverlayProps) => {
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -85,164 +78,135 @@ export const MobilePlayerOverlay = ({
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      {/* Top gradient */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/80 to-transparent pointer-events-none" />
-      
-      {/* Bottom gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
-
-      {/* Top bar - Course name, lesson title, back button */}
+      {/* Top - Back button only */}
       <div className="relative z-10 p-4 pt-safe">
-        <div className="flex items-start gap-3">
-          <button
-            onClick={onBack}
-            className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center shrink-0"
-          >
-            <X className="w-5 h-5 text-white" />
-          </button>
-          <div className="flex-1 min-w-0">
-            <p className="text-white/70 text-xs truncate">{courseName}</p>
-            <h3 className="text-white font-semibold text-sm truncate">{lessonTitle}</h3>
-            {lessonDescription && (
-              <p className="text-white/60 text-xs mt-0.5 line-clamp-1">{lessonDescription}</p>
-            )}
-          </div>
-          <button
-            onClick={onToggleFullscreen}
-            className="w-10 h-10 rounded-full bg-black/50 flex items-center justify-center shrink-0"
-          >
-            <Maximize2 className="w-5 h-5 text-white" />
-          </button>
-        </div>
-      </div>
-
-      {/* Center controls - Play/Pause and skip */}
-      <div className="relative z-10 flex items-center justify-center gap-8">
-        {/* Skip Backward */}
-        {!isLive && (
-          <button
-            onClick={onSkipBackward}
-            className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center"
-          >
-            <div className="relative">
-              <RotateCcw className="w-6 h-6 text-white" />
-              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white mt-0.5">10</span>
-            </div>
-          </button>
-        )}
-
-        {/* Play/Pause */}
         <button
-          onClick={onTogglePlay}
-          className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+          onClick={onBack}
+          className="w-10 h-10 flex items-center justify-center"
         >
-          {isPlaying ? (
-            <Pause className="w-8 h-8 text-white" />
-          ) : (
-            <Play className="w-8 h-8 text-white ml-1" />
-          )}
+          <ArrowLeft className="w-6 h-6 text-white" />
         </button>
-
-        {/* Skip Forward */}
-        {!isLive && (
-          <button
-            onClick={onSkipForward}
-            className="w-12 h-12 rounded-full bg-black/50 flex items-center justify-center"
-          >
-            <div className="relative">
-              <RotateCw className="w-6 h-6 text-white" />
-              <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white mt-0.5">10</span>
-            </div>
-          </button>
-        )}
       </div>
 
-      {/* Bottom section - Progress, navigation, completion */}
-      <div className="relative z-10 p-4 pb-safe space-y-3">
-        {/* Progress bar */}
+      {/* Center - empty space for tapping */}
+      <div className="flex-1" />
+
+      {/* Bottom section - Full width progress bar and controls */}
+      <div className="relative z-10">
+        {/* Progress bar - full width at the bottom */}
         {!isLive && (
           <div
-            className="w-full h-8 flex items-center cursor-pointer"
+            className="w-full h-6 flex items-end cursor-pointer px-0"
             onClick={handleProgressClick}
             onTouchStart={handleProgressClick}
           >
-            <div className="relative w-full h-1.5 bg-white/30 rounded-full overflow-hidden">
+            <div className="relative w-full h-[3px] bg-white/30 overflow-hidden">
               {/* Buffered */}
               <div
-                className="absolute top-0 left-0 h-full bg-white/50 rounded-full"
+                className="absolute top-0 left-0 h-full bg-white/40"
                 style={{ width: `${bufferedPercent}%` }}
               />
-              {/* Progress */}
+              {/* Progress - red like the reference */}
               <div
-                className="absolute top-0 left-0 h-full bg-primary rounded-full"
+                className="absolute top-0 left-0 h-full bg-red-600"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
           </div>
         )}
 
-        {/* Time and controls row */}
-        <div className="flex items-center justify-between gap-2">
-          {/* Time display */}
-          <div className="text-white text-xs font-medium min-w-[80px]">
-            {isLive ? (
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                AO VIVO
-              </span>
-            ) : (
-              <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+        {/* Controls bar */}
+        <div className="flex items-center justify-between gap-1 px-3 py-2 pb-safe bg-gradient-to-t from-black/80 to-transparent">
+          {/* Left side: Play, Skip back, Skip forward, Volume */}
+          <div className="flex items-center gap-1">
+            {/* Play/Pause */}
+            <button
+              onClick={onTogglePlay}
+              className="w-10 h-10 flex items-center justify-center"
+            >
+              {isPlaying ? (
+                <Pause className="w-6 h-6 text-white" fill="white" />
+              ) : (
+                <Play className="w-6 h-6 text-white" fill="white" />
+              )}
+            </button>
+
+            {/* Skip Backward */}
+            {!isLive && (
+              <button
+                onClick={onSkipBackward}
+                className="w-9 h-9 flex items-center justify-center relative"
+              >
+                <RotateCcw className="w-5 h-5 text-white" />
+                <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white mt-0.5">10</span>
+              </button>
             )}
+
+            {/* Skip Forward */}
+            {!isLive && (
+              <button
+                onClick={onSkipForward}
+                className="w-9 h-9 flex items-center justify-center relative"
+              >
+                <RotateCw className="w-5 h-5 text-white" />
+                <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white mt-0.5">10</span>
+              </button>
+            )}
+
+            {/* Volume */}
+            <button
+              onClick={onToggleMute}
+              className="w-9 h-9 flex items-center justify-center"
+            >
+              <VolumeIcon className="w-5 h-5 text-white" />
+            </button>
+
+            {/* Time display */}
+            <div className="text-white text-xs font-medium ml-1">
+              {isLive ? (
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  AO VIVO
+                </span>
+              ) : (
+                <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+              )}
+            </div>
           </div>
 
-          {/* Volume */}
-          <button
-            onClick={onToggleMute}
-            className="w-9 h-9 rounded-full bg-black/50 flex items-center justify-center"
-          >
-            <VolumeIcon className="w-4 h-4 text-white" />
-          </button>
-        </div>
+          {/* Center: Module name + Lesson title */}
+          <div className="flex-1 flex items-center justify-center gap-2 mx-2 min-w-0">
+            {moduleName && (
+              <span className="text-white font-bold text-xs shrink-0">{moduleName}</span>
+            )}
+            <span className="text-white/80 text-xs truncate">{lessonTitle}</span>
+          </div>
 
-        {/* Navigation and completion */}
-        <div className="flex items-center justify-between gap-2 pt-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onPrevious}
-            disabled={!hasPrevious}
-            className="text-white hover:bg-white/20 gap-1 h-9 px-3"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-xs">Anterior</span>
-          </Button>
-
-          {isCompleted ? (
-            <div className="flex items-center gap-1 text-green-400">
-              <CheckCircle className="w-4 h-4" />
-              <span className="text-xs">Concluída</span>
-            </div>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
+          {/* Right side: Complete, Next */}
+          <div className="flex items-center gap-1">
+            {/* Complete button */}
+            <button
               onClick={onComplete}
-              className="text-white/80 hover:bg-white/20 hover:text-white gap-1 h-9 px-2"
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                isCompleted 
+                  ? "bg-green-500" 
+                  : "bg-white/20 hover:bg-white/30"
+              }`}
             >
-              <CheckCircle className="w-4 h-4" />
-              <span className="text-xs">Concluir</span>
-            </Button>
-          )}
+              <CheckCircle className={`w-4 h-4 ${isCompleted ? "text-white" : "text-white/80"}`} />
+            </button>
 
-          <Button
-            size="sm"
-            onClick={onNext}
-            disabled={!hasNext}
-            className="gap-1 h-9 px-3"
-          >
-            <span className="text-xs">Próxima</span>
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+            {/* Next button - icon only */}
+            <button
+              onClick={onNext}
+              disabled={!hasNext}
+              className={`w-9 h-9 flex items-center justify-center ${
+                hasNext ? "text-white" : "text-white/30"
+              }`}
+            >
+              <SkipForward className="w-5 h-5" fill={hasNext ? "white" : "rgba(255,255,255,0.3)"} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
