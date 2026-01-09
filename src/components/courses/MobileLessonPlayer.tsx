@@ -47,6 +47,7 @@ export const MobileLessonPlayer = ({
   const hideControlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastSavedTimeRef = useRef<number>(0);
   const hasSetInitialTime = useRef(false);
+  const initialTimeRef = useRef<number>(0);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +91,16 @@ export const MobileLessonPlayer = ({
       hlsRef.current = null;
     }
 
+    const seekToInitialTimeIfNeeded = () => {
+      const t = initialTimeRef.current;
+      if (t > 0 && !hasSetInitialTime.current) {
+        video.currentTime = t;
+        hasSetInitialTime.current = true;
+        // Avoid immediately re-saving the same timestamp
+        lastSavedTimeRef.current = t;
+      }
+    };
+
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
@@ -109,10 +120,7 @@ export const MobileLessonPlayer = ({
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLoading(false);
-        if (initialTime > 0 && !hasSetInitialTime.current) {
-          video.currentTime = initialTime;
-          hasSetInitialTime.current = true;
-        }
+        seekToInitialTimeIfNeeded();
         video.play().catch(() => setIsPlaying(false));
       });
 
@@ -127,10 +135,7 @@ export const MobileLessonPlayer = ({
       video.src = currentUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLoading(false);
-        if (initialTime > 0 && !hasSetInitialTime.current) {
-          video.currentTime = initialTime;
-          hasSetInitialTime.current = true;
-        }
+        seekToInitialTimeIfNeeded();
         video.play().catch(() => setIsPlaying(false));
       });
       video.addEventListener("error", () => tryNextUrl());
@@ -138,12 +143,14 @@ export const MobileLessonPlayer = ({
       setError("Seu navegador não suporta HLS");
       setIsLoading(false);
     }
-  }, [currentUrl, tryNextUrl, initialTime, useEmbed]);
+  }, [currentUrl, tryNextUrl, useEmbed]);
 
   useEffect(() => {
     setCurrentUrlIndex(0);
     hasSetInitialTime.current = false;
-  }, [lesson.id]);
+    initialTimeRef.current = initialTime;
+    lastSavedTimeRef.current = initialTime;
+  }, [lesson.id, initialTime]);
 
   useEffect(() => {
     if (useVideoPlayer) {
