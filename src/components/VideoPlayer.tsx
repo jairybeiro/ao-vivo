@@ -8,9 +8,19 @@ interface VideoPlayerProps {
   onEnded?: () => void;
   initialTime?: number;
   onTimeUpdate?: (currentTime: number) => void;
+  isVertical?: boolean;
+  onAspectRatioDetected?: (isVertical: boolean) => void;
 }
 
-const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded, initialTime = 0, onTimeUpdate }: VideoPlayerProps) => {
+const VideoPlayer = ({ 
+  streamUrls, 
+  channelName = "Canal", 
+  onEnded, 
+  initialTime = 0, 
+  onTimeUpdate,
+  isVertical = false,
+  onAspectRatioDetected 
+}: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -145,6 +155,12 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded, initialTime =
     };
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
+      // Detect vertical video based on aspect ratio
+      if (video.videoWidth && video.videoHeight) {
+        const aspectRatio = video.videoWidth / video.videoHeight;
+        const isVerticalVideo = aspectRatio < 1; // Width less than height = vertical
+        onAspectRatioDetected?.(isVerticalVideo);
+      }
     };
 
     const handleEnded = () => {
@@ -300,14 +316,16 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded, initialTime =
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-video bg-player-overlay rounded-lg lg:rounded-lg overflow-hidden group"
+      className={`relative w-full bg-player-overlay rounded-lg lg:rounded-lg overflow-hidden group ${
+        isVertical ? 'aspect-[9/16] max-h-[80vh] mx-auto' : 'aspect-video'
+      }`}
       onMouseMove={handleInteraction}
       onMouseLeave={handleMouseLeave}
       onTouchStart={handleInteraction}
     >
       <video
         ref={videoRef}
-        className="w-full h-full object-contain"
+        className={`w-full h-full ${isVertical ? 'object-cover' : 'object-contain'}`}
         playsInline
         muted
         autoPlay

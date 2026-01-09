@@ -4,8 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePremiumContent, type PremiumContent } from "@/hooks/usePremiumContent";
 import EmbedPlayer from "@/components/EmbedPlayer";
 import VideoPlayer from "@/components/VideoPlayer";
+import { VerticalVideoContainer } from "@/components/vertical";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Tv } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const hasValidStreamUrls = (urls: string[]) => {
   return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.endsWith(".m3u8"));
@@ -17,6 +19,8 @@ const PremiumWatch = () => {
   const { user, loading: authLoading } = useAuth();
   const { content, loading } = usePremiumContent();
   const [currentContent, setCurrentContent] = useState<PremiumContent | null>(null);
+  const [isVerticalVideo, setIsVerticalVideo] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -84,7 +88,7 @@ const PremiumWatch = () => {
 
       {/* Player */}
       <main className="flex-1 flex items-center justify-center p-3 md:p-6">
-        <div className="w-full max-w-6xl">
+        <div className={`w-full ${isVerticalVideo ? 'max-w-md' : 'max-w-6xl'}`}>
           {currentContent.embedUrl ? (
             <EmbedPlayer
               embedUrl={currentContent.embedUrl}
@@ -94,6 +98,8 @@ const PremiumWatch = () => {
             <VideoPlayer
               streamUrls={currentContent.streamUrls.filter(url => url.endsWith(".m3u8"))}
               channelName={currentContent.title}
+              isVertical={isVerticalVideo}
+              onAspectRatioDetected={(isVertical) => setIsVerticalVideo(isVertical)}
             />
           ) : (
             <div className="aspect-video bg-card rounded-lg flex items-center justify-center">
