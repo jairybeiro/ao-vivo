@@ -1,14 +1,22 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { usePremiumContent } from "@/hooks/usePremiumContent";
+import { usePremiumContent, usePremiumContentAdmin, type PremiumContent } from "@/hooks/usePremiumContent";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, Lock, LogOut } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import PremiumContentForm from "@/components/admin/PremiumContentForm";
+import { ArrowLeft, Play, Lock, LogOut, Plus, Pencil, Trash2, Settings } from "lucide-react";
+import { toast } from "sonner";
 
 const Premium = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading, signOut } = useAuth();
-  const { content, loading } = usePremiumContent();
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
+  const { content, loading, refetch } = usePremiumContent();
+  const { createContent, updateContent, deleteContent } = usePremiumContentAdmin();
+  
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingContent, setEditingContent] = useState<PremiumContent | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -19,6 +27,56 @@ const Premium = () => {
   const handleLogout = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleCreate = async (data: Omit<PremiumContent, "id" | "createdAt" | "updatedAt">) => {
+    try {
+      await createContent(data);
+      toast.success("Conteúdo criado com sucesso!");
+      setIsDialogOpen(false);
+      refetch();
+    } catch {
+      toast.error("Erro ao criar conteúdo");
+    }
+  };
+
+  const handleUpdate = async (data: Omit<PremiumContent, "id" | "createdAt" | "updatedAt">) => {
+    if (!editingContent) return;
+    try {
+      await updateContent(editingContent.id, data);
+      toast.success("Conteúdo atualizado com sucesso!");
+      setEditingContent(null);
+      setIsDialogOpen(false);
+      refetch();
+    } catch {
+      toast.error("Erro ao atualizar conteúdo");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Deseja realmente excluir este conteúdo?")) return;
+    try {
+      await deleteContent(id);
+      toast.success("Conteúdo excluído com sucesso!");
+      refetch();
+    } catch {
+      toast.error("Erro ao excluir conteúdo");
+    }
+  };
+
+  const openCreateDialog = () => {
+    setEditingContent(null);
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (item: PremiumContent) => {
+    setEditingContent(item);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setEditingContent(null);
+    setIsDialogOpen(false);
   };
 
   if (authLoading) {
@@ -49,10 +107,30 @@ const Premium = () => {
               <h1 className="text-xl font-bold">Conteúdo Premium</h1>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <>
+                <Button
+                  variant={isEditMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEditMode(!isEditMode)}
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  {isEditMode ? "Modo Visualização" : "Modo Admin"}
+                </Button>
+                {isEditMode && (
+                  <Button size="sm" onClick={openCreateDialog}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo
+                  </Button>
+                )}
+              </>
+            )}
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -71,57 +149,105 @@ const Premium = () => {
           <div className="text-center py-16">
             <Lock className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Nenhum conteúdo disponível</h2>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Novos conteúdos serão adicionados em breve.
             </p>
+            {isAdmin && (
+              <Button onClick={openCreateDialog}>
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Conteúdo
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {content.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => navigate(`/premium/watch/${item.id}`)}
-                className="group relative aspect-video rounded-lg overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl text-left"
-              >
-                {/* Thumbnail */}
-                {item.thumbnailUrl ? (
-                  <img
-                    src={item.thumbnailUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                    <Lock className="w-8 h-8 text-primary/50" />
+              <div key={item.id} className="relative group">
+                <button
+                  onClick={() => !isEditMode && navigate(`/premium/watch/${item.id}`)}
+                  disabled={isEditMode}
+                  className="w-full relative aspect-video rounded-lg overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl text-left disabled:hover:scale-100"
+                >
+                  {/* Thumbnail */}
+                  {item.thumbnailUrl ? (
+                    <img
+                      src={item.thumbnailUrl}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                      <Lock className="w-8 h-8 text-primary/50" />
+                    </div>
+                  )}
+
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+
+                  {/* Play Button - only show when not in edit mode */}
+                  {!isEditMode && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300">
+                        <Play className="w-6 h-6 text-primary-foreground ml-1" />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Title & Description */}
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <h3 className="font-semibold text-white text-sm line-clamp-1 mb-1">
+                      {item.title}
+                    </h3>
+                    {item.description && (
+                      <p className="text-white/70 text-xs line-clamp-2">
+                        {item.description}
+                      </p>
+                    )}
+                  </div>
+                </button>
+
+                {/* Admin Controls Overlay */}
+                {isAdmin && isEditMode && (
+                  <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => openEditDialog(item)}
+                    >
+                      <Pencil className="w-4 h-4 mr-1" />
+                      Editar
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-1" />
+                      Excluir
+                    </Button>
                   </div>
                 )}
-
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
-
-                {/* Play Button */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300">
-                    <Play className="w-6 h-6 text-primary-foreground ml-1" />
-                  </div>
-                </div>
-
-                {/* Title & Description */}
-                <div className="absolute bottom-0 left-0 right-0 p-3">
-                  <h3 className="font-semibold text-white text-sm line-clamp-1 mb-1">
-                    {item.title}
-                  </h3>
-                  {item.description && (
-                    <p className="text-white/70 text-xs line-clamp-2">
-                      {item.description}
-                    </p>
-                  )}
-                </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
       </main>
+
+      {/* Admin Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingContent ? "Editar Conteúdo" : "Novo Conteúdo"}
+            </DialogTitle>
+          </DialogHeader>
+          <PremiumContentForm
+            content={editingContent}
+            onSubmit={editingContent ? handleUpdate : handleCreate}
+            onCancel={closeDialog}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
