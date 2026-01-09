@@ -59,6 +59,7 @@ export const MobileLessonPlayer = ({
   const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
   const [showAutoPlay, setShowAutoPlay] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   const streamUrls = lesson.streamUrls || [];
   const currentUrl = streamUrls[currentUrlIndex];
@@ -257,15 +258,37 @@ export const MobileLessonPlayer = ({
     }, 4000);
   };
 
-  const toggleFullscreen = async () => {
+  const toggleFullscreen = useCallback(async () => {
     const container = containerRef.current;
-    if (!container) return;
+    const video = videoRef.current;
+    if (!container && !video) return;
 
     try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
+      // Check if already in fullscreen
+      const isCurrentlyFullscreen = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement
+      );
+
+      if (isCurrentlyFullscreen) {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        }
+        setIsFullscreen(false);
       } else {
-        await container.requestFullscreen();
+        // Try container first, then video element (for iOS)
+        const element = container || video;
+        if (element?.requestFullscreen) {
+          await element.requestFullscreen();
+        } else if ((element as any)?.webkitRequestFullscreen) {
+          await (element as any).webkitRequestFullscreen();
+        } else if ((video as any)?.webkitEnterFullscreen) {
+          // iOS Safari native fullscreen for video
+          await (video as any).webkitEnterFullscreen();
+        }
+        setIsFullscreen(true);
         // Try to lock to landscape on supported devices
         try {
           await (screen.orientation as any).lock?.("landscape");
@@ -276,7 +299,26 @@ export const MobileLessonPlayer = ({
     } catch (err) {
       console.log("Fullscreen error:", err);
     }
-  };
+  }, []);
+
+  // Listen for fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFs = !!(
+        document.fullscreenElement ||
+        (document as any).webkitFullscreenElement
+      );
+      setIsFullscreen(isFs);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener("webkitfullscreenchange", handleFullscreenChange);
+    };
+  }, []);
 
   const handleAutoPlayContinue = useCallback(() => {
     setShowAutoPlay(false);
@@ -385,6 +427,7 @@ export const MobileLessonPlayer = ({
         duration={duration}
         bufferedPercent={bufferedPercent}
         progressPercent={progressPercent}
+        isFullscreen={isFullscreen}
         hasNext={hasNext}
         isCompleted={isCompleted}
         visible={showControls || !isPlaying}
@@ -396,6 +439,7 @@ export const MobileLessonPlayer = ({
         onNext={onNext}
         onComplete={onComplete}
         onBack={onBack}
+        onToggleFullscreen={toggleFullscreen}
       />
 
       {/* Auto-play overlay */}
