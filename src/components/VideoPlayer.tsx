@@ -155,7 +155,15 @@ const VideoPlayer = ({
     };
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
-      // Detect vertical video based on aspect ratio
+      detectAspectRatio();
+    };
+    
+    // Fallback for Safari/iOS which may not have dimensions ready at loadedmetadata
+    const handleLoadedData = () => {
+      detectAspectRatio();
+    };
+    
+    const detectAspectRatio = () => {
       if (video.videoWidth && video.videoHeight) {
         const aspectRatio = video.videoWidth / video.videoHeight;
         const isVerticalVideo = aspectRatio < 1; // Width less than height = vertical
@@ -174,6 +182,7 @@ const VideoPlayer = ({
     video.addEventListener("timeupdate", handleTimeUpdate);
     video.addEventListener("durationchange", handleDurationChange);
     video.addEventListener("loadedmetadata", handleLoadedMetadata);
+    video.addEventListener("loadeddata", handleLoadedData);
     video.addEventListener("ended", handleEnded);
 
     return () => {
@@ -184,9 +193,10 @@ const VideoPlayer = ({
       video.removeEventListener("timeupdate", handleTimeUpdate);
       video.removeEventListener("durationchange", handleDurationChange);
       video.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      video.removeEventListener("loadeddata", handleLoadedData);
       video.removeEventListener("ended", handleEnded);
     };
-  }, [onEnded]);
+  }, [onEnded, onAspectRatioDetected]);
 
   const togglePlay = () => {
     const video = videoRef.current;
