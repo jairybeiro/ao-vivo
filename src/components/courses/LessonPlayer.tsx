@@ -47,51 +47,53 @@ export const LessonPlayer = ({
         )}
       </div>
 
-      {/* Info e controles */}
+      {/* Info e controles - tudo em uma linha */}
       <div className="p-4 bg-card border-t">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-xl font-semibold">{lesson.title}</h2>
-            {lesson.description && (
-              <p className="text-muted-foreground mt-1">{lesson.description}</p>
-            )}
-          </div>
-          {isCompleted && (
-            <div className="flex items-center gap-2 text-green-500 flex-shrink-0">
-              <CheckCircle className="w-5 h-5" />
-              <span className="text-sm">Concluída</span>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          {/* Esquerda: Título, descrição e botão anterior */}
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <h2 className="text-lg font-semibold">{lesson.title}</h2>
+              {lesson.description && (
+                <p className="text-sm text-muted-foreground">{lesson.description}</p>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Navegação */}
-        <div className="flex items-center justify-between gap-3">
-          <Button
-            variant="outline"
-            onClick={onPrevious}
-            disabled={!hasPrevious}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Anterior
-          </Button>
-
-          {!isCompleted && (
-            <Button onClick={onComplete} className="gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Marcar como concluída
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onPrevious}
+              disabled={!hasPrevious}
+              className="gap-1"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Anterior
             </Button>
-          )}
+          </div>
 
-          <Button
-            variant={hasNext ? "default" : "outline"}
-            onClick={onNext}
-            disabled={!hasNext}
-            className="gap-2"
-          >
-            Próxima
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+          {/* Direita: Status/Marcar concluída e botão próxima */}
+          <div className="flex items-center gap-3">
+            {isCompleted ? (
+              <div className="flex items-center gap-1.5 text-green-500">
+                <CheckCircle className="w-4 h-4" />
+                <span className="text-sm">Concluída</span>
+              </div>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={onComplete} className="gap-1.5 text-muted-foreground hover:text-foreground">
+                <CheckCircle className="w-4 h-4" />
+                Marcar concluída
+              </Button>
+            )}
+
+            <Button
+              size="sm"
+              onClick={onNext}
+              disabled={!hasNext}
+              className="gap-1"
+            >
+              Próxima
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
