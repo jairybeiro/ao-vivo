@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, SkipForward } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, SkipForward } from "lucide-react";
 
 interface MobilePlayerOverlayProps {
   // Lesson info
@@ -81,8 +81,11 @@ export const MobilePlayerOverlay = ({
       {/* Top - Back button only */}
       <div className="relative z-10 p-4 pt-safe">
         <button
-          onClick={onBack}
-          className="w-10 h-10 flex items-center justify-center"
+          onClick={(e) => {
+            e.stopPropagation();
+            onBack();
+          }}
+          className="w-10 h-10 flex items-center justify-center bg-black/30 rounded-full"
         >
           <ArrowLeft className="w-6 h-6 text-white" />
         </button>
@@ -182,15 +185,8 @@ export const MobilePlayerOverlay = ({
             <span className="text-white/80 text-xs truncate">{lessonTitle}</span>
           </div>
 
-          {/* Right side: Next only (completion is automatic) */}
-          <div className="flex items-center gap-1">
-            {/* Completion indicator - read only */}
-            {isCompleted && (
-              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-500">
-                <CheckCircle className="w-4 h-4 text-white" />
-              </div>
-            )}
-
+          {/* Right side: Next only */}
+          <div className="flex items-center">
             {/* Next button - icon only */}
             <button
               onClick={onNext}
