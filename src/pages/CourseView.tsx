@@ -56,6 +56,45 @@ const CourseView = () => {
     }
   }, [authLoading, user, navigate]);
 
+  // Calculate navigation helpers
+  const currentIndex = currentLesson
+    ? allLessonsOrdered.findIndex((l) => l.id === currentLesson.id)
+    : -1;
+  const hasNext = currentIndex >= 0 && currentIndex < allLessonsOrdered.length - 1;
+  const hasPrevious = currentIndex > 0;
+  const nextLesson = hasNext ? allLessonsOrdered[currentIndex + 1] : null;
+
+  // Callbacks - must be before any returns
+  const handleTimeUpdate = useCallback((currentTime: number) => {
+    if (currentLesson) {
+      saveWatchedSeconds(currentLesson.id, currentTime);
+    }
+  }, [currentLesson, saveWatchedSeconds]);
+
+  const handleNext = useCallback(() => {
+    if (hasNext) {
+      setCurrentLesson(allLessonsOrdered[currentIndex + 1]);
+    }
+  }, [hasNext, allLessonsOrdered, currentIndex]);
+
+  const handlePrevious = useCallback(() => {
+    if (hasPrevious) {
+      setCurrentLesson(allLessonsOrdered[currentIndex - 1]);
+    }
+  }, [hasPrevious, allLessonsOrdered, currentIndex]);
+
+  const handleComplete = useCallback(async () => {
+    if (currentLesson) {
+      await markLessonComplete(currentLesson.id);
+    }
+  }, [currentLesson, markLessonComplete]);
+
+  const handleSelectLesson = useCallback((lesson: CourseLesson) => {
+    setCurrentLesson(lesson);
+    setSidebarOpen(false);
+  }, []);
+
+  // Loading states - after all hooks
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -74,42 +113,6 @@ const CourseView = () => {
       </div>
     );
   }
-
-  const currentIndex = currentLesson
-    ? allLessonsOrdered.findIndex((l) => l.id === currentLesson.id)
-    : -1;
-  const hasNext = currentIndex < allLessonsOrdered.length - 1;
-  const hasPrevious = currentIndex > 0;
-  const nextLesson = hasNext ? allLessonsOrdered[currentIndex + 1] : null;
-
-  const handleNext = () => {
-    if (hasNext) {
-      setCurrentLesson(allLessonsOrdered[currentIndex + 1]);
-    }
-  };
-
-  const handlePrevious = () => {
-    if (hasPrevious) {
-      setCurrentLesson(allLessonsOrdered[currentIndex - 1]);
-    }
-  };
-
-  const handleComplete = async () => {
-    if (currentLesson) {
-      await markLessonComplete(currentLesson.id);
-    }
-  };
-
-  const handleSelectLesson = (lesson: CourseLesson) => {
-    setCurrentLesson(lesson);
-    setSidebarOpen(false);
-  };
-
-  const handleTimeUpdate = useCallback((currentTime: number) => {
-    if (currentLesson) {
-      saveWatchedSeconds(currentLesson.id, currentTime);
-    }
-  }, [currentLesson, saveWatchedSeconds]);
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
