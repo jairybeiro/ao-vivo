@@ -50,8 +50,8 @@ export const LessonPlayer = ({
       {/* Info e controles - tudo em uma linha */}
       <div className="p-4 bg-card border-t">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          {/* Esquerda: Título e descrição */}
-          <div className="flex flex-col">
+          {/* Esquerda: Título e descrição na mesma linha */}
+          <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">{lesson.title}</h2>
             {lesson.description && (
               <p className="text-sm text-muted-foreground">{lesson.description}</p>
