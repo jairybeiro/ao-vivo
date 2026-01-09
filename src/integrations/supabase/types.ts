@@ -95,6 +95,45 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_content: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          embed_url: string | null
+          id: string
+          is_active: boolean | null
+          stream_urls: string[]
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          embed_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          stream_urls?: string[]
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          embed_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          stream_urls?: string[]
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
