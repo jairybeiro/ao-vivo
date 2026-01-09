@@ -182,19 +182,14 @@ export const MobilePlayerOverlay = ({
             <span className="text-white/80 text-xs truncate">{lessonTitle}</span>
           </div>
 
-          {/* Right side: Complete, Next */}
+          {/* Right side: Next only (completion is automatic) */}
           <div className="flex items-center gap-1">
-            {/* Complete button */}
-            <button
-              onClick={onComplete}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                isCompleted 
-                  ? "bg-green-500" 
-                  : "bg-white/20 hover:bg-white/30"
-              }`}
-            >
-              <CheckCircle className={`w-4 h-4 ${isCompleted ? "text-white" : "text-white/80"}`} />
-            </button>
+            {/* Completion indicator - read only */}
+            {isCompleted && (
+              <div className="w-8 h-8 rounded-full flex items-center justify-center bg-green-500">
+                <CheckCircle className="w-4 h-4 text-white" />
+              </div>
+            )}
 
             {/* Next button - icon only */}
             <button

@@ -8,7 +8,9 @@ import { SidebarAd, BelowPlayerAd } from "@/components/ads";
 import { useChannels, type DBChannel } from "@/hooks/useChannels";
 import { useActiveAds } from "@/hooks/useAds";
 import { Button } from "@/components/ui/button";
-import { Tv, Lock } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Tv, Lock, Menu } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Helper para verificar se tem URLs de stream válidas (não placeholder)
 const hasValidStreamUrls = (urls: string[]) => {
@@ -19,10 +21,12 @@ const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades", "L
 
 const Index = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { channels, loading } = useChannels();
   const { getSidebarAd, getBelowPlayerAd, getPrerollAd } = useActiveAds();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const filteredChannels = useMemo(() => {
     if (selectedCategory === "Todos") {
@@ -40,6 +44,7 @@ const Index = () => {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
+    setMenuOpen(false);
     const newFiltered = category === "Todos" 
       ? channels 
       : channels.filter((ch) => ch.category === category);
@@ -83,11 +88,63 @@ const Index = () => {
     duration: prerollAd.duration,
   } : undefined;
 
+  // Categories for desktop (all) and mobile menu (without "Todos")
+  const mobileMenuCategories = CATEGORIES.filter(c => c !== "Todos");
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header with Logo + Categories - Fixed */}
       <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-4">
+          {/* Mobile hamburger menu - left side */}
+          {isMobile && (
+            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="flex-shrink-0 md:hidden">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-64 p-0">
+                <div className="p-4 border-b">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+                      <Tv className="w-5 h-5 text-primary-foreground" />
+                    </div>
+                    <h2 className="text-lg font-bold">StreamPlayer</h2>
+                  </div>
+                </div>
+                <div className="p-2">
+                  <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-semibold">Categorias</p>
+                  {mobileMenuCategories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => handleCategoryChange(category)}
+                      className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${
+                        selectedCategory === category 
+                          ? "bg-primary text-primary-foreground" 
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+                <div className="p-2 border-t mt-auto">
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false);
+                      navigate("/premium");
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <Lock className="w-4 h-4" />
+                    Área Premium
+                  </button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          )}
+
           {/* Logo and Title */}
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
@@ -99,16 +156,32 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex-1">
-            <CategoryTabs
-              categories={CATEGORIES}
-              selectedCategory={selectedCategory}
-              onSelectCategory={handleCategoryChange}
-            />
-          </div>
+          {/* Mobile: "Todos" tab only */}
+          {isMobile && (
+            <div className="flex-1 flex justify-center">
+              <Button
+                variant={selectedCategory === "Todos" ? "default" : "outline"}
+                size="sm"
+                onClick={() => handleCategoryChange("Todos")}
+                className="px-6"
+              >
+                Todos
+              </Button>
+            </div>
+          )}
 
-          {/* Premium Button */}
+          {/* Desktop: Category Tabs */}
+          {!isMobile && (
+            <div className="flex-1">
+              <CategoryTabs
+                categories={CATEGORIES}
+                selectedCategory={selectedCategory}
+                onSelectCategory={handleCategoryChange}
+              />
+            </div>
+          )}
+
+          {/* Premium Button - Desktop only */}
           <Button
             variant="outline"
             size="sm"

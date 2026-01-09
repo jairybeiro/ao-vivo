@@ -288,20 +288,17 @@ export const DesktopPlayerOverlay = ({
             <span className="text-white/80 text-sm truncate">{lessonTitle}</span>
           </div>
 
-          {/* Right side: Complete, Speed, Fullscreen */}
+          {/* Right side: Completed indicator, Speed, Fullscreen */}
           <div className="flex items-center gap-1">
-            {/* Complete button */}
-            <button
-              onClick={onComplete}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                isCompleted 
-                  ? "bg-green-500 hover:bg-green-600" 
-                  : "bg-white/20 hover:bg-white/30"
-              }`}
-              title={isCompleted ? "Concluída" : "Marcar como concluída"}
-            >
-              <CheckCircle className={`w-5 h-5 ${isCompleted ? "text-white" : "text-white/80"}`} />
-            </button>
+            {/* Completion indicator - read only */}
+            {isCompleted && (
+              <div 
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-green-500"
+                title="Aula concluída"
+              >
+                <CheckCircle className="w-5 h-5 text-white" />
+              </div>
+            )}
 
             {/* Playback Speed */}
             {!isLive && (
