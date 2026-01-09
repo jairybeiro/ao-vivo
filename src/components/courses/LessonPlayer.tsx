@@ -50,14 +50,16 @@ export const LessonPlayer = ({
       {/* Info e controles - tudo em uma linha */}
       <div className="p-4 bg-card border-t">
         <div className="flex items-center justify-between gap-4 flex-wrap">
-          {/* Esquerda: Título, descrição e botão anterior */}
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col">
-              <h2 className="text-lg font-semibold">{lesson.title}</h2>
-              {lesson.description && (
-                <p className="text-sm text-muted-foreground">{lesson.description}</p>
-              )}
-            </div>
+          {/* Esquerda: Título e descrição */}
+          <div className="flex flex-col">
+            <h2 className="text-lg font-semibold">{lesson.title}</h2>
+            {lesson.description && (
+              <p className="text-sm text-muted-foreground">{lesson.description}</p>
+            )}
+          </div>
+
+          {/* Direita: Todos os botões e status */}
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -68,10 +70,7 @@ export const LessonPlayer = ({
               <ArrowLeft className="w-4 h-4" />
               Anterior
             </Button>
-          </div>
 
-          {/* Direita: Status/Marcar concluída e botão próxima */}
-          <div className="flex items-center gap-3">
             {isCompleted ? (
               <div className="flex items-center gap-1.5 text-green-500">
                 <CheckCircle className="w-4 h-4" />
