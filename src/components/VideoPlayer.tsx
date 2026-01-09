@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
-import { Play, Pause, Loader2, Volume2, VolumeX, Volume1 } from "lucide-react";
+import { Play, Pause, Loader2, Volume2, VolumeX, Volume1, RotateCcw, RotateCw } from "lucide-react";
 
 interface VideoPlayerProps {
   streamUrls: string[];
@@ -23,6 +23,8 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const hideControlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hideVolumeTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -206,6 +208,28 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
     video.currentTime = percent * duration;
   };
 
+  const skipForward = () => {
+    const video = videoRef.current;
+    if (!video || isLive) return;
+    video.currentTime = Math.min(video.currentTime + 10, duration);
+  };
+
+  const skipBackward = () => {
+    const video = videoRef.current;
+    if (!video || isLive) return;
+    video.currentTime = Math.max(video.currentTime - 10, 0);
+  };
+
+  const changePlaybackRate = (rate: number) => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = rate;
+    setPlaybackRate(rate);
+    setShowSpeedMenu(false);
+  };
+
+  const speedOptions = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+
   const selectOption = (index: number) => {
     if (index !== currentUrlIndex) {
       setCurrentUrlIndex(index);
@@ -326,10 +350,25 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
 
       {/* Play/Pause Controls */}
       <div
-        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+        className={`absolute inset-0 flex items-center justify-center gap-8 transition-opacity duration-300 ${
           showControls || !isPlaying ? "opacity-100" : "opacity-0"
         }`}
       >
+        {/* Skip Backward - Only for non-live */}
+        {!isLive && (
+          <button
+            onClick={skipBackward}
+            className="w-14 h-14 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform duration-200"
+            aria-label="Retroceder 10 segundos"
+          >
+            <div className="relative">
+              <RotateCcw className="w-7 h-7 text-foreground" />
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground mt-0.5">10</span>
+            </div>
+          </button>
+        )}
+
+        {/* Play/Pause */}
         <button
           onClick={togglePlay}
           className="w-20 h-20 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform duration-200"
@@ -341,6 +380,20 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
             <Play className="w-10 h-10 text-foreground ml-1" />
           )}
         </button>
+
+        {/* Skip Forward - Only for non-live */}
+        {!isLive && (
+          <button
+            onClick={skipForward}
+            className="w-14 h-14 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform duration-200"
+            aria-label="Avançar 10 segundos"
+          >
+            <div className="relative">
+              <RotateCw className="w-7 h-7 text-foreground" />
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground mt-0.5">10</span>
+            </div>
+          </button>
+        )}
       </div>
 
       {/* Bottom Controls Bar */}
@@ -384,38 +437,70 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
             )}
           </div>
 
-          {/* Volume Control */}
-          <div
-            className="flex items-center gap-2"
-            onMouseEnter={handleVolumeAreaEnter}
-            onMouseLeave={handleVolumeAreaLeave}
-          >
-            {/* Volume Slider */}
-            <div
-              className={`flex items-center overflow-hidden transition-all duration-300 ${
-                showVolumeSlider ? "w-24 opacity-100" : "w-0 opacity-0"
-              }`}
-            >
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.05"
-                value={isMuted ? 0 : volume}
-                onChange={handleVolumeChange}
-                className="w-full h-1 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
-                onClick={(e) => e.stopPropagation()}
-              />
-            </div>
+          {/* Right Controls */}
+          <div className="flex items-center gap-2">
+            {/* Playback Speed - Only for non-live */}
+            {!isLive && (
+              <div className="relative">
+                <button
+                  onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                  className="h-10 px-3 rounded-full glass flex items-center justify-center hover:scale-105 transition-transform duration-200 text-foreground text-sm font-medium"
+                  aria-label="Velocidade de reprodução"
+                >
+                  {playbackRate}x
+                </button>
+                
+                {showSpeedMenu && (
+                  <div className="absolute bottom-12 right-0 glass rounded-lg py-2 min-w-[80px]">
+                    {speedOptions.map((speed) => (
+                      <button
+                        key={speed}
+                        onClick={() => changePlaybackRate(speed)}
+                        className={`w-full px-4 py-2 text-sm text-left hover:bg-white/10 transition-colors ${
+                          playbackRate === speed ? "text-primary font-medium" : "text-foreground"
+                        }`}
+                      >
+                        {speed}x
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Volume Button */}
-            <button
-              onClick={toggleMute}
-              className="w-12 h-12 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform duration-200"
-              aria-label={isMuted ? "Ativar som" : "Mutar"}
+            {/* Volume Control */}
+            <div
+              className="flex items-center gap-2"
+              onMouseEnter={handleVolumeAreaEnter}
+              onMouseLeave={handleVolumeAreaLeave}
             >
-              <VolumeIcon className="w-6 h-6 text-foreground" />
-            </button>
+              {/* Volume Slider */}
+              <div
+                className={`flex items-center overflow-hidden transition-all duration-300 ${
+                  showVolumeSlider ? "w-24 opacity-100" : "w-0 opacity-0"
+                }`}
+              >
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  value={isMuted ? 0 : volume}
+                  onChange={handleVolumeChange}
+                  className="w-full h-1 bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:bg-primary [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                  onClick={(e) => e.stopPropagation()}
+                />
+              </div>
+
+              {/* Volume Button */}
+              <button
+                onClick={toggleMute}
+                className="w-12 h-12 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform duration-200"
+                aria-label={isMuted ? "Ativar som" : "Mutar"}
+              >
+                <VolumeIcon className="w-6 h-6 text-foreground" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
