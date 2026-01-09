@@ -92,18 +92,7 @@ export const MobilePlayerOverlay = ({
       </div>
 
       {/* Center - empty space for tapping */}
-      <div className="flex-1 flex items-center justify-center">
-        {/* Botão de teste para voltar ao curso */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onBack();
-          }}
-          className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-lg"
-        >
-          VOLTAR AO CURSO (TESTE)
-        </button>
-      </div>
+      <div className="flex-1" />
 
       {/* Bottom section - Full width progress bar and controls */}
       <div className="relative z-10">
