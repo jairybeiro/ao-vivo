@@ -362,7 +362,6 @@ export const MobileLessonPlayer = ({
       {/* Controls Overlay */}
       <MobilePlayerOverlay
         lessonTitle={lesson.title}
-        lessonDescription={lesson.description || undefined}
         courseName={courseName}
         isPlaying={isPlaying}
         isLive={isLive}
@@ -372,7 +371,6 @@ export const MobileLessonPlayer = ({
         bufferedPercent={bufferedPercent}
         progressPercent={progressPercent}
         hasNext={hasNext}
-        hasPrevious={hasPrevious}
         isCompleted={isCompleted}
         visible={showControls || !isPlaying}
         onTogglePlay={togglePlay}
@@ -381,10 +379,8 @@ export const MobileLessonPlayer = ({
         onSkipForward={skipForward}
         onSkipBackward={skipBackward}
         onNext={onNext}
-        onPrevious={onPrevious}
         onComplete={onComplete}
         onBack={onBack}
-        onToggleFullscreen={toggleFullscreen}
       />
 
       {/* Auto-play overlay */}
