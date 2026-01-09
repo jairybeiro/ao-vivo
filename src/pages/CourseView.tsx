@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ const CourseView = () => {
     lessons,
     loading,
     markLessonComplete,
+    saveWatchedSeconds,
+    getWatchedSeconds,
     getLessonsForModule,
     isLessonCompleted,
     getCourseProgress,
@@ -103,6 +105,12 @@ const CourseView = () => {
     setSidebarOpen(false);
   };
 
+  const handleTimeUpdate = useCallback((currentTime: number) => {
+    if (currentLesson) {
+      saveWatchedSeconds(currentLesson.id, currentTime);
+    }
+  }, [currentLesson, saveWatchedSeconds]);
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Header da sidebar */}
@@ -170,14 +178,17 @@ const CourseView = () => {
         <div className="flex-1">
           {currentLesson ? (
             <LessonPlayer
+              key={currentLesson.id}
               lesson={currentLesson}
               isCompleted={isLessonCompleted(currentLesson.id)}
               hasNext={hasNext}
               hasPrevious={hasPrevious}
               nextLessonTitle={nextLesson?.title}
+              initialTime={getWatchedSeconds(currentLesson.id)}
               onComplete={handleComplete}
               onNext={handleNext}
               onPrevious={handlePrevious}
+              onTimeUpdate={handleTimeUpdate}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-muted-foreground">

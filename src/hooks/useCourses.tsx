@@ -256,6 +256,42 @@ export const useCourseDetails = (courseId: string | undefined) => {
     await fetchCourseDetails();
   };
 
+  const saveWatchedSeconds = async (lessonId: string, seconds: number) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const existingProgress = progress.find((p) => p.lessonId === lessonId);
+
+    if (existingProgress) {
+      await supabase
+        .from("user_lesson_progress")
+        .update({ watched_seconds: Math.floor(seconds) })
+        .eq("id", existingProgress.id);
+    } else {
+      await supabase.from("user_lesson_progress").insert({
+        user_id: user.id,
+        lesson_id: lessonId,
+        watched_seconds: Math.floor(seconds),
+      });
+    }
+
+    // Update local state without refetch
+    setProgress((prev) => {
+      const existing = prev.find((p) => p.lessonId === lessonId);
+      if (existing) {
+        return prev.map((p) =>
+          p.lessonId === lessonId ? { ...p, watchedSeconds: Math.floor(seconds) } : p
+        );
+      }
+      return [...prev, { id: "temp", lessonId, completed: false, watchedSeconds: Math.floor(seconds), completedAt: null }];
+    });
+  };
+
+  const getWatchedSeconds = (lessonId: string): number => {
+    const p = progress.find((p) => p.lessonId === lessonId);
+    return p?.watchedSeconds || 0;
+  };
+
   const getLessonsForModule = (moduleId: string) => {
     return lessons.filter((l) => l.moduleId === moduleId);
   };
@@ -278,6 +314,8 @@ export const useCourseDetails = (courseId: string | undefined) => {
     loading,
     refetch: fetchCourseDetails,
     markLessonComplete,
+    saveWatchedSeconds,
+    getWatchedSeconds,
     getLessonsForModule,
     isLessonCompleted,
     getCourseProgress,

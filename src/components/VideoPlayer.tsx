@@ -6,9 +6,11 @@ interface VideoPlayerProps {
   streamUrls: string[];
   channelName?: string;
   onEnded?: () => void;
+  initialTime?: number;
+  onTimeUpdate?: (currentTime: number) => void;
 }
 
-const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayerProps) => {
+const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded, initialTime = 0, onTimeUpdate }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -27,6 +29,8 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const hideControlsTimeout = useRef<NodeJS.Timeout | null>(null);
   const hideVolumeTimeout = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedTimeRef = useRef<number>(0);
+  const hasSetInitialTime = useRef(false);
 
   const currentUrl = streamUrls[currentUrlIndex];
 
@@ -63,6 +67,11 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         setIsLoading(false);
+        // Set initial time if provided and not already set
+        if (initialTime > 0 && !hasSetInitialTime.current) {
+          video.currentTime = initialTime;
+          hasSetInitialTime.current = true;
+        }
         video.play().catch(() => {
           setIsPlaying(false);
         });
@@ -80,6 +89,11 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
       video.src = currentUrl;
       video.addEventListener("loadedmetadata", () => {
         setIsLoading(false);
+        // Set initial time if provided and not already set
+        if (initialTime > 0 && !hasSetInitialTime.current) {
+          video.currentTime = initialTime;
+          hasSetInitialTime.current = true;
+        }
         video.play().catch(() => {
           setIsPlaying(false);
         });
@@ -119,6 +133,11 @@ const VideoPlayer = ({ streamUrls, channelName = "Canal", onEnded }: VideoPlayer
       setCurrentTime(video.currentTime);
       if (video.buffered.length > 0) {
         setBuffered(video.buffered.end(video.buffered.length - 1));
+      }
+      // Call onTimeUpdate every 5 seconds to save progress
+      if (onTimeUpdate && Math.abs(video.currentTime - lastSavedTimeRef.current) >= 5) {
+        lastSavedTimeRef.current = video.currentTime;
+        onTimeUpdate(video.currentTime);
       }
     };
     const handleDurationChange = () => {
