@@ -1,4 +1,4 @@
-import { ArrowLeft, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, SkipForward } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, SkipForward, Maximize, Minimize } from "lucide-react";
 
 interface MobilePlayerOverlayProps {
   // Lesson info
@@ -14,6 +14,7 @@ interface MobilePlayerOverlayProps {
   duration: number;
   bufferedPercent: number;
   progressPercent: number;
+  isFullscreen?: boolean;
   
   // Navigation
   hasNext: boolean;
@@ -31,6 +32,7 @@ interface MobilePlayerOverlayProps {
   onNext: () => void;
   onComplete: () => void;
   onBack: () => void;
+  onToggleFullscreen?: () => void;
 }
 
 const formatTime = (time: number) => {
@@ -51,6 +53,7 @@ export const MobilePlayerOverlay = ({
   duration,
   bufferedPercent,
   progressPercent,
+  isFullscreen = false,
   hasNext,
   isCompleted,
   visible,
@@ -62,6 +65,7 @@ export const MobilePlayerOverlay = ({
   onNext,
   onComplete,
   onBack,
+  onToggleFullscreen,
 }: MobilePlayerOverlayProps) => {
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -185,8 +189,21 @@ export const MobilePlayerOverlay = ({
             <span className="text-white/80 text-xs truncate">{lessonTitle}</span>
           </div>
 
-          {/* Right side: Next only */}
-          <div className="flex items-center">
+          {/* Right side: Fullscreen + Next */}
+          <div className="flex items-center gap-1">
+            {/* Fullscreen button */}
+            {onToggleFullscreen && (
+              <button
+                onClick={onToggleFullscreen}
+                className="w-9 h-9 flex items-center justify-center text-white"
+              >
+                {isFullscreen ? (
+                  <Minimize className="w-5 h-5" />
+                ) : (
+                  <Maximize className="w-5 h-5" />
+                )}
+              </button>
+            )}
             {/* Next button - icon only */}
             <button
               onClick={onNext}
