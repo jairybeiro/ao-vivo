@@ -1,14 +1,17 @@
+import { useState, useCallback } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import VideoPlayer from "@/components/VideoPlayer";
 import EmbedPlayer from "@/components/EmbedPlayer";
 import { CourseLesson } from "@/hooks/useCourses";
+import { AutoPlayOverlay } from "./AutoPlayOverlay";
 
 interface LessonPlayerProps {
   lesson: CourseLesson;
   isCompleted: boolean;
   hasNext: boolean;
   hasPrevious: boolean;
+  nextLessonTitle?: string;
   onComplete: () => void;
   onNext: () => void;
   onPrevious: () => void;
@@ -25,25 +28,57 @@ export const LessonPlayer = ({
   isCompleted,
   hasNext,
   hasPrevious,
+  nextLessonTitle,
   onComplete,
   onNext,
   onPrevious,
 }: LessonPlayerProps) => {
+  const [showAutoPlay, setShowAutoPlay] = useState(false);
+
+  const handleVideoEnded = useCallback(() => {
+    if (hasNext) {
+      setShowAutoPlay(true);
+    }
+  }, [hasNext]);
+
+  const handleAutoPlayContinue = useCallback(() => {
+    setShowAutoPlay(false);
+    if (!isCompleted) {
+      onComplete();
+    }
+    onNext();
+  }, [isCompleted, onComplete, onNext]);
+
+  const handleAutoPlayCancel = useCallback(() => {
+    setShowAutoPlay(false);
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       {/* Player */}
-      <div className="flex-1 bg-black">
+      <div className="flex-1 bg-black relative">
         {lesson.embedUrl ? (
           <EmbedPlayer embedUrl={lesson.embedUrl} />
         ) : hasValidStreamUrls(lesson.streamUrls) ? (
           <VideoPlayer
             streamUrls={lesson.streamUrls}
             channelName={lesson.title}
+            onEnded={handleVideoEnded}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
             URL do vídeo não configurada
           </div>
+        )}
+
+        {/* Auto-play overlay */}
+        {showAutoPlay && hasNext && nextLessonTitle && (
+          <AutoPlayOverlay
+            nextLessonTitle={nextLessonTitle}
+            countdownSeconds={10}
+            onContinue={handleAutoPlayContinue}
+            onCancel={handleAutoPlayCancel}
+          />
         )}
       </div>
 

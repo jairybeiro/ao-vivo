@@ -78,6 +78,7 @@ const CourseView = () => {
     : -1;
   const hasNext = currentIndex < allLessonsOrdered.length - 1;
   const hasPrevious = currentIndex > 0;
+  const nextLesson = hasNext ? allLessonsOrdered[currentIndex + 1] : null;
 
   const handleNext = () => {
     if (hasNext) {
@@ -94,10 +95,6 @@ const CourseView = () => {
   const handleComplete = async () => {
     if (currentLesson) {
       await markLessonComplete(currentLesson.id);
-      // Auto-avançar para próxima se existir
-      if (hasNext) {
-        setTimeout(() => handleNext(), 500);
-      }
     }
   };
 
@@ -177,6 +174,7 @@ const CourseView = () => {
               isCompleted={isLessonCompleted(currentLesson.id)}
               hasNext={hasNext}
               hasPrevious={hasPrevious}
+              nextLessonTitle={nextLesson?.title}
               onComplete={handleComplete}
               onNext={handleNext}
               onPrevious={handlePrevious}
