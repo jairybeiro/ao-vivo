@@ -11,6 +11,7 @@ import Install from "./pages/Install";
 import Premium from "./pages/Premium";
 import PremiumLogin from "./pages/PremiumLogin";
 import PremiumWatch from "./pages/PremiumWatch";
+import CourseView from "./pages/CourseView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/premium" element={<Premium />} />
             <Route path="/premium/login" element={<PremiumLogin />} />
             <Route path="/premium/watch/:id" element={<PremiumWatch />} />
+            <Route path="/course/:courseId" element={<CourseView />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

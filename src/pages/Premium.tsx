@@ -2,21 +2,27 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { usePremiumContent, usePremiumContentAdmin, type PremiumContent } from "@/hooks/usePremiumContent";
+import { useCourses } from "@/hooks/useCourses";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PremiumContentForm from "@/components/admin/PremiumContentForm";
-import { ArrowLeft, Play, Lock, LogOut, Plus, Pencil, Trash2, Settings } from "lucide-react";
+import { CourseCard } from "@/components/courses/CourseCard";
+import { CourseManager } from "@/components/courses/CourseManager";
+import { ArrowLeft, Play, Lock, LogOut, Plus, Pencil, Trash2, Settings, BookOpen, Film } from "lucide-react";
 import { toast } from "sonner";
 
 const Premium = () => {
   const navigate = useNavigate();
   const { user, isAdmin, loading: authLoading, signOut } = useAuth();
   const { content, loading, refetch } = usePremiumContent();
+  const { courses, loading: coursesLoading } = useCourses();
   const { createContent, updateContent, deleteContent } = usePremiumContentAdmin();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingContent, setEditingContent] = useState<PremiumContent | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("courses");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -134,102 +140,94 @@ const Premium = () => {
         </div>
       </header>
 
-      {/* Content Grid */}
+      {/* Content */}
       <main className="container mx-auto px-4 py-8">
-        {loading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-video bg-muted rounded-lg animate-pulse"
-              />
-            ))}
-          </div>
-        ) : content.length === 0 ? (
-          <div className="text-center py-16">
-            <Lock className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Nenhum conteúdo disponível</h2>
-            <p className="text-muted-foreground mb-4">
-              Novos conteúdos serão adicionados em breve.
-            </p>
-            {isAdmin && (
-              <Button onClick={openCreateDialog}>
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar Conteúdo
-              </Button>
-            )}
-          </div>
+        {isAdmin && isEditMode ? (
+          <CourseManager />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {content.map((item) => (
-              <div key={item.id} className="relative group">
-                <button
-                  onClick={() => !isEditMode && navigate(`/premium/watch/${item.id}`)}
-                  disabled={isEditMode}
-                  className="w-full relative aspect-video rounded-lg overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl text-left disabled:hover:scale-100"
-                >
-                  {/* Thumbnail */}
-                  {item.thumbnailUrl ? (
-                    <img
-                      src={item.thumbnailUrl}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="courses" className="gap-2">
+                <BookOpen className="w-4 h-4" />
+                Cursos
+              </TabsTrigger>
+              <TabsTrigger value="videos" className="gap-2">
+                <Film className="w-4 h-4" />
+                Vídeos
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="courses">
+              {coursesLoading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="aspect-[3/4] bg-muted rounded-lg animate-pulse" />
+                  ))}
+                </div>
+              ) : courses.length === 0 ? (
+                <div className="text-center py-16">
+                  <BookOpen className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Nenhum curso disponível</h2>
+                  <p className="text-muted-foreground">Novos cursos serão adicionados em breve.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {courses.map((course) => (
+                    <CourseCard
+                      key={course.id}
+                      course={course}
+                      onClick={() => navigate(`/course/${course.id}`)}
                     />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                      <Lock className="w-8 h-8 text-primary/50" />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="videos">
+              {loading ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div key={i} className="aspect-video bg-muted rounded-lg animate-pulse" />
+                  ))}
+                </div>
+              ) : content.length === 0 ? (
+                <div className="text-center py-16">
+                  <Lock className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Nenhum conteúdo disponível</h2>
+                  <p className="text-muted-foreground">Novos conteúdos serão adicionados em breve.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {content.map((item) => (
+                    <div key={item.id} className="relative group">
+                      <button
+                        onClick={() => navigate(`/premium/watch/${item.id}`)}
+                        className="w-full relative aspect-video rounded-lg overflow-hidden bg-card border border-border hover:border-primary/50 transition-all duration-300 hover:scale-105 hover:shadow-xl text-left"
+                      >
+                        {item.thumbnailUrl ? (
+                          <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                            <Lock className="w-8 h-8 text-primary/50" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300">
+                            <Play className="w-6 h-6 text-primary-foreground ml-1" />
+                          </div>
+                        </div>
+                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                          <h3 className="font-semibold text-white text-sm line-clamp-1 mb-1">{item.title}</h3>
+                          {item.description && <p className="text-white/70 text-xs line-clamp-2">{item.description}</p>}
+                        </div>
+                      </button>
                     </div>
-                  )}
-
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
-
-                  {/* Play Button - only show when not in edit mode */}
-                  {!isEditMode && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-primary/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transform scale-75 group-hover:scale-100 transition-all duration-300">
-                        <Play className="w-6 h-6 text-primary-foreground ml-1" />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Title & Description */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <h3 className="font-semibold text-white text-sm line-clamp-1 mb-1">
-                      {item.title}
-                    </h3>
-                    {item.description && (
-                      <p className="text-white/70 text-xs line-clamp-2">
-                        {item.description}
-                      </p>
-                    )}
-                  </div>
-                </button>
-
-                {/* Admin Controls Overlay */}
-                {isAdmin && isEditMode && (
-                  <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => openEditDialog(item)}
-                    >
-                      <Pencil className="w-4 h-4 mr-1" />
-                      Editar
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Excluir
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
       </main>
 
