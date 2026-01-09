@@ -79,7 +79,7 @@ export const MobilePlayerOverlay = ({
       }`}
     >
       {/* Top - Back button only */}
-      <div className="relative z-10 p-4 pt-safe">
+      <div className="relative z-10 p-4 pt-[calc(env(safe-area-inset-top)+12px)]">
         <button
           onClick={(e) => {
             e.stopPropagation();
