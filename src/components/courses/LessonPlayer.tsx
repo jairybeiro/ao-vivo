@@ -12,9 +12,11 @@ interface LessonPlayerProps {
   hasNext: boolean;
   hasPrevious: boolean;
   nextLessonTitle?: string;
+  initialTime?: number;
   onComplete: () => void;
   onNext: () => void;
   onPrevious: () => void;
+  onTimeUpdate?: (currentTime: number) => void;
 }
 
 const hasValidStreamUrls = (urls: string[]): boolean => {
@@ -29,9 +31,11 @@ export const LessonPlayer = ({
   hasNext,
   hasPrevious,
   nextLessonTitle,
+  initialTime = 0,
   onComplete,
   onNext,
   onPrevious,
+  onTimeUpdate,
 }: LessonPlayerProps) => {
   const [showAutoPlay, setShowAutoPlay] = useState(false);
 
@@ -64,6 +68,8 @@ export const LessonPlayer = ({
             streamUrls={lesson.streamUrls}
             channelName={lesson.title}
             onEnded={handleVideoEnded}
+            initialTime={initialTime}
+            onTimeUpdate={onTimeUpdate}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
