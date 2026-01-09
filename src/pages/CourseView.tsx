@@ -9,6 +9,8 @@ import { useCourseDetails, CourseLesson } from "@/hooks/useCourses";
 import { useAuth } from "@/hooks/useAuth";
 import { ModuleAccordion } from "@/components/courses/ModuleAccordion";
 import { LessonPlayer } from "@/components/courses/LessonPlayer";
+import { MobileLessonPlayer } from "@/components/courses/MobileLessonPlayer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const CourseView = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -29,6 +31,7 @@ const CourseView = () => {
 
   const [currentLesson, setCurrentLesson] = useState<CourseLesson | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Ordenar todas as aulas em sequência
   const allLessonsOrdered = useMemo(() => {
@@ -112,6 +115,10 @@ const CourseView = () => {
     setSidebarOpen(false);
   }, []);
 
+  const handleBackFromMobile = useCallback(() => {
+    setCurrentLesson(null);
+  }, []);
+
   // Loading states - after all hooks
   if (authLoading || loading) {
     return (
@@ -167,6 +174,27 @@ const CourseView = () => {
       </ScrollArea>
     </div>
   );
+
+  // Mobile fullscreen player
+  if (isMobile && currentLesson) {
+    return (
+      <MobileLessonPlayer
+        key={currentLesson.id}
+        lesson={currentLesson}
+        courseName={course.title}
+        isCompleted={isLessonCompleted(currentLesson.id)}
+        hasNext={hasNext}
+        hasPrevious={hasPrevious}
+        nextLessonTitle={nextLesson?.title}
+        initialTime={getWatchedSeconds(currentLesson.id)}
+        onComplete={handleComplete}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+        onTimeUpdate={handleTimeUpdate}
+        onBack={handleBackFromMobile}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
