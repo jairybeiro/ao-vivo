@@ -9,7 +9,7 @@ import { useChannels, type DBChannel } from "@/hooks/useChannels";
 import { useActiveAds } from "@/hooks/useAds";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Menu } from "lucide-react";
+import { Tv, Lock } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 // Helper para verificar se tem URLs de stream válidas (não placeholder)
@@ -88,23 +88,61 @@ const Index = () => {
     duration: prerollAd.duration,
   } : undefined;
 
-  // Categories for desktop (all) and mobile menu (without "Todos")
-  const mobileMenuCategories = CATEGORIES.filter(c => c !== "Todos");
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header with Logo + Categories - Fixed */}
       <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-4">
-          {/* Mobile hamburger menu - left side */}
+          {/* Logo and Title - always left */}
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
+              <Tv className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
+            </div>
+            <div className="hidden lg:block">
+              <h1 className="text-base md:text-xl font-bold text-foreground">StreamPlayer</h1>
+              <p className="text-xs text-muted-foreground">Transmissões ao vivo</p>
+            </div>
+          </div>
+
+          {/* Desktop: Category Tabs */}
+          {!isMobile && (
+            <div className="flex-1">
+              <CategoryTabs
+                categories={CATEGORIES}
+                selectedCategory={selectedCategory}
+                onSelectCategory={handleCategoryChange}
+              />
+            </div>
+          )}
+
+          {/* Spacer for mobile */}
+          {isMobile && <div className="flex-1" />}
+
+          {/* Premium Button - Desktop only */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate("/premium")}
+            className="flex-shrink-0 hidden sm:flex"
+          >
+            <Lock className="w-4 h-4 mr-2" />
+            Premium
+          </Button>
+
+          {/* Mobile hamburger menu - right side */}
           {isMobile && (
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="flex-shrink-0 md:hidden">
-                  <Menu className="w-5 h-5" />
+                <Button variant="ghost" size="icon" className="flex-shrink-0 md:hidden w-10 h-10">
+                  <div className="flex flex-col gap-1.5 w-6">
+                    <span className="h-0.5 w-full bg-foreground rounded-full" />
+                    <span className="h-0.5 w-full bg-foreground rounded-full" />
+                    <span className="h-0.5 w-full bg-foreground rounded-full" />
+                  </div>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-0">
+              <SheetContent side="right" className="w-64 p-0">
                 <div className="p-4 border-b">
                   <div className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
@@ -115,7 +153,7 @@ const Index = () => {
                 </div>
                 <div className="p-2">
                   <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-semibold">Categorias</p>
-                  {mobileMenuCategories.map((category) => (
+                  {CATEGORIES.map((category) => (
                     <button
                       key={category}
                       onClick={() => handleCategoryChange(category)}
@@ -144,53 +182,6 @@ const Index = () => {
               </SheetContent>
             </Sheet>
           )}
-
-          {/* Logo and Title */}
-          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
-              <Tv className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
-            </div>
-            <div className="hidden lg:block">
-              <h1 className="text-base md:text-xl font-bold text-foreground">StreamPlayer</h1>
-              <p className="text-xs text-muted-foreground">Transmissões ao vivo</p>
-            </div>
-          </div>
-
-          {/* Mobile: "Todos" tab only */}
-          {isMobile && (
-            <div className="flex-1 flex justify-center">
-              <Button
-                variant={selectedCategory === "Todos" ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleCategoryChange("Todos")}
-                className="px-6"
-              >
-                Todos
-              </Button>
-            </div>
-          )}
-
-          {/* Desktop: Category Tabs */}
-          {!isMobile && (
-            <div className="flex-1">
-              <CategoryTabs
-                categories={CATEGORIES}
-                selectedCategory={selectedCategory}
-                onSelectCategory={handleCategoryChange}
-              />
-            </div>
-          )}
-
-          {/* Premium Button - Desktop only */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate("/premium")}
-            className="flex-shrink-0 hidden sm:flex"
-          >
-            <Lock className="w-4 h-4 mr-2" />
-            Premium
-          </Button>
         </div>
       </div>
 
