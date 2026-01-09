@@ -40,14 +40,32 @@ const CourseView = () => {
     return ordered;
   }, [modules, lessons]);
 
-  // Definir primeira aula como padrão
+  // Definir aula inicial: prioriza aula com progresso parcial, depois primeira não concluída
   useEffect(() => {
     if (!currentLesson && allLessonsOrdered.length > 0) {
-      // Encontrar primeira aula não concluída ou a primeira
+      // 1. Procurar aula com progresso parcial (segundos assistidos > 0 e não concluída)
+      const lessonInProgress = allLessonsOrdered.find((l) => {
+        const watchedSeconds = getWatchedSeconds(l.id);
+        return watchedSeconds > 0 && !isLessonCompleted(l.id);
+      });
+
+      if (lessonInProgress) {
+        setCurrentLesson(lessonInProgress);
+        return;
+      }
+
+      // 2. Se não houver aula em progresso, pegar a primeira não concluída
       const firstIncomplete = allLessonsOrdered.find((l) => !isLessonCompleted(l.id));
-      setCurrentLesson(firstIncomplete || allLessonsOrdered[0]);
+      
+      if (firstIncomplete) {
+        setCurrentLesson(firstIncomplete);
+        return;
+      }
+
+      // 3. Se todas estiverem concluídas, voltar para a primeira
+      setCurrentLesson(allLessonsOrdered[0]);
     }
-  }, [allLessonsOrdered, currentLesson]);
+  }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted]);
 
   // Redirecionar se não autenticado
   useEffect(() => {
