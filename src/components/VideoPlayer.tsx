@@ -54,6 +54,8 @@ const VideoPlayer = ({
   }, [currentUrlIndex, streamUrls.length]);
 
   const initPlayer = useCallback(() => {
+    // Reset aspect ratio detection on new video load
+    hasSetInitialTime.current = false;
     const video = videoRef.current;
     if (!video || !currentUrl) return;
 
@@ -95,18 +97,36 @@ const VideoPlayer = ({
 
       hlsRef.current = hls;
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // Native HLS support (Safari)
+      // Native HLS support (Safari/iOS)
       video.src = currentUrl;
-      video.addEventListener("loadedmetadata", () => {
+      
+      const handleNativeLoaded = () => {
         setIsLoading(false);
         // Set initial time if provided and not already set
         if (initialTime > 0 && !hasSetInitialTime.current) {
           video.currentTime = initialTime;
           hasSetInitialTime.current = true;
         }
+        // Detect aspect ratio for Safari/iOS
+        if (video.videoWidth && video.videoHeight) {
+          const aspectRatio = video.videoWidth / video.videoHeight;
+          const isVerticalVideo = aspectRatio < 1;
+          onAspectRatioDetected?.(isVerticalVideo);
+        }
         video.play().catch(() => {
           setIsPlaying(false);
         });
+      };
+      
+      // Use multiple events for Safari/iOS compatibility
+      video.addEventListener("loadedmetadata", handleNativeLoaded);
+      video.addEventListener("canplay", () => {
+        // Fallback: try detecting again when video can play
+        if (video.videoWidth && video.videoHeight) {
+          const aspectRatio = video.videoWidth / video.videoHeight;
+          const isVerticalVideo = aspectRatio < 1;
+          onAspectRatioDetected?.(isVerticalVideo);
+        }
       });
       video.addEventListener("error", () => {
         tryNextUrl();
@@ -115,7 +135,7 @@ const VideoPlayer = ({
       setError("Seu navegador não suporta HLS");
       setIsLoading(false);
     }
-  }, [currentUrl, tryNextUrl]);
+  }, [currentUrl, tryNextUrl, initialTime, onAspectRatioDetected]);
 
   useEffect(() => {
     setCurrentUrlIndex(0);
