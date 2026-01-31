@@ -72,12 +72,7 @@ const CourseView = () => {
     }
   }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted, userExitedPlayer]);
 
-  // Redirecionar se não autenticado
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/premium/login");
-    }
-  }, [authLoading, user, navigate]);
+  // Redirecionamento agora é feito pelo ProtectedRoute
 
   // Calculate navigation helpers
   const currentIndex = currentLesson

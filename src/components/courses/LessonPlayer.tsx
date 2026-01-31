@@ -21,7 +21,7 @@ interface LessonPlayerProps {
 
 const hasValidStreamUrls = (urls: string[]): boolean => {
   return urls.some(
-    (url) => url && url.trim() !== "" && url !== "placeholder" && url.endsWith(".m3u8")
+    (url) => url && url.trim() !== "" && url !== "placeholder" && url.includes(".m3u8")
   );
 };
 

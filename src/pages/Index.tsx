@@ -14,7 +14,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 // Helper para verificar se tem URLs de stream válidas (não placeholder)
 const hasValidStreamUrls = (urls: string[]) => {
-  return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.endsWith(".m3u8"));
+  return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.includes(".m3u8"));
 };
 
 const CATEGORIES = ["Todos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
@@ -200,7 +200,7 @@ const Index = () => {
           ) : selectedChannel && hasValidStreamUrls(selectedChannel.streamUrls) ? (
             // Prioridade 2: Usar VideoPlayer se tem URLs m3u8 válidas
             <VideoPlayer
-              streamUrls={selectedChannel.streamUrls.filter(url => url.endsWith(".m3u8"))}
+              streamUrls={selectedChannel.streamUrls.filter(url => url.includes(".m3u8"))}
               channelName={selectedChannel.name}
             />
           ) : (
