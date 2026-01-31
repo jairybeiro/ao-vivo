@@ -24,11 +24,7 @@ const Premium = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeTab, setActiveTab] = useState("courses");
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/premium/login");
-    }
-  }, [user, authLoading, navigate]);
+  // Redirecionamento agora é feito pelo ProtectedRoute
 
   const handleLogout = async () => {
     await signOut();
@@ -91,10 +87,6 @@ const Premium = () => {
         <div className="text-muted-foreground">Carregando...</div>
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   return (

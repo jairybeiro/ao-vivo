@@ -10,7 +10,7 @@ import { ArrowLeft, Tv } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const hasValidStreamUrls = (urls: string[]) => {
-  return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.endsWith(".m3u8"));
+  return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.includes(".m3u8"));
 };
 
 const PremiumWatch = () => {
@@ -22,11 +22,7 @@ const PremiumWatch = () => {
   const [isVerticalVideo, setIsVerticalVideo] = useState(false);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate("/premium/login");
-    }
-  }, [user, authLoading, navigate]);
+  // Redirecionamento agora é feito pelo ProtectedRoute
 
   useEffect(() => {
     if (!loading && id) {
@@ -41,10 +37,6 @@ const PremiumWatch = () => {
         <div className="text-muted-foreground">Carregando...</div>
       </div>
     );
-  }
-
-  if (!user) {
-    return null;
   }
 
   if (!currentContent) {
@@ -96,7 +88,7 @@ const PremiumWatch = () => {
             />
           ) : hasValidStreamUrls(currentContent.streamUrls) ? (
             <VideoPlayer
-              streamUrls={currentContent.streamUrls.filter(url => url.endsWith(".m3u8"))}
+              streamUrls={currentContent.streamUrls.filter(url => url.includes(".m3u8"))}
               channelName={currentContent.title}
               isVertical={isVerticalVideo}
               onAspectRatioDetected={(isVertical) => setIsVerticalVideo(isVertical)}
