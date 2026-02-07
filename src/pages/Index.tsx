@@ -2,8 +2,9 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
 import ChannelCard from "@/components/ChannelCard";
+import EmbedPlayer from "@/components/EmbedPlayer";
 import { SidebarAd, BelowPlayerAd } from "@/components/ads";
-import { useChannels } from "@/hooks/useChannels";
+import { useChannels, DBChannel } from "@/hooks/useChannels";
 import { useActiveAds } from "@/hooks/useAds";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
@@ -23,18 +24,17 @@ const Index = () => {
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
 
   const filteredChannels = useMemo(() => {
     let result = channels;
 
-    // Filtro por categoria
     if (selectedCategory === "Favoritos") {
       result = result.filter((ch) => isFavorite(ch.id));
     } else if (selectedCategory !== "Todos") {
       result = result.filter((ch) => ch.category === selectedCategory);
     }
 
-    // Filtro por busca
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter((ch) => ch.name.toLowerCase().includes(q));
@@ -46,6 +46,10 @@ const Index = () => {
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setMenuOpen(false);
+  };
+
+  const handleSelectChannel = (channel: DBChannel) => {
+    setSelectedChannel(channel);
   };
 
   const sidebarAd = getSidebarAd();
@@ -61,6 +65,9 @@ const Index = () => {
     ctaText: belowPlayerAd.ctaText, ctaUrl: belowPlayerAd.ctaUrl || undefined, imageUrl: belowPlayerAd.imageUrl || undefined,
   } : undefined;
 
+  // Determinar a URL embed do canal selecionado
+  const embedUrl = selectedChannel?.embedUrl || null;
+
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
@@ -72,11 +79,10 @@ const Index = () => {
             </div>
             <div className="hidden lg:block">
               <h1 className="text-base md:text-xl font-bold text-foreground">StreamPlayer</h1>
-              <p className="text-xs text-muted-foreground">Hub de canais ao vivo</p>
+              <p className="text-xs text-muted-foreground">TV ao vivo</p>
             </div>
           </div>
 
-          {/* Desktop: Category Tabs */}
           {!isMobile && (
             <div className="flex-1">
               <CategoryTabs
@@ -94,7 +100,6 @@ const Index = () => {
             Premium
           </Button>
 
-          {/* Mobile menu */}
           {isMobile && (
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
@@ -147,54 +152,69 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="px-3 md:px-4 py-2 flex-shrink-0">
-        <div className="relative max-w-lg">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar canal..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-card border-border"
-          />
-        </div>
-      </div>
-
-      {/* UX Notice */}
-      <div className="px-3 md:px-4 flex-shrink-0">
-        <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-accent/50 border border-border text-xs text-muted-foreground max-w-2xl">
-          <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <span>Ao tocar em "Assistir", o player abrirá em nova aba. Anúncios podem aparecer — basta fechar e retornar ao vídeo.</span>
-        </div>
-      </div>
-
       {/* Main Content */}
       <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden mt-2">
-        {/* Channel List */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          {loading ? (
-            <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
-          ) : filteredChannels.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredChannels.map((channel) => (
-                <ChannelCard
-                  key={channel.id}
-                  channel={channel}
-                  isFavorite={isFavorite(channel.id)}
-                  onToggleFavorite={toggleFavorite}
-                />
-              ))}
+        {/* Player + Channel List */}
+        <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
+          {/* Player Area */}
+          {selectedChannel && embedUrl && (
+            <div className="flex-shrink-0">
+              <EmbedPlayer
+                embedUrl={embedUrl}
+                channelName={selectedChannel.name}
+                enablePreRoll={false}
+              />
+              {/* UX Notice */}
+              <div className="flex items-start gap-2 px-3 py-2 mt-2 rounded-lg bg-accent/50 border border-border text-xs text-muted-foreground">
+                <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <span>Ao tocar no player, anúncios podem abrir em nova aba. Basta fechar e retornar ao vídeo.</span>
+              </div>
             </div>
           )}
 
-          {/* Mobile Ad */}
-          <div className="mt-3 lg:hidden">
-            <BelowPlayerAd ad={belowPlayerAdData} />
+          {/* Below Player Ad */}
+          {selectedChannel && (
+            <div className="flex-shrink-0">
+              <BelowPlayerAd ad={belowPlayerAdData} />
+            </div>
+          )}
+
+          {/* Search */}
+          <div className="flex-shrink-0">
+            <div className="relative max-w-lg">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar canal..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-card border-border"
+              />
+            </div>
+          </div>
+
+          {/* Channel List */}
+          <div className="flex-1 min-h-0 overflow-y-auto">
+            {loading ? (
+              <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
+            ) : filteredChannels.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredChannels.map((channel) => (
+                  <ChannelCard
+                    key={channel.id}
+                    channel={channel}
+                    isSelected={selectedChannel?.id === channel.id}
+                    isFavorite={isFavorite(channel.id)}
+                    onToggleFavorite={toggleFavorite}
+                    onSelect={handleSelectChannel}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
