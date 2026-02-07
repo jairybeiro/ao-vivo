@@ -1,25 +1,23 @@
-import { ExternalLink, Radio, Star, StarOff } from "lucide-react";
+import { Radio, Star, StarOff, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { DBChannel } from "@/hooks/useChannels";
 
 interface ChannelCardProps {
   channel: DBChannel;
+  isSelected?: boolean;
   isFavorite: boolean;
   onToggleFavorite: (channelId: string) => void;
+  onSelect: (channel: DBChannel) => void;
 }
 
-const ChannelCard = ({ channel, isFavorite, onToggleFavorite }: ChannelCardProps) => {
-  // Determinar a URL externa do canal (prioridade: embedUrl > primeira streamUrl)
-  const externalUrl = channel.embedUrl || channel.streamUrls?.[0] || null;
-
-  const handleWatch = () => {
-    if (externalUrl) {
-      window.open(externalUrl, "_blank", "noopener,noreferrer");
-    }
-  };
-
+const ChannelCard = ({ channel, isSelected, isFavorite, onToggleFavorite, onSelect }: ChannelCardProps) => {
   return (
-    <div className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 hover:border-primary/50 transition-colors">
+    <div
+      className={`bg-card border rounded-xl p-4 flex items-center gap-4 transition-colors cursor-pointer ${
+        isSelected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+      }`}
+      onClick={() => onSelect(channel)}
+    >
       {/* Logo */}
       {channel.logo ? (
         <img
@@ -46,7 +44,7 @@ const ChannelCard = ({ channel, isFavorite, onToggleFavorite }: ChannelCardProps
       {/* Actions */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
-          onClick={() => onToggleFavorite(channel.id)}
+          onClick={(e) => { e.stopPropagation(); onToggleFavorite(channel.id); }}
           className="p-2 rounded-lg hover:bg-accent transition-colors"
           aria-label={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
         >
@@ -59,11 +57,11 @@ const ChannelCard = ({ channel, isFavorite, onToggleFavorite }: ChannelCardProps
 
         <Button
           size="sm"
-          onClick={handleWatch}
-          disabled={!externalUrl}
+          onClick={(e) => { e.stopPropagation(); onSelect(channel); }}
+          variant={isSelected ? "default" : "outline"}
           className="gap-1.5"
         >
-          <ExternalLink className="w-4 h-4" />
+          <Play className="w-4 h-4" />
           Assistir
         </Button>
       </div>
