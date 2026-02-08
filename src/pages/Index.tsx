@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
 import ChannelCard from "@/components/ChannelCard";
 import EmbedPlayer from "@/components/EmbedPlayer";
-import { SidebarAd, BelowPlayerAd } from "@/components/ads";
+import { BelowPlayerAd } from "@/components/ads";
 import { useChannels, DBChannel } from "@/hooks/useChannels";
 import { useActiveAds } from "@/hooks/useAds";
 import { useFavorites } from "@/hooks/useFavorites";
@@ -52,13 +52,7 @@ const Index = () => {
     setSelectedChannel(channel);
   };
 
-  const sidebarAd = getSidebarAd();
   const belowPlayerAd = getBelowPlayerAd();
-
-  const sidebarAdData = sidebarAd ? {
-    id: sidebarAd.id, title: sidebarAd.title, description: sidebarAd.description,
-    ctaText: sidebarAd.ctaText, ctaUrl: sidebarAd.ctaUrl || undefined, imageUrl: sidebarAd.imageUrl || undefined,
-  } : undefined;
 
   const belowPlayerAdData = belowPlayerAd ? {
     id: belowPlayerAd.id, title: belowPlayerAd.title, description: belowPlayerAd.description,
@@ -154,9 +148,8 @@ const Index = () => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden mt-2">
-        {/* Player + Channel List */}
+        {/* Player Area */}
         <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
-          {/* Player Area */}
           {selectedChannel && embedUrl && (
             <div className="flex-shrink-0">
               <EmbedPlayer
@@ -179,49 +172,86 @@ const Index = () => {
             </div>
           )}
 
-          {/* Search */}
-          <div className="flex-shrink-0">
-            <div className="relative max-w-lg">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar canal..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 bg-card border-border"
-              />
+          {/* Mobile: Search + Channel List below player */}
+          {isMobile && (
+            <>
+              <div className="flex-shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar canal..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 bg-card border-border"
+                  />
+                </div>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                {loading ? (
+                  <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
+                ) : filteredChannels.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {filteredChannels.map((channel) => (
+                      <ChannelCard
+                        key={channel.id}
+                        channel={channel}
+                        isSelected={selectedChannel?.id === channel.id}
+                        isFavorite={isFavorite(channel.id)}
+                        onToggleFavorite={toggleFavorite}
+                        onSelect={handleSelectChannel}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Desktop: Channel List Sidebar (right side) */}
+        {!isMobile && (
+          <div className="hidden lg:flex lg:flex-none lg:w-80 flex-col gap-3">
+            <div className="flex-shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar canal..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-card border-border"
+                />
+              </div>
+            </div>
+            <div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border bg-card/50 p-2">
+              {loading ? (
+                <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
+              ) : filteredChannels.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {filteredChannels.map((channel) => (
+                    <ChannelCard
+                      key={channel.id}
+                      channel={channel}
+                      isSelected={selectedChannel?.id === channel.id}
+                      isFavorite={isFavorite(channel.id)}
+                      onToggleFavorite={toggleFavorite}
+                      onSelect={handleSelectChannel}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          {/* Channel List */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            {loading ? (
-              <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
-            ) : filteredChannels.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filteredChannels.map((channel) => (
-                  <ChannelCard
-                    key={channel.id}
-                    channel={channel}
-                    isSelected={selectedChannel?.id === channel.id}
-                    isFavorite={isFavorite(channel.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onSelect={handleSelectChannel}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Sidebar Ad (Desktop) */}
-        <div className="hidden lg:flex lg:flex-none lg:w-80 flex-col gap-3">
-          <SidebarAd ad={sidebarAdData} />
-        </div>
+        )}
       </main>
     </div>
   );
