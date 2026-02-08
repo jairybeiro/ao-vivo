@@ -9,7 +9,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Info } from "lucide-react";
+import { Tv, Lock, Search, Star } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CATEGORIES = ["Todos", "Favoritos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
@@ -150,11 +150,6 @@ const Index = () => {
                 channelName={selectedChannel.name}
                 enablePreRoll={false}
               />
-              {/* UX Notice */}
-              <div className="flex items-start gap-2 px-3 py-2 mt-2 rounded-lg bg-accent/50 border border-border text-xs text-muted-foreground">
-                <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                <span>Ao tocar no player, anúncios podem abrir em nova aba. Basta fechar e retornar ao vídeo.</span>
-              </div>
             </div>
           )}
 
