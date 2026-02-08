@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, List, Tv } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,8 +66,7 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
             Nenhum canal cadastrado ainda.
           </div>
         ) : (
-          <div className="rounded-md border">
-            <ScrollArea className="max-h-[500px]">
+          <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -150,7 +148,6 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
                   ))}
                 </TableBody>
               </Table>
-            </ScrollArea>
           </div>
         )}
       </CardContent>
