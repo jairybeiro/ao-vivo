@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
 import ChannelCard from "@/components/ChannelCard";
 import EmbedPlayer from "@/components/EmbedPlayer";
-import { BelowPlayerAd } from "@/components/ads";
 import { useChannels, DBChannel } from "@/hooks/useChannels";
-import { useActiveAds } from "@/hooks/useAds";
+
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { channels, loading } = useChannels();
-  const { getSidebarAd, getBelowPlayerAd } = useActiveAds();
+  
   const { toggleFavorite, isFavorite } = useFavorites();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,12 +51,6 @@ const Index = () => {
     setSelectedChannel(channel);
   };
 
-  const belowPlayerAd = getBelowPlayerAd();
-
-  const belowPlayerAdData = belowPlayerAd ? {
-    id: belowPlayerAd.id, title: belowPlayerAd.title, description: belowPlayerAd.description,
-    ctaText: belowPlayerAd.ctaText, ctaUrl: belowPlayerAd.ctaUrl || undefined, imageUrl: belowPlayerAd.imageUrl || undefined,
-  } : undefined;
 
   // Determinar a URL embed do canal selecionado
   const embedUrl = selectedChannel?.embedUrl || null;
@@ -165,12 +158,6 @@ const Index = () => {
             </div>
           )}
 
-          {/* Below Player Ad */}
-          {selectedChannel && (
-            <div className="flex-shrink-0">
-              <BelowPlayerAd ad={belowPlayerAdData} />
-            </div>
-          )}
 
           {/* Mobile: Search + Channel List below player */}
           {isMobile && (
