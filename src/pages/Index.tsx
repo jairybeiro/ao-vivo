@@ -177,6 +177,12 @@ const Index = () => {
                 {!forceEmbed && selectedChannel.streamUrls?.some(u => u.includes(".m3u8")) && (
                   <span className="text-xs text-muted-foreground">HLS.js direto — sem iframe</span>
                 )}
+                {selectedChannel.embedUrl && (
+                  <Button variant="outline" size="sm" onClick={() => setDetectOpen(true)} className="gap-1.5">
+                    <Scan className="w-4 h-4" />
+                    Detectar Stream
+                  </Button>
+                )}
               </div>
 
               <PlayerContainer channel={selectedChannel} forceEmbed={forceEmbed} />
