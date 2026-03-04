@@ -9,7 +9,8 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star } from "lucide-react";
+import { Tv, Lock, Search, Star, Radio } from "lucide-react";
+import DirectStreamPlayer from "@/components/DirectStreamPlayer";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CATEGORIES = ["Todos", "Favoritos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
@@ -24,6 +25,9 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
+  const [useDirectStream, setUseDirectStream] = useState(false);
+
+  const TEST_STREAM_URL = "https://cdn1embedtvonline.xyz/fBgVVxZitntsrsJdL9JJvQhAw3Q/tracks-v1a1/mono.ts.m3u8";
 
   const filteredChannels = useMemo(() => {
     let result = channels;
@@ -143,13 +147,41 @@ const Index = () => {
       <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden mt-2">
         {/* Player Area */}
         <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
-          {selectedChannel && embedUrl && (
+          {selectedChannel && (
             <div className="flex-shrink-0">
-              <EmbedPlayer
-                embedUrl={embedUrl}
-                channelName={selectedChannel.name}
-                enablePreRoll={false}
-              />
+              {/* Toggle button */}
+              <div className="flex items-center gap-2 mb-2">
+                <Button
+                  variant={useDirectStream ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setUseDirectStream(!useDirectStream)}
+                  className="gap-1.5"
+                >
+                  <Radio className="w-4 h-4" />
+                  {useDirectStream ? "Voltar ao Embed" : "Test Direct Stream"}
+                </Button>
+                {useDirectStream && (
+                  <span className="text-xs text-muted-foreground">HLS.js direto — sem iframe</span>
+                )}
+              </div>
+
+              {useDirectStream ? (
+                <DirectStreamPlayer
+                  streamUrl={selectedChannel.streamUrls?.[0]?.includes(".m3u8") ? selectedChannel.streamUrls[0] : TEST_STREAM_URL}
+                  channelName={selectedChannel.name}
+                />
+              ) : embedUrl ? (
+                <EmbedPlayer
+                  embedUrl={embedUrl}
+                  channelName={selectedChannel.name}
+                  enablePreRoll={false}
+                />
+              ) : (
+                <DirectStreamPlayer
+                  streamUrl={selectedChannel.streamUrls?.[0]?.includes(".m3u8") ? selectedChannel.streamUrls[0] : TEST_STREAM_URL}
+                  channelName={selectedChannel.name}
+                />
+              )}
             </div>
           )}
 
