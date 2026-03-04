@@ -9,7 +9,10 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Radio } from "lucide-react";
+import { Tv, Lock, Search, Star, Radio, Scan } from "lucide-react";
+import DetectStreamModal from "@/components/DetectStreamModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CATEGORIES = ["Todos", "Favoritos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
@@ -25,6 +28,7 @@ const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
   const [forceEmbed, setForceEmbed] = useState(false);
+  const [detectOpen, setDetectOpen] = useState(false);
 
   const filteredChannels = useMemo(() => {
     let result = channels;
@@ -50,6 +54,22 @@ const Index = () => {
 
   const handleSelectChannel = (channel: DBChannel) => {
     setSelectedChannel(channel);
+  };
+
+  const handleSaveStream = async (url: string) => {
+    if (!selectedChannel) return;
+    const updatedUrls = [url, ...(selectedChannel.streamUrls || []).filter(u => u !== url)];
+    const { error } = await supabase
+      .from("channels")
+      .update({ stream_urls: updatedUrls })
+      .eq("id", selectedChannel.id);
+    if (error) {
+      toast.error("Erro ao salvar stream");
+      console.error(error);
+      return;
+    }
+    setSelectedChannel({ ...selectedChannel, streamUrls: updatedUrls });
+    toast.success("Stream salvo com sucesso!");
   };
 
 
@@ -157,6 +177,12 @@ const Index = () => {
                 {!forceEmbed && selectedChannel.streamUrls?.some(u => u.includes(".m3u8")) && (
                   <span className="text-xs text-muted-foreground">HLS.js direto — sem iframe</span>
                 )}
+                {selectedChannel.embedUrl && (
+                  <Button variant="outline" size="sm" onClick={() => setDetectOpen(true)} className="gap-1.5">
+                    <Scan className="w-4 h-4" />
+                    Detectar Stream
+                  </Button>
+                )}
               </div>
 
               <PlayerContainer channel={selectedChannel} forceEmbed={forceEmbed} />
@@ -245,6 +271,15 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {selectedChannel && (
+        <DetectStreamModal
+          open={detectOpen}
+          onOpenChange={setDetectOpen}
+          channelName={selectedChannel.name}
+          onSaveStream={handleSaveStream}
+        />
+      )}
     </div>
   );
 };
