@@ -9,7 +9,10 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Radio } from "lucide-react";
+import { Tv, Lock, Search, Star, Radio, Scan } from "lucide-react";
+import DetectStreamModal from "@/components/DetectStreamModal";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CATEGORIES = ["Todos", "Favoritos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
