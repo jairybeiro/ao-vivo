@@ -28,6 +28,7 @@ const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
   const [forceEmbed, setForceEmbed] = useState(false);
+  const [detectOpen, setDetectOpen] = useState(false);
 
   const filteredChannels = useMemo(() => {
     let result = channels;
