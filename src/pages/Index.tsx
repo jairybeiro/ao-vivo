@@ -147,13 +147,41 @@ const Index = () => {
       <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 overflow-hidden mt-2">
         {/* Player Area */}
         <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
-          {selectedChannel && embedUrl && (
+          {selectedChannel && (
             <div className="flex-shrink-0">
-              <EmbedPlayer
-                embedUrl={embedUrl}
-                channelName={selectedChannel.name}
-                enablePreRoll={false}
-              />
+              {/* Toggle button */}
+              <div className="flex items-center gap-2 mb-2">
+                <Button
+                  variant={useDirectStream ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setUseDirectStream(!useDirectStream)}
+                  className="gap-1.5"
+                >
+                  <Radio className="w-4 h-4" />
+                  {useDirectStream ? "Voltar ao Embed" : "Test Direct Stream"}
+                </Button>
+                {useDirectStream && (
+                  <span className="text-xs text-muted-foreground">HLS.js direto — sem iframe</span>
+                )}
+              </div>
+
+              {useDirectStream ? (
+                <DirectStreamPlayer
+                  streamUrl={selectedChannel.streamUrls?.[0]?.includes(".m3u8") ? selectedChannel.streamUrls[0] : TEST_STREAM_URL}
+                  channelName={selectedChannel.name}
+                />
+              ) : embedUrl ? (
+                <EmbedPlayer
+                  embedUrl={embedUrl}
+                  channelName={selectedChannel.name}
+                  enablePreRoll={false}
+                />
+              ) : (
+                <DirectStreamPlayer
+                  streamUrl={selectedChannel.streamUrls?.[0]?.includes(".m3u8") ? selectedChannel.streamUrls[0] : TEST_STREAM_URL}
+                  channelName={selectedChannel.name}
+                />
+              )}
             </div>
           )}
 
