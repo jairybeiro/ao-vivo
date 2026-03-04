@@ -25,6 +25,9 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
+  const [useDirectStream, setUseDirectStream] = useState(false);
+
+  const TEST_STREAM_URL = "https://cdn1embedtvonline.xyz/fBgVVxZitntsrsJdL9JJvQhAw3Q/tracks-v1a1/mono.ts.m3u8";
 
   const filteredChannels = useMemo(() => {
     let result = channels;
