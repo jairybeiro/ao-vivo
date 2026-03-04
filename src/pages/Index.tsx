@@ -56,6 +56,22 @@ const Index = () => {
     setSelectedChannel(channel);
   };
 
+  const handleSaveStream = async (url: string) => {
+    if (!selectedChannel) return;
+    const updatedUrls = [url, ...(selectedChannel.streamUrls || []).filter(u => u !== url)];
+    const { error } = await supabase
+      .from("channels")
+      .update({ stream_urls: updatedUrls })
+      .eq("id", selectedChannel.id);
+    if (error) {
+      toast.error("Erro ao salvar stream");
+      console.error(error);
+      return;
+    }
+    setSelectedChannel({ ...selectedChannel, streamUrls: updatedUrls });
+    toast.success("Stream salvo com sucesso!");
+  };
+
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
