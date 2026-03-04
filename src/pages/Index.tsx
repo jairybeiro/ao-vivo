@@ -12,6 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tv, Lock, Search, Star, Radio, Scan } from "lucide-react";
 import DetectStreamModal from "@/components/DetectStreamModal";
 import { supabase } from "@/integrations/supabase/client";
+import { isHlsUrl } from "@/lib/hlsUtils";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -174,7 +175,7 @@ const Index = () => {
                   <Radio className="w-4 h-4" />
                   {forceEmbed ? "Usar HLS Direto" : "Forçar Embed"}
                 </Button>
-                {!forceEmbed && selectedChannel.streamUrls?.some(u => u.includes(".m3u8")) && (
+                {!forceEmbed && selectedChannel.streamUrls?.some(u => isHlsUrl(u)) && (
                   <span className="text-xs text-muted-foreground">HLS.js direto — sem iframe</span>
                 )}
                 {selectedChannel.embedUrl && (

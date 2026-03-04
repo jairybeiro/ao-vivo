@@ -9,9 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Tv } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const hasValidStreamUrls = (urls: string[]) => {
-  return urls.some(url => url.trim() !== "" && url !== "placeholder" && url.includes(".m3u8"));
-};
+import { hasValidStreamUrls, isHlsUrl } from "@/lib/hlsUtils";
 
 const PremiumWatch = () => {
   const { id } = useParams<{ id: string }>();
@@ -88,7 +86,7 @@ const PremiumWatch = () => {
             />
           ) : hasValidStreamUrls(currentContent.streamUrls) ? (
             <VideoPlayer
-              streamUrls={currentContent.streamUrls.filter(url => url.includes(".m3u8"))}
+              streamUrls={currentContent.streamUrls.filter(isHlsUrl)}
               channelName={currentContent.title}
               isVertical={isVerticalVideo}
               onAspectRatioDetected={(isVertical) => setIsVerticalVideo(isVertical)}

@@ -19,11 +19,7 @@ interface LessonPlayerProps {
   onTimeUpdate?: (currentTime: number) => void;
 }
 
-const hasValidStreamUrls = (urls: string[]): boolean => {
-  return urls.some(
-    (url) => url && url.trim() !== "" && url !== "placeholder" && url.includes(".m3u8")
-  );
-};
+import { hasValidStreamUrls } from "@/lib/hlsUtils";
 
 export const LessonPlayer = ({
   lesson,
