@@ -25,12 +25,22 @@ const DirectStreamPlayer = ({ streamUrl, channelName = "Test Stream" }: DirectSt
       hlsRef.current = null;
     }
 
+    console.log("Loading stream:", streamUrl);
+
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: false,
+        lowLatencyMode: true,
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
+        manifestLoadingTimeOut: 20000,
+        manifestLoadingMaxRetry: 6,
+        levelLoadingTimeOut: 20000,
+        levelLoadingMaxRetry: 6,
+        fragLoadingTimeOut: 20000,
+        fragLoadingMaxRetry: 6,
+        fragLoadingRetryDelay: 1000,
+        levelLoadingRetryDelay: 1000,
       });
 
       hls.loadSource(streamUrl);
