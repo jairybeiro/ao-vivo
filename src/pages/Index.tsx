@@ -53,9 +53,6 @@ const Index = () => {
   };
 
 
-  // Determinar a URL embed do canal selecionado
-  const embedUrl = selectedChannel?.embedUrl || null;
-
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
