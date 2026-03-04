@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Scan, Play, Save, AlertCircle } from "lucide-react";
 import DirectStreamPlayer from "./DirectStreamPlayer";
+import { isHlsUrl } from "@/lib/hlsUtils";
 
 interface DetectStreamModalProps {
   open: boolean;
@@ -17,7 +18,7 @@ const DetectStreamModal = ({ open, onOpenChange, channelName, onSaveStream }: De
   const [streamUrl, setStreamUrl] = useState("");
   const [testing, setTesting] = useState(false);
 
-  const isValidUrl = streamUrl.trim().length > 0 && streamUrl.includes(".m3u8");
+  const isValidUrl = streamUrl.trim().length > 0 && isHlsUrl(streamUrl);
 
   const handleTest = () => {
     console.log("Testing stream:", streamUrl);
@@ -48,7 +49,7 @@ const DetectStreamModal = ({ open, onOpenChange, channelName, onSaveStream }: De
             Detectar Stream — {channelName}
           </DialogTitle>
           <DialogDescription>
-            Capture a URL do stream HLS (.m3u8) manualmente a partir do embed player.
+            Capture a URL do stream HLS (.m3u8, .m3u ou .txt) manualmente a partir do embed player.
           </DialogDescription>
         </DialogHeader>
 
@@ -67,7 +68,7 @@ const DetectStreamModal = ({ open, onOpenChange, channelName, onSaveStream }: De
 
           {/* Input */}
           <div className="space-y-2">
-            <Label htmlFor="stream-url">URL do stream .m3u8</Label>
+            <Label htmlFor="stream-url">URL do stream HLS (.m3u8 / .m3u / .txt)</Label>
             <Input
               id="stream-url"
               placeholder="https://cdn.example.com/.../master.m3u8"
@@ -81,7 +82,7 @@ const DetectStreamModal = ({ open, onOpenChange, channelName, onSaveStream }: De
             {streamUrl.trim() && !isValidUrl && (
               <p className="text-xs text-destructive flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
-                A URL deve conter .m3u8
+                A URL deve conter .m3u8, .m3u ou .txt
               </p>
             )}
           </div>

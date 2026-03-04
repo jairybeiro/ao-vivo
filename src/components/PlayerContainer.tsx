@@ -1,6 +1,7 @@
 import DirectStreamPlayer from "./DirectStreamPlayer";
 import EmbedPlayer from "./EmbedPlayer";
 import { DBChannel } from "@/hooks/useChannels";
+import { findHlsUrl } from "@/lib/hlsUtils";
 
 interface PlayerContainerProps {
   channel: DBChannel;
@@ -17,7 +18,7 @@ interface PlayerContainerProps {
  * 4. Fallback → try first streamUrl with DirectStreamPlayer
  */
 const PlayerContainer = ({ channel, forceEmbed = false }: PlayerContainerProps) => {
-  const hlsStreamUrl = channel.streamUrls?.find((url) => url.includes(".m3u8"));
+  const hlsStreamUrl = findHlsUrl(channel.streamUrls);
 
   // Force embed mode
   if (forceEmbed && channel.embedUrl) {

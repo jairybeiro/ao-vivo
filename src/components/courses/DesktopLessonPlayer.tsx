@@ -23,11 +23,7 @@ interface DesktopLessonPlayerProps {
   onBack: () => void;
 }
 
-const hasValidStreamUrls = (urls: string[]): boolean => {
-  return urls.some(
-    (url) => url && url.trim() !== "" && url !== "placeholder" && url.endsWith(".m3u8")
-  );
-};
+import { hasValidStreamUrls } from "@/lib/hlsUtils";
 
 export const DesktopLessonPlayer = ({
   lesson,
