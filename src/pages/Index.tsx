@@ -149,36 +149,20 @@ const Index = () => {
               {/* Toggle button */}
               <div className="flex items-center gap-2 mb-2">
                 <Button
-                  variant={useDirectStream ? "default" : "outline"}
+                  variant={forceEmbed ? "outline" : "default"}
                   size="sm"
-                  onClick={() => setUseDirectStream(!useDirectStream)}
+                  onClick={() => setForceEmbed(!forceEmbed)}
                   className="gap-1.5"
                 >
                   <Radio className="w-4 h-4" />
-                  {useDirectStream ? "Voltar ao Embed" : "Test Direct Stream"}
+                  {forceEmbed ? "Usar HLS Direto" : "Forçar Embed"}
                 </Button>
-                {useDirectStream && (
+                {!forceEmbed && selectedChannel.streamUrls?.some(u => u.includes(".m3u8")) && (
                   <span className="text-xs text-muted-foreground">HLS.js direto — sem iframe</span>
                 )}
               </div>
 
-              {useDirectStream ? (
-                <DirectStreamPlayer
-                  streamUrl={selectedChannel.streamUrls?.[0]?.includes(".m3u8") ? selectedChannel.streamUrls[0] : TEST_STREAM_URL}
-                  channelName={selectedChannel.name}
-                />
-              ) : embedUrl ? (
-                <EmbedPlayer
-                  embedUrl={embedUrl}
-                  channelName={selectedChannel.name}
-                  enablePreRoll={false}
-                />
-              ) : (
-                <DirectStreamPlayer
-                  streamUrl={selectedChannel.streamUrls?.[0]?.includes(".m3u8") ? selectedChannel.streamUrls[0] : TEST_STREAM_URL}
-                  channelName={selectedChannel.name}
-                />
-              )}
+              <PlayerContainer channel={selectedChannel} forceEmbed={forceEmbed} />
             </div>
           )}
 
