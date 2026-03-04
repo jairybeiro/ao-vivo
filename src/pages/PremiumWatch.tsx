@@ -86,7 +86,7 @@ const PremiumWatch = () => {
             />
           ) : hasValidStreamUrls(currentContent.streamUrls) ? (
             <VideoPlayer
-              streamUrls={currentContent.streamUrls.filter(url => url.includes(".m3u8"))}
+              streamUrls={currentContent.streamUrls.filter(isHlsUrl)}
               channelName={currentContent.title}
               isVertical={isVerticalVideo}
               onAspectRatioDetected={(isVertical) => setIsVerticalVideo(isVertical)}
