@@ -13,7 +13,7 @@ interface PlayerContainerProps {
  *
  * Priority:
  * 1. If forceEmbed is true → always use EmbedPlayer
- * 2. If channel has a .m3u8 streamUrl → use DirectStreamPlayer (HLS.js)
+ * 2. If channel has an HLS streamUrl (.m3u8/.m3u/.txt) → use DirectStreamPlayer (HLS.js)
  * 3. If channel has embedUrl → use EmbedPlayer (iframe)
  * 4. Fallback → try first streamUrl with DirectStreamPlayer
  */
