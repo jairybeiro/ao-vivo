@@ -271,6 +271,15 @@ const Index = () => {
           </div>
         )}
       </main>
+
+      {selectedChannel && (
+        <DetectStreamModal
+          open={detectOpen}
+          onOpenChange={setDetectOpen}
+          channelName={selectedChannel.name}
+          onSaveStream={handleSaveStream}
+        />
+      )}
     </div>
   );
 };
