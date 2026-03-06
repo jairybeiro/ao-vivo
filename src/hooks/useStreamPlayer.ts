@@ -3,6 +3,7 @@ import { StreamPlayer, type PlayerState, type ResolvedSource, type StreamPlayerE
 
 interface UseStreamPlayerOptions {
   source: string;
+  sources?: string[];
   containerRef: React.RefObject<HTMLElement>;
   autoplay?: boolean;
   title?: string;
@@ -13,6 +14,7 @@ interface UseStreamPlayerOptions {
   onBuffer?: () => void;
   onReload?: () => void;
   onFallback?: (url: string) => void;
+  onSourceSwitch?: (index: number, source: string) => void;
 }
 
 export const useStreamPlayer = (options: UseStreamPlayerOptions) => {
@@ -22,7 +24,7 @@ export const useStreamPlayer = (options: UseStreamPlayerOptions) => {
   const [error, setError] = useState<StreamPlayerError | null>(null);
   const prevSourceRef = useRef<string>("");
 
-  const { source, containerRef, autoplay = true, title, debug = false, fallbackEmbedUrl } = options;
+  const { source, sources, containerRef, autoplay = true, title, debug = false, fallbackEmbedUrl } = options;
 
   useEffect(() => {
     const container = containerRef.current;
@@ -40,6 +42,7 @@ export const useStreamPlayer = (options: UseStreamPlayerOptions) => {
     const player = new StreamPlayer({
       container,
       source,
+      sources,
       autoplay,
       title,
       debug,
@@ -60,6 +63,7 @@ export const useStreamPlayer = (options: UseStreamPlayerOptions) => {
         options.onFallback?.(url);
       },
       onSourceResolved: (src) => setResolvedSource(src),
+      onSourceSwitch: options.onSourceSwitch,
     });
 
     playerRef.current = player;

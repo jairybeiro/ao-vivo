@@ -5,16 +5,18 @@ import { Button } from "@/components/ui/button";
 
 interface StreamPlayerComponentProps {
   source: string;
+  sources?: string[];
   title?: string;
   fallbackEmbedUrl?: string;
   debug?: boolean;
 }
 
-const StreamPlayerComponent = ({ source, title, fallbackEmbedUrl, debug = false }: StreamPlayerComponentProps) => {
+const StreamPlayerComponent = ({ source, sources, title, fallbackEmbedUrl, debug = false }: StreamPlayerComponentProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { state, error, reload, resolvedSource } = useStreamPlayer({
     source,
+    sources,
     containerRef: containerRef as React.RefObject<HTMLElement>,
     title,
     fallbackEmbedUrl,
