@@ -9,7 +9,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Radio, Scan } from "lucide-react";
+import { Tv, Lock, Search, Star, Scan } from "lucide-react";
 import DetectStreamModal from "@/components/DetectStreamModal";
 import { supabase } from "@/integrations/supabase/client";
 import { isHlsUrl } from "@/lib/hlsUtils";
@@ -28,7 +28,6 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
-  const [forceEmbed, setForceEmbed] = useState(false);
   const [detectOpen, setDetectOpen] = useState(false);
 
   const filteredChannels = useMemo(() => {
@@ -164,29 +163,16 @@ const Index = () => {
         <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
           {selectedChannel && (
             <div className="flex-shrink-0">
-              {/* Toggle button */}
-              <div className="flex items-center gap-2 mb-2">
-                <Button
-                  variant={forceEmbed ? "outline" : "default"}
-                  size="sm"
-                  onClick={() => setForceEmbed(!forceEmbed)}
-                  className="gap-1.5"
-                >
-                  <Radio className="w-4 h-4" />
-                  {forceEmbed ? "Usar HLS Direto" : "Forçar Embed"}
-                </Button>
-                {!forceEmbed && selectedChannel.streamUrls?.some(u => isHlsUrl(u)) && (
-                  <span className="text-xs text-muted-foreground">HLS.js direto — sem iframe</span>
-                )}
-                {selectedChannel.embedUrl && (
+              {selectedChannel.embedUrl && (
+                <div className="flex items-center gap-2 mb-2">
                   <Button variant="outline" size="sm" onClick={() => setDetectOpen(true)} className="gap-1.5">
                     <Scan className="w-4 h-4" />
                     Detectar Stream
                   </Button>
-                )}
-              </div>
+                </div>
+              )}
 
-              <PlayerContainer channel={selectedChannel} forceEmbed={forceEmbed} />
+              <PlayerContainer channel={selectedChannel} />
             </div>
           )}
 

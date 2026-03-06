@@ -1,43 +1,30 @@
-import DirectStreamPlayer from "./DirectStreamPlayer";
+import StreamPlayerComponent from "./StreamPlayer";
 import EmbedPlayer from "./EmbedPlayer";
 import { DBChannel } from "@/hooks/useChannels";
 import { findHlsUrl } from "@/lib/hlsUtils";
 
 interface PlayerContainerProps {
   channel: DBChannel;
-  forceEmbed?: boolean;
 }
 
 /**
  * PlayerContainer - Decides which player to render based on channel data.
  *
  * Priority:
- * 1. If forceEmbed is true → always use EmbedPlayer
- * 2. If channel has an HLS streamUrl (.m3u8/.m3u/.txt) → use DirectStreamPlayer (HLS.js)
- * 3. If channel has embedUrl → use EmbedPlayer (iframe)
- * 4. Fallback → try first streamUrl with DirectStreamPlayer
+ * 1. If channel has an HLS streamUrl (.m3u8/.m3u/.txt) → use StreamPlayer SDK
+ * 2. If channel has embedUrl → use EmbedPlayer (iframe)
+ * 3. Fallback → try first streamUrl with StreamPlayer SDK
  */
-const PlayerContainer = ({ channel, forceEmbed = false }: PlayerContainerProps) => {
+const PlayerContainer = ({ channel }: PlayerContainerProps) => {
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
 
-  // Force embed mode
-  if (forceEmbed && channel.embedUrl) {
-    return (
-      <EmbedPlayer
-        embedUrl={channel.embedUrl}
-        channelName={channel.name}
-        enablePreRoll={false}
-      />
-    );
-  }
-
-  // Priority: direct HLS stream
+  // Priority: direct HLS stream via SDK
   if (hlsStreamUrl) {
-    console.log("Loading HLS stream:", hlsStreamUrl);
     return (
-      <DirectStreamPlayer
-        streamUrl={hlsStreamUrl}
-        channelName={channel.name}
+      <StreamPlayerComponent
+        source={hlsStreamUrl}
+        title={channel.name}
+        fallbackEmbedUrl={channel.embedUrl || undefined}
       />
     );
   }
@@ -53,12 +40,12 @@ const PlayerContainer = ({ channel, forceEmbed = false }: PlayerContainerProps) 
     );
   }
 
-  // Last resort: try first stream URL
+  // Last resort: try first stream URL via SDK
   if (channel.streamUrls?.[0]) {
     return (
-      <DirectStreamPlayer
-        streamUrl={channel.streamUrls[0]}
-        channelName={channel.name}
+      <StreamPlayerComponent
+        source={channel.streamUrls[0]}
+        title={channel.name}
       />
     );
   }
