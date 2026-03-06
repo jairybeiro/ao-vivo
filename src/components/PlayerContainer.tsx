@@ -18,11 +18,12 @@ interface PlayerContainerProps {
 const PlayerContainer = ({ channel }: PlayerContainerProps) => {
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
 
-  // Priority: direct HLS stream via SDK
+  // Priority: direct HLS stream via SDK (with multi-source failover)
   if (hlsStreamUrl) {
     return (
       <StreamPlayerComponent
         source={hlsStreamUrl}
+        sources={channel.streamUrls.length > 1 ? channel.streamUrls : undefined}
         title={channel.name}
         fallbackEmbedUrl={channel.embedUrl || undefined}
       />

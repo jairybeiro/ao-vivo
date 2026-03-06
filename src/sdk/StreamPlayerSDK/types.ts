@@ -9,6 +9,7 @@ export interface ResolvedSource {
 export interface StreamPlayerConfig {
   container: HTMLElement | string;
   source: string;
+  sources?: string[];
   autoplay?: boolean;
   title?: string;
   debug?: boolean;
@@ -19,6 +20,7 @@ export interface StreamPlayerConfig {
   onReload?: () => void;
   onFallback?: (url: string) => void;
   onSourceResolved?: (source: ResolvedSource) => void;
+  onSourceSwitch?: (index: number, source: string) => void;
 }
 
 export interface StreamPlayerError {
