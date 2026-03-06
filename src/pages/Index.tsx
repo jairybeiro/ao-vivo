@@ -12,7 +12,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tv, Lock, Search, Star, Scan } from "lucide-react";
 import DetectStreamModal from "@/components/DetectStreamModal";
 import { supabase } from "@/integrations/supabase/client";
-import { isHlsUrl } from "@/lib/hlsUtils";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
