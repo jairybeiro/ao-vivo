@@ -1,21 +1,19 @@
 import type { ResolvedSource, SourceType } from "./types";
 import { log, warn } from "./utils";
 
-const HLS_EXTENSIONS = [".m3u8", ".m3u"];
-const TXT_EXTENSIONS = [".txt"];
+const HLS_EXTENSIONS = [".m3u8", ".m3u", ".txt"];
 
 const detectSourceType = (url: string): SourceType => {
   const lower = url.toLowerCase().split("?")[0].split("#")[0];
 
   if (HLS_EXTENSIONS.some((ext) => lower.includes(ext))) return "hls";
-  if (TXT_EXTENSIONS.some((ext) => lower.includes(ext))) return "txt";
 
   // If URL contains typical embed patterns
   if (
     lower.includes("embed") ||
     lower.includes("player") ||
     lower.includes("iframe") ||
-    (!lower.includes(".m3u") && !lower.includes(".txt") && lower.startsWith("http"))
+    lower.startsWith("http")
   ) {
     return "embed";
   }
@@ -72,15 +70,6 @@ const resolveTxtPlaylist = async (url: string): Promise<string | null> => {
 export const resolveSource = async (url: string): Promise<ResolvedSource> => {
   const type = detectSourceType(url);
   log("Source type detected:", type, "for URL:", url);
-
-  if (type === "txt") {
-    const resolved = await resolveTxtPlaylist(url);
-    if (resolved && resolved !== url) {
-      return { type: "hls", resolvedUrl: resolved, originalUrl: url };
-    }
-    // If txt IS the playlist or resolution failed, try as HLS directly
-    return { type: "hls", resolvedUrl: url, originalUrl: url };
-  }
 
   return { type, resolvedUrl: url, originalUrl: url };
 };
