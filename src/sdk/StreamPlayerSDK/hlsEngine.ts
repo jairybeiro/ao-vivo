@@ -11,6 +11,9 @@ export class HlsEngine {
   private onErrorCallback?: (err: StreamPlayerError) => void;
   private onPlayCallback?: () => void;
   private onBufferCallback?: () => void;
+  private networkRetryCount = 0;
+  private mediaRetryCount = 0;
+  private maxRetries = 2;
 
   constructor(config?: Partial<HlsEngineConfig>) {
     this.config = { ...DEFAULT_HLS_CONFIG, ...config };
