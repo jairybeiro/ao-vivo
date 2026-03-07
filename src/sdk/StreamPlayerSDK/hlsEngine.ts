@@ -11,6 +11,9 @@ export class HlsEngine {
   private onErrorCallback?: (err: StreamPlayerError) => void;
   private onPlayCallback?: () => void;
   private onBufferCallback?: () => void;
+  private networkRetryCount = 0;
+  private mediaRetryCount = 0;
+  private maxRetries = 2;
 
   constructor(config?: Partial<HlsEngineConfig>) {
     this.config = { ...DEFAULT_HLS_CONFIG, ...config };
@@ -82,6 +85,8 @@ export class HlsEngine {
 
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
       log("HLS manifest loaded");
+      this.networkRetryCount = 0;
+      this.mediaRetryCount = 0;
       video.play().catch(() => {});
       this.onPlayCallback?.();
     });
@@ -101,11 +106,23 @@ export class HlsEngine {
         };
 
         if (data.type === "networkError") {
-          warn("Fatal network error, attempting recovery...");
-          hls.startLoad();
+          this.networkRetryCount++;
+          if (this.networkRetryCount <= this.maxRetries) {
+            warn(`Fatal network error, retry ${this.networkRetryCount}/${this.maxRetries}...`);
+            hls.startLoad();
+          } else {
+            warn("Network retries exhausted, escalating to failover");
+            this.onErrorCallback?.(err);
+          }
         } else if (data.type === "mediaError") {
-          warn("Fatal media error, attempting recovery...");
-          hls.recoverMediaError();
+          this.mediaRetryCount++;
+          if (this.mediaRetryCount <= this.maxRetries) {
+            warn(`Fatal media error, retry ${this.mediaRetryCount}/${this.maxRetries}...`);
+            hls.recoverMediaError();
+          } else {
+            warn("Media retries exhausted, escalating to failover");
+            this.onErrorCallback?.(err);
+          }
         } else {
           this.onErrorCallback?.(err);
         }
