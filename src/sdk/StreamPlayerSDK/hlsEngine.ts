@@ -85,6 +85,8 @@ export class HlsEngine {
 
     hls.on(Hls.Events.MANIFEST_PARSED, () => {
       log("HLS manifest loaded");
+      this.networkRetryCount = 0;
+      this.mediaRetryCount = 0;
       video.play().catch(() => {});
       this.onPlayCallback?.();
     });
