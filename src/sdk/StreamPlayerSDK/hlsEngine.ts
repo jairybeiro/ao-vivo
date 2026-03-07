@@ -106,11 +106,23 @@ export class HlsEngine {
         };
 
         if (data.type === "networkError") {
-          warn("Fatal network error, attempting recovery...");
-          hls.startLoad();
+          this.networkRetryCount++;
+          if (this.networkRetryCount <= this.maxRetries) {
+            warn(`Fatal network error, retry ${this.networkRetryCount}/${this.maxRetries}...`);
+            hls.startLoad();
+          } else {
+            warn("Network retries exhausted, escalating to failover");
+            this.onErrorCallback?.(err);
+          }
         } else if (data.type === "mediaError") {
-          warn("Fatal media error, attempting recovery...");
-          hls.recoverMediaError();
+          this.mediaRetryCount++;
+          if (this.mediaRetryCount <= this.maxRetries) {
+            warn(`Fatal media error, retry ${this.mediaRetryCount}/${this.maxRetries}...`);
+            hls.recoverMediaError();
+          } else {
+            warn("Media retries exhausted, escalating to failover");
+            this.onErrorCallback?.(err);
+          }
         } else {
           this.onErrorCallback?.(err);
         }
