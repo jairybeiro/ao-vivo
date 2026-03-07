@@ -5,6 +5,7 @@ import { EmbedPlayer } from "./embedPlayer";
 import { TokenManager } from "./tokenManager";
 import { FallbackManager } from "./fallbackManager";
 import { MultiSourceManager } from "./multiSourceManager";
+import { DynamicSourceManager } from "./dynamicSourceManager";
 import { log, warn, error as logError, resolveContainer, setDebug } from "./utils";
 
 export type PlayerState = "idle" | "loading" | "playing" | "error" | "fallback";
@@ -18,6 +19,7 @@ export class StreamPlayer {
   private tokenManager: TokenManager;
   private fallbackManager: FallbackManager;
   private multiSourceManager: MultiSourceManager | null = null;
+  private dynamicSourceManager: DynamicSourceManager;
   private resolvedSource: ResolvedSource | null = null;
   private state: PlayerState = "idle";
   private destroyed = false;
@@ -30,6 +32,7 @@ export class StreamPlayer {
     this.embedPlayer = new EmbedPlayer();
     this.tokenManager = new TokenManager();
     this.fallbackManager = new FallbackManager();
+    this.dynamicSourceManager = new DynamicSourceManager();
 
     // Initialize multi-source if sources array provided
     const sources = config.sources && config.sources.length > 0
@@ -137,8 +140,13 @@ export class StreamPlayer {
     // Start token health monitoring
     this.tokenManager.start(url, () => {
       log("StreamPlayer: token refresh triggered, reloading");
-      this.config.onReload?.();
-      this.hlsEngine.reload();
+      this.reloadCurrentSource();
+    });
+
+    // Start dynamic source health monitoring (longer interval for JWT expiry)
+    this.dynamicSourceManager.startHealthMonitor(url, () => {
+      log("StreamPlayer: dynamic source health check failed, reloading");
+      this.reloadCurrentSource();
     });
   }
 
@@ -150,15 +158,38 @@ export class StreamPlayer {
     this.setState("playing");
   }
 
+  private async reloadCurrentSource(): Promise<void> {
+    if (this.destroyed) return;
+
+    const currentSrc = this.multiSourceManager
+      ? this.multiSourceManager.getCurrentSource()
+      : this.config.source;
+
+    log("StreamPlayer: reloading current source");
+    this.config.onReload?.();
+    this.tokenManager.stop();
+    this.dynamicSourceManager.stopHealthMonitor();
+    await this.loadSource(currentSrc);
+  }
+
   private async handleError(err: StreamPlayerError) {
     warn("StreamPlayer: error:", err.details);
     this.config.onError?.(err);
 
     if (!err.fatal) return;
 
-    // If multi-source is active, try next source before fallback
+    // Step 1: Try dynamic reload of current source (handles JWT expiry)
+    if (this.dynamicSourceManager.canReload()) {
+      this.dynamicSourceManager.registerReload();
+      log("StreamPlayer: attempting dynamic source reload");
+      await this.reloadCurrentSource();
+      return;
+    }
+
+    // Step 2: Try next source via multi-source manager
     if (this.multiSourceManager) {
       this.multiSourceManager.recordError();
+      this.dynamicSourceManager.reset(); // reset attempts for new source
 
       if (this.multiSourceManager.hasNext()) {
         const nextSrc = this.multiSourceManager.nextSource();
@@ -167,15 +198,16 @@ export class StreamPlayer {
           log(`StreamPlayer: Source ${idx} failed, switching to source ${idx + 1}`);
           this.config.onSourceSwitch?.(idx, nextSrc);
           this.tokenManager.stop();
+          this.dynamicSourceManager.stopHealthMonitor();
           await this.loadSource(nextSrc);
           return;
         }
       }
 
-      // All sources exhausted, fall through to fallbackManager
       warn("StreamPlayer: all sources exhausted, using fallback manager");
     }
 
+    // Step 3: Fallback manager (reload → refetch → embed)
     const recovered = await this.fallbackManager.handleFailure();
     if (!recovered) {
       this.setState("error");
@@ -201,6 +233,7 @@ export class StreamPlayer {
     log("StreamPlayer: manual reload");
     this.config.onReload?.();
     this.fallbackManager.reset();
+    this.dynamicSourceManager.reset();
     this.multiSourceManager?.reset();
 
     if (this.resolvedSource?.type === "hls") {
@@ -240,6 +273,7 @@ export class StreamPlayer {
     this.hlsEngine.destroy();
     this.embedPlayer.destroy();
     this.tokenManager.stop();
+    this.dynamicSourceManager.reset();
     this.fallbackManager.reset();
     this.multiSourceManager?.reset();
     if (this.containerEl) {
