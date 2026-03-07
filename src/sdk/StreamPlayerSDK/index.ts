@@ -5,6 +5,7 @@ export { EmbedPlayer } from "./embedPlayer";
 export { TokenManager } from "./tokenManager";
 export { FallbackManager } from "./fallbackManager";
 export { MultiSourceManager } from "./multiSourceManager";
+export { DynamicSourceManager } from "./dynamicSourceManager";
 export type {
   StreamPlayerConfig,
   StreamPlayerError,
