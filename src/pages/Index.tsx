@@ -9,10 +9,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Scan } from "lucide-react";
-import DetectStreamModal from "@/components/DetectStreamModal";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { Tv, Lock, Search, Star } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CATEGORIES = ["Todos", "Favoritos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
@@ -27,7 +24,6 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
-  const [detectOpen, setDetectOpen] = useState(false);
 
   const filteredChannels = useMemo(() => {
     let result = channels;
@@ -55,21 +51,6 @@ const Index = () => {
     setSelectedChannel(channel);
   };
 
-  const handleSaveStream = async (url: string) => {
-    if (!selectedChannel) return;
-    const updatedUrls = [url, ...(selectedChannel.streamUrls || []).filter(u => u !== url)];
-    const { error } = await supabase
-      .from("channels")
-      .update({ stream_urls: updatedUrls })
-      .eq("id", selectedChannel.id);
-    if (error) {
-      toast.error("Erro ao salvar stream");
-      console.error(error);
-      return;
-    }
-    setSelectedChannel({ ...selectedChannel, streamUrls: updatedUrls });
-    toast.success("Stream salvo com sucesso!");
-  };
 
 
   return (
@@ -162,15 +143,6 @@ const Index = () => {
         <div className="flex-1 min-h-0 flex flex-col gap-3 overflow-hidden">
           {selectedChannel && (
             <div className="flex-shrink-0">
-              {selectedChannel.embedUrl && (
-                <div className="flex items-center gap-2 mb-2">
-                  <Button variant="outline" size="sm" onClick={() => setDetectOpen(true)} className="gap-1.5">
-                    <Scan className="w-4 h-4" />
-                    Detectar Stream
-                  </Button>
-                </div>
-              )}
-
               <PlayerContainer channel={selectedChannel} />
             </div>
           )}
@@ -258,14 +230,6 @@ const Index = () => {
         )}
       </main>
 
-      {selectedChannel && (
-        <DetectStreamModal
-          open={detectOpen}
-          onOpenChange={setDetectOpen}
-          channelName={selectedChannel.name}
-          onSaveStream={handleSaveStream}
-        />
-      )}
     </div>
   );
 };

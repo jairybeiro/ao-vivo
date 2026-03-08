@@ -54,8 +54,9 @@ const EmbedPlayer = ({
         scrolling="no"
         allowFullScreen
         allow="encrypted-media; autoplay; fullscreen"
-        sandbox="allow-scripts allow-same-origin allow-presentation"
+        sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"
         className="w-full h-full"
+        style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
       />
 
       {/* 
