@@ -2,3 +2,9 @@ project_id = "fidvjfsawgmdjtivlcpi"
 
 [functions.get-stream-url]
 verify_jwt = false
+
+[functions.resolve-stream]
+verify_jwt = false
+
+[functions.resolve-txt-stream]
+verify_jwt = false
