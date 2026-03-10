@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     const hlsMatches = [...html.matchAll(hlsRegex)];
     
     if (hlsMatches.length > 0) {
-      const streamUrl = hlsMatches[0][1] || hlsMatches[0][0].replace(/["']/g, '');
+      const streamUrl = (hlsMatches[0][1] || hlsMatches[0][0].replace(/["']/g, '')).replace(/^http:\/\//i, 'https://');
       console.log('[resolve-stream] Fallback HLS URL found:', streamUrl);
       return new Response(
         JSON.stringify({ success: true, streamUrl }),
