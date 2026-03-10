@@ -1,7 +1,9 @@
 import StreamPlayerComponent from "./StreamPlayer";
 import EmbedPlayer from "./EmbedPlayer";
 import { DBChannel } from "@/hooks/useChannels";
+import { useResolveStream } from "@/hooks/useResolveStream";
 import { findHlsUrl } from "@/lib/hlsUtils";
+import { Loader2 } from "lucide-react";
 
 interface PlayerContainerProps {
   channel: DBChannel;
@@ -11,14 +13,42 @@ interface PlayerContainerProps {
  * PlayerContainer - Decides which player to render based on channel data.
  *
  * Priority:
- * 1. If channel has an HLS streamUrl (.m3u8/.m3u/.txt) → use StreamPlayer SDK
- * 2. If channel has embedUrl → use EmbedPlayer (iframe)
- * 3. Fallback → try first streamUrl with StreamPlayer SDK
+ * 1. If channel has embedUrl → resolve real stream URL via edge function first
+ * 2. If channel has an HLS streamUrl (.m3u8/.m3u/.txt) → use StreamPlayer SDK
+ * 3. If channel has embedUrl and resolution failed → use EmbedPlayer (iframe)
+ * 4. Fallback → try first streamUrl with StreamPlayer SDK
  */
 const PlayerContainer = ({ channel }: PlayerContainerProps) => {
+  const { resolvedUrl, loading: resolving, error: resolveError, finalStreamUrls } = useResolveStream(
+    channel.embedUrl,
+    channel.streamUrls
+  );
+
+  // Show loading while resolving embed URL
+  if (resolving) {
+    return (
+      <div className="w-full aspect-video bg-black rounded-lg flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-white animate-spin" />
+        <span className="text-white/70 text-sm ml-3">Resolvendo stream...</span>
+      </div>
+    );
+  }
+
+  // If we resolved a URL from embed, use it as primary
+  if (resolvedUrl) {
+    return (
+      <StreamPlayerComponent
+        source={resolvedUrl}
+        sources={finalStreamUrls.length > 1 ? finalStreamUrls : undefined}
+        title={channel.name}
+        fallbackEmbedUrl={channel.embedUrl || undefined}
+      />
+    );
+  }
+
+  // Standard flow: check for HLS in existing stream URLs
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
 
-  // Priority: direct HLS stream via SDK (with multi-source failover)
   if (hlsStreamUrl) {
     return (
       <StreamPlayerComponent
