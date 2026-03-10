@@ -40,28 +40,91 @@ Deno.serve(async (req) => {
     const html = await response.text();
     console.log('[resolve-stream] HTML length:', html.length);
 
-    // Primary regex: matches .txt and .m3u8 URLs with tokens
-    const regex = /https?:\/\/[^"'\s<>]+\.(?:txt|m3u8)(?:\?[^"'\s<>]*)?/gi;
-    const matches = html.match(regex);
+    // Collect all candidate URLs
+    const allCandidates: string[] = [];
 
-    if (matches && matches.length > 0) {
-      // Clean and deduplicate
-      const cleaned = [...new Set(matches.map(m => m.replace(/\\+/g, '').replace(/['";\s]+$/, '')))];
-      console.log('[resolve-stream] Found URLs:', cleaned);
+    // Pattern 1: URLs ending in .txt (highest priority - these contain fresh tokens)
+    const txtRegex = /https?:\/\/[a-zA-Z0-9._~:/?#\[\]@!$&'()*+,;=%-]+\.txt(?:\?[^"'\s<>]*)?/gi;
+    const txtMatches = html.match(txtRegex);
+    if (txtMatches) {
+      allCandidates.push(...txtMatches);
+      console.log('[resolve-stream] Found .txt URLs:', txtMatches.length);
+    }
 
-      // Prefer .m3u8 over .txt
-      const m3u8 = cleaned.find(u => u.includes('.m3u8'));
-      const raw = m3u8 || cleaned[0];
-      // Force HTTPS to avoid mixed content blocking
-      const streamUrl = raw.replace(/^http:\/\//i, 'https://');
+    // Pattern 2: URLs ending in .m3u8
+    const m3u8Regex = /https?:\/\/[a-zA-Z0-9._~:/?#\[\]@!$&'()*+,;=%-]+\.m3u8(?:\?[^"'\s<>]*)?/gi;
+    const m3u8Matches = html.match(m3u8Regex);
+    if (m3u8Matches) {
+      allCandidates.push(...m3u8Matches);
+      console.log('[resolve-stream] Found .m3u8 URLs:', m3u8Matches.length);
+    }
+
+    // Pattern 3: Look for URLs inside JS variables (src=, source:, file:, url:, etc.)
+    const jsVarRegex = /(?:src|source|file|url|stream|video_url|manifest)\s*[:=]\s*["'](https?:\/\/[^"'\s]+)["']/gi;
+    let jsMatch;
+    while ((jsMatch = jsVarRegex.exec(html)) !== null) {
+      allCandidates.push(jsMatch[1]);
+    }
+
+    // Pattern 4: Look for concatenated strings building URLs
+    // e.g. "https://" + "domain" + "/path/file.txt"
+    const concatRegex = /["'](https?:\/\/[^"']+(?:\.txt|\.m3u8|\.m3u)[^"']*)["']/gi;
+    let concatMatch;
+    while ((concatMatch = concatRegex.exec(html)) !== null) {
+      allCandidates.push(concatMatch[1]);
+    }
+
+    // Pattern 5: Look specifically for cloudfront-net.online or similar .online domains with /token/ path
+    const onlineRegex = /https?:\/\/[a-zA-Z0-9.-]+\.online\/token\/[a-zA-Z0-9]+\/[a-zA-Z0-9._-]+\.(?:txt|m3u8)/gi;
+    const onlineMatches = html.match(onlineRegex);
+    if (onlineMatches) {
+      allCandidates.push(...onlineMatches);
+      console.log('[resolve-stream] Found .online token URLs:', onlineMatches.length);
+    }
+
+    // Clean, deduplicate and filter candidates
+    const cleaned = [...new Set(
+      allCandidates
+        .map(u => u.replace(/\\+/g, '').replace(/['";\s]+$/, '').trim())
+        .filter(u => {
+          try { new URL(u); return true; } catch { return false; }
+        })
+    )];
+
+    console.log('[resolve-stream] Total unique candidates:', cleaned.length);
+    if (cleaned.length > 0) {
+      console.log('[resolve-stream] Candidates:', JSON.stringify(cleaned.slice(0, 10)));
+    }
+
+    if (cleaned.length > 0) {
+      // Priority: 
+      // 1. .txt URLs with .online domain (fresh token pattern)
+      // 2. Any .txt URL  
+      // 3. .m3u8 URLs with known CDN domains
+      // 4. Any .m3u8 URL
+      const onlineTxt = cleaned.find(u => /\.online\/.+\.txt/i.test(u));
+      const anyTxt = cleaned.find(u => /\.txt(\?|$)/i.test(u));
+      const cdnM3u8 = cleaned.find(u => /\.(online|xyz|best|net)\/.+\.m3u8/i.test(u));
+      const anyM3u8 = cleaned.find(u => /\.m3u8(\?|$)/i.test(u));
+      
+      const bestMatch = onlineTxt || anyTxt || cdnM3u8 || anyM3u8 || cleaned[0];
+      
+      // Force HTTPS
+      const streamUrl = bestMatch.replace(/^http:\/\//i, 'https://');
+      
+      console.log('[resolve-stream] Selected URL:', streamUrl);
 
       return new Response(
-        JSON.stringify({ success: true, streamUrl, allUrls: cleaned }),
+        JSON.stringify({ 
+          success: true, 
+          streamUrl, 
+          allUrls: cleaned.map(u => u.replace(/^http:\/\//i, 'https://'))
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Fallback: try to find any HLS-like URL
+    // Fallback: try to find any HLS-like URL pattern
     const hlsRegex = /["']?(https?:\/\/[^"'\s]+(?:index|playlist|live|stream|master)[^"'\s]*\.m3u8[^"'\s]*?)["']/gi;
     const hlsMatches = [...html.matchAll(hlsRegex)];
     
@@ -74,7 +137,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('[resolve-stream] No stream URL found. HTML snippet:', html.substring(0, 1500));
+    console.log('[resolve-stream] No stream URL found. HTML snippet:', html.substring(0, 2000));
 
     return new Response(
       JSON.stringify({ success: false, error: 'No stream URL found in embed page' }),
