@@ -47,7 +47,6 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
             scrolling="no"
             allowFullScreen
             allow="encrypted-media; autoplay; fullscreen"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
             referrerPolicy="no-referrer"
             className="w-full h-full absolute inset-0"
             style={{
