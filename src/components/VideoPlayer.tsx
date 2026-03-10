@@ -37,8 +37,8 @@ const VideoPlayer = ({
   const [buffered, setBuffered] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const hideControlsTimeout = useRef<NodeJS.Timeout | null>(null);
-  const hideVolumeTimeout = useRef<NodeJS.Timeout | null>(null);
+  const hideControlsTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideVolumeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedTimeRef = useRef<number>(0);
   const hasSetInitialTime = useRef(false);
 

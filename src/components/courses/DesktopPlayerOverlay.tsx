@@ -88,7 +88,7 @@ export const DesktopPlayerOverlay = ({
 }: DesktopPlayerOverlayProps) => {
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const hideVolumeTimeout = useRef<NodeJS.Timeout | null>(null);
+  const hideVolumeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();

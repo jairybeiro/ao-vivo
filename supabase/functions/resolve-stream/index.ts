@@ -51,7 +51,9 @@ Deno.serve(async (req) => {
 
       // Prefer .m3u8 over .txt
       const m3u8 = cleaned.find(u => u.includes('.m3u8'));
-      const streamUrl = m3u8 || cleaned[0];
+      const raw = m3u8 || cleaned[0];
+      // Force HTTPS to avoid mixed content blocking
+      const streamUrl = raw.replace(/^http:\/\//i, 'https://');
 
       return new Response(
         JSON.stringify({ success: true, streamUrl, allUrls: cleaned }),
