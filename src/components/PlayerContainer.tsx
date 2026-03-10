@@ -60,7 +60,7 @@ const PlayerContainer = ({ channel }: PlayerContainerProps) => {
     );
   }
 
-  // Fallback: embed iframe
+  // Fallback: embed iframe (when resolution failed or no HLS found)
   if (channel.embedUrl) {
     return (
       <EmbedPlayer
@@ -72,7 +72,7 @@ const PlayerContainer = ({ channel }: PlayerContainerProps) => {
   }
 
   // Last resort: try first stream URL via SDK
-  if (channel.streamUrls?.[0]) {
+  if (channel.streamUrls?.[0] && channel.streamUrls[0] !== "placeholder") {
     return (
       <StreamPlayerComponent
         source={channel.streamUrls[0]}
