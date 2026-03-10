@@ -10,9 +10,29 @@ interface ResolveResult {
 }
 
 /**
+ * Validates a resolved URL by attempting a HEAD request.
+ * Returns true if the URL is reachable.
+ */
+const validateUrl = async (url: string): Promise<boolean> => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const resp = await fetch(url, { 
+      method: 'HEAD', 
+      mode: 'no-cors',
+      signal: controller.signal 
+    });
+    clearTimeout(timeout);
+    // no-cors returns opaque response (status 0), which means network is reachable
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Hook that resolves a stream URL from an embed page via the resolve-stream edge function.
- * If embedUrl is provided, it fetches the real stream URL server-side.
- * Falls back to the provided fallbackUrl if resolution fails.
+ * Validates the resolved URL and falls back if DNS/network fails.
  */
 export const useResolveStream = (embedUrl: string | null | undefined, fallbackUrls: string[]): ResolveResult & { finalStreamUrls: string[] } => {
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
@@ -53,7 +73,36 @@ export const useResolveStream = (embedUrl: string | null | undefined, fallbackUr
         if (!cancelled) {
           if (data.success && data.streamUrl) {
             console.log("[useResolveStream] Resolved:", data.streamUrl);
-            setResolvedUrl(data.streamUrl);
+            
+            // Validate the resolved URL is reachable
+            const isValid = await validateUrl(data.streamUrl);
+            
+            if (isValid) {
+              console.log("[useResolveStream] URL validated successfully");
+              setResolvedUrl(data.streamUrl);
+            } else {
+              // Try allUrls if available
+              let foundValid = false;
+              if (data.allUrls && Array.isArray(data.allUrls)) {
+                for (const altUrl of data.allUrls) {
+                  if (altUrl !== data.streamUrl) {
+                    const altValid = await validateUrl(altUrl);
+                    if (altValid) {
+                      console.log("[useResolveStream] Alternative URL valid:", altUrl);
+                      setResolvedUrl(altUrl);
+                      foundValid = true;
+                      break;
+                    }
+                  }
+                }
+              }
+              
+              if (!foundValid) {
+                console.warn("[useResolveStream] Resolved URL unreachable, falling back to embed");
+                setError("Resolved URL unreachable");
+                setResolvedUrl(null);
+              }
+            }
           } else {
             console.warn("[useResolveStream] No stream found, using fallback");
             setError(data.error || "No stream URL found");
