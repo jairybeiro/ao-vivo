@@ -160,16 +160,30 @@ export const ChannelForm = ({ editingChannel, onSuccess, onCancel }: ChannelForm
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="embedUrl">URL do Embed (opcional - para atualização automática)</Label>
+            <Label htmlFor="embedUrl">URL do Embed (opcional - para extração automática)</Label>
             <Input
               id="embedUrl"
               placeholder="https://exemplo.embedtv.best/canal"
               value={embedUrl}
               onChange={(e) => setEmbedUrl(e.target.value)}
             />
-            <p className="text-xs text-muted-foreground">
-              Se preenchido, o sistema tentará extrair automaticamente o m3u8 atualizado desta URL.
-            </p>
+            <div className="flex items-center gap-2 mt-1">
+              {embedUrl.trim() ? (
+                <>
+                  <Zap className="w-3.5 h-3.5 text-green-500" />
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    Extração automática ativa — o stream será resolvido em tempo real ao abrir o canal
+                  </span>
+                </>
+              ) : (
+                <>
+                  <ZapOff className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">
+                    Sem extração automática — usará as URLs de stream estáticas
+                  </span>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="space-y-3">
