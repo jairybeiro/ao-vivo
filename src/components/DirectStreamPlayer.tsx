@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
 import { Loader2, AlertCircle } from "lucide-react";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 interface DirectStreamPlayerProps {
   streamUrl: string;
@@ -13,9 +14,11 @@ const DirectStreamPlayer = ({ streamUrl, channelName = "Test Stream" }: DirectSt
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const playableUrl = toProxyStreamUrl(streamUrl);
+
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !playableUrl) return;
 
     setIsLoading(true);
     setError(null);
@@ -25,7 +28,7 @@ const DirectStreamPlayer = ({ streamUrl, channelName = "Test Stream" }: DirectSt
       hlsRef.current = null;
     }
 
-    console.log("Loading stream:", streamUrl);
+    console.log("Loading stream:", playableUrl);
 
     if (Hls.isSupported()) {
       const hls = new Hls({
@@ -43,7 +46,7 @@ const DirectStreamPlayer = ({ streamUrl, channelName = "Test Stream" }: DirectSt
         levelLoadingRetryDelay: 1000,
       });
 
-      hls.loadSource(streamUrl);
+      hls.loadSource(playableUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -63,7 +66,7 @@ const DirectStreamPlayer = ({ streamUrl, channelName = "Test Stream" }: DirectSt
       hlsRef.current = hls;
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       // Safari native HLS
-      video.src = streamUrl;
+      video.src = playableUrl;
       video.addEventListener("loadedmetadata", () => {
         console.log("HLS manifest loaded");
         setIsLoading(false);
@@ -85,7 +88,7 @@ const DirectStreamPlayer = ({ streamUrl, channelName = "Test Stream" }: DirectSt
         hlsRef.current = null;
       }
     };
-  }, [streamUrl]);
+  }, [playableUrl]);
 
   return (
     <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">

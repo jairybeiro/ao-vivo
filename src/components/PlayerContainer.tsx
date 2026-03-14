@@ -2,6 +2,7 @@ import StreamPlayerComponent from "./StreamPlayer";
 import EmbedPlayer from "./EmbedPlayer";
 import { DBChannel } from "@/hooks/useChannels";
 import { findHlsUrl } from "@/lib/hlsUtils";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 interface PlayerContainerProps {
   channel: DBChannel;
@@ -17,12 +18,15 @@ interface PlayerContainerProps {
  */
 const PlayerContainer = ({ channel }: PlayerContainerProps) => {
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
+  const playableStreamUrls = channel.streamUrls
+    .filter((url) => url && url !== "placeholder")
+    .map((url) => toProxyStreamUrl(url));
 
   if (hlsStreamUrl) {
     return (
       <StreamPlayerComponent
-        source={hlsStreamUrl}
-        sources={channel.streamUrls.length > 1 ? channel.streamUrls : undefined}
+        source={toProxyStreamUrl(hlsStreamUrl)}
+        sources={playableStreamUrls.length > 1 ? playableStreamUrls : undefined}
         title={channel.name}
         fallbackEmbedUrl={channel.embedUrl || undefined}
       />
@@ -41,10 +45,10 @@ const PlayerContainer = ({ channel }: PlayerContainerProps) => {
   }
 
   // Last resort: try first stream URL
-  if (channel.streamUrls?.[0] && channel.streamUrls[0] !== "placeholder") {
+  if (playableStreamUrls[0]) {
     return (
       <StreamPlayerComponent
-        source={channel.streamUrls[0]}
+        source={playableStreamUrls[0]}
         title={channel.name}
       />
     );
