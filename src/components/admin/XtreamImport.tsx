@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Loader2, CheckCircle } from "lucide-react";
+import { Download, Loader2, CheckCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -12,6 +12,8 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 interface ImportResult {
   totalStreams: number;
   inserted: number;
+  updated?: number;
+  skippedDuplicates?: number;
   errors: number;
   categories: string[];
 }
@@ -25,15 +27,17 @@ const XtreamImport = ({ onImportComplete }: XtreamImportProps) => {
   const [username, setUsername] = useState("5541996151706");
   const [password, setPassword] = useState("5541996151706");
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
 
-  const handleImport = async () => {
+  const callImport = async (isSync = false) => {
     if (!dns || !username || !password) {
       toast.error("Preencha todos os campos");
       return;
     }
 
-    setLoading(true);
+    if (isSync) setSyncing(true);
+    else setLoading(true);
     setResult(null);
 
     try {
@@ -54,12 +58,16 @@ const XtreamImport = ({ onImportComplete }: XtreamImportProps) => {
       }
 
       setResult(data);
-      toast.success(`${data.inserted} canais importados com sucesso!`);
+      const msg = isSync
+        ? `Sincronizado! ${data.inserted} novos, ${data.updated || 0} atualizados.`
+        : `${data.inserted} canais importados com sucesso!`;
+      toast.success(msg);
       onImportComplete();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Erro na importação");
     } finally {
       setLoading(false);
+      setSyncing(false);
     }
   };
 
@@ -71,7 +79,7 @@ const XtreamImport = ({ onImportComplete }: XtreamImportProps) => {
           Importar Xtream Codes
         </CardTitle>
         <CardDescription>
-          Importe canais de uma API Xtream Codes automaticamente.
+          Importe canais de uma API Xtream Codes. A sincronização diária é automática, mas você pode forçar manualmente.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -106,31 +114,48 @@ const XtreamImport = ({ onImportComplete }: XtreamImportProps) => {
           </div>
         </div>
 
-        <Button onClick={handleImport} disabled={loading} className="w-full">
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Importando canais...
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4 mr-2" />
-              Importar Canais
-            </>
-          )}
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={() => callImport(false)} disabled={loading || syncing} className="flex-1">
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Importando...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Importar Canais
+              </>
+            )}
+          </Button>
+          <Button onClick={() => callImport(true)} disabled={loading || syncing} variant="outline" className="flex-1">
+            {syncing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Sincronizando...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Sincronizar Agora
+              </>
+            )}
+          </Button>
+        </div>
 
         {result && (
           <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-green-600">
+            <div className="flex items-center gap-2 text-sm font-medium text-primary">
               <CheckCircle className="w-4 h-4" />
-              Importação concluída
+              Concluído
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
               <p>Total na API: <strong>{result.totalStreams}</strong></p>
-              <p>Inseridos: <strong>{result.inserted}</strong></p>
+              <p>Novos inseridos: <strong>{result.inserted}</strong></p>
+              {result.updated !== undefined && <p>Atualizados: <strong>{result.updated}</strong></p>}
+              {result.skippedDuplicates !== undefined && <p>Já existentes: <strong>{result.skippedDuplicates}</strong></p>}
               {result.errors > 0 && <p className="text-destructive">Erros: {result.errors}</p>}
-              <p>Categorias: {result.categories.join(", ")}</p>
+              <p className="text-xs">Categorias: {result.categories.join(", ")}</p>
             </div>
           </div>
         )}
