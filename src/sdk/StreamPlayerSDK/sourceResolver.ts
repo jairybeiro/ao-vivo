@@ -7,6 +7,9 @@ const TXT_EXTENSIONS = [".txt"];
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+/** Domains that require proxied requests (block direct browser access via Referer check) */
+const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
+
 const detectSourceType = (url: string): SourceType => {
   const lower = url.toLowerCase().split("?")[0].split("#")[0];
 
