@@ -343,7 +343,7 @@ const VideoPlayer = ({
   const isLive = !isFinite(duration) || duration === 0;
 
   // Limit options to max 2 for mobile
-  const displayedUrls = streamUrls.slice(0, 2);
+  const displayedUrls = proxiedStreamUrls.slice(0, 2);
 
   const progressPercent = isLive ? 0 : (currentTime / duration) * 100;
   const bufferedPercent = isLive ? 0 : (buffered / duration) * 100;
