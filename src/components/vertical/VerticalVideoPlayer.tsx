@@ -39,7 +39,11 @@ export const VerticalVideoPlayer = ({
   const [error, setError] = useState<string | null>(null);
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
 
-  const currentUrl = streamUrls[currentUrlIndex];
+  const proxiedStreamUrls = useMemo(
+    () => streamUrls.map((url) => toProxyStreamUrl(url)),
+    [streamUrls]
+  );
+  const currentUrl = proxiedStreamUrls[currentUrlIndex];
   const useEmbed = embedUrl && embedUrl.trim() !== "";
 
   const tryNextUrl = useCallback(() => {
