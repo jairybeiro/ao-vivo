@@ -1,10 +1,9 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
-import ChannelCard from "@/components/ChannelCard";
+import VirtualChannelList from "@/components/VirtualChannelList";
 import PlayerContainer from "@/components/PlayerContainer";
 import { useChannels, DBChannel } from "@/hooks/useChannels";
-
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,27 +16,24 @@ const BASE_CATEGORIES = ["Todos", "Favoritos"];
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const { channels, loading } = useChannels();
-  
-  const { toggleFavorite, isFavorite } = useFavorites();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
-
-  // Dynamic categories from channels
-  const CATEGORIES = useMemo(() => {
-    const dbCategories = [...new Set(channels.map(ch => ch.category))].sort();
-    return [...BASE_CATEGORIES, ...dbCategories];
-  }, [channels]);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
+
+  // Server-side category filtering
+  const { channels, categories: dbCategories, loading } = useChannels(selectedCategory);
+  const { toggleFavorite, isFavorite } = useFavorites();
+
+  const CATEGORIES = useMemo(() => {
+    return [...BASE_CATEGORIES, ...dbCategories];
+  }, [dbCategories]);
 
   const filteredChannels = useMemo(() => {
     let result = channels;
 
     if (selectedCategory === "Favoritos") {
       result = result.filter((ch) => isFavorite(ch.id));
-    } else if (selectedCategory !== "Todos") {
-      result = result.filter((ch) => ch.category === selectedCategory);
     }
 
     if (searchQuery.trim()) {
@@ -57,7 +53,14 @@ const Index = () => {
     setSelectedChannel(channel);
   };
 
-
+  const emptyState = (
+    <div className="flex-1 flex items-center justify-center text-muted-foreground">
+      <div className="text-center py-12">
+        <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
+        <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
@@ -75,7 +78,7 @@ const Index = () => {
           </div>
 
           {!isMobile && (
-            <div className="flex-1">
+            <div className="flex-1 overflow-x-auto">
               <CategoryTabs
                 categories={CATEGORIES}
                 selectedCategory={selectedCategory}
@@ -111,7 +114,7 @@ const Index = () => {
                     <h2 className="text-lg font-bold">StreamPlayer</h2>
                   </div>
                 </div>
-                <div className="p-2">
+                <div className="p-2 overflow-y-auto max-h-[60vh]">
                   <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-semibold">Categorias</p>
                   {CATEGORIES.map((category) => (
                     <button
@@ -153,8 +156,7 @@ const Index = () => {
             </div>
           )}
 
-
-          {/* Mobile: Search + Channel List below player */}
+          {/* Mobile: Search + Virtual Channel List below player */}
           {isMobile && (
             <>
               <div className="flex-shrink-0">
@@ -168,34 +170,24 @@ const Index = () => {
                   />
                 </div>
               </div>
-              <div className="flex-1 min-h-0 overflow-y-auto">
-                {loading ? (
-                  <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
-                ) : filteredChannels.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {filteredChannels.map((channel) => (
-                      <ChannelCard
-                        key={channel.id}
-                        channel={channel}
-                        isSelected={selectedChannel?.id === channel.id}
-                        isFavorite={isFavorite(channel.id)}
-                        onToggleFavorite={toggleFavorite}
-                        onSelect={handleSelectChannel}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
+              {loading ? (
+                <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
+              ) : filteredChannels.length === 0 ? (
+                emptyState
+              ) : (
+                <VirtualChannelList
+                  channels={filteredChannels}
+                  selectedChannelId={selectedChannel?.id}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  onSelect={handleSelectChannel}
+                />
+              )}
             </>
           )}
         </div>
 
-        {/* Desktop: Channel List Sidebar (right side) */}
+        {/* Desktop: Virtual Channel List Sidebar */}
         {!isMobile && (
           <div className="hidden lg:flex lg:flex-none lg:w-80 flex-col gap-3">
             <div className="flex-shrink-0">
@@ -209,33 +201,24 @@ const Index = () => {
                 />
               </div>
             </div>
-            <div className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border bg-card/50 p-2">
-              {loading ? (
-                <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
-              ) : filteredChannels.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {filteredChannels.map((channel) => (
-                    <ChannelCard
-                      key={channel.id}
-                      channel={channel}
-                      isSelected={selectedChannel?.id === channel.id}
-                      isFavorite={isFavorite(channel.id)}
-                      onToggleFavorite={toggleFavorite}
-                      onSelect={handleSelectChannel}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            {loading ? (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground">
+                Carregando canais...
+              </div>
+            ) : filteredChannels.length === 0 ? (
+              emptyState
+            ) : (
+              <VirtualChannelList
+                channels={filteredChannels}
+                selectedChannelId={selectedChannel?.id}
+                isFavorite={isFavorite}
+                onToggleFavorite={toggleFavorite}
+                onSelect={handleSelectChannel}
+              />
+            )}
           </div>
         )}
       </main>
-
     </div>
   );
 };
