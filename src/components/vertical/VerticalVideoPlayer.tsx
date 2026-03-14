@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Hls from "hls.js";
 import { Play, Pause, Loader2, Volume2, VolumeX, ChevronUp, ChevronDown, X } from "lucide-react";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 interface VerticalVideoPlayerProps {
   streamUrls: string[];
@@ -38,17 +39,21 @@ export const VerticalVideoPlayer = ({
   const [error, setError] = useState<string | null>(null);
   const [currentUrlIndex, setCurrentUrlIndex] = useState(0);
 
-  const currentUrl = streamUrls[currentUrlIndex];
+  const proxiedStreamUrls = useMemo(
+    () => streamUrls.map((url) => toProxyStreamUrl(url)),
+    [streamUrls]
+  );
+  const currentUrl = proxiedStreamUrls[currentUrlIndex];
   const useEmbed = embedUrl && embedUrl.trim() !== "";
 
   const tryNextUrl = useCallback(() => {
-    if (currentUrlIndex < streamUrls.length - 1) {
+    if (currentUrlIndex < proxiedStreamUrls.length - 1) {
       setCurrentUrlIndex((prev) => prev + 1);
       setError(null);
     } else {
       setError("Nenhuma opção disponível");
     }
-  }, [currentUrlIndex, streamUrls.length]);
+  }, [currentUrlIndex, proxiedStreamUrls.length]);
 
   const initPlayer = useCallback(() => {
     const video = videoRef.current;
@@ -102,7 +107,7 @@ export const VerticalVideoPlayer = ({
   useEffect(() => {
     setCurrentUrlIndex(0);
     setError(null);
-  }, [streamUrls]);
+  }, [proxiedStreamUrls]);
 
   // Initialize player when active
   useEffect(() => {

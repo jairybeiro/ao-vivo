@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Hls from "hls.js";
 import { Play, Pause, Loader2, Volume2, VolumeX, Volume1, RotateCcw, RotateCw } from "lucide-react";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 interface VideoPlayerProps {
   streamUrls: string[];
@@ -12,14 +13,14 @@ interface VideoPlayerProps {
   onAspectRatioDetected?: (isVertical: boolean) => void;
 }
 
-const VideoPlayer = ({ 
-  streamUrls, 
-  channelName = "Canal", 
-  onEnded, 
-  initialTime = 0, 
+const VideoPlayer = ({
+  streamUrls,
+  channelName = "Canal",
+  onEnded,
+  initialTime = 0,
   onTimeUpdate,
   isVertical = false,
-  onAspectRatioDetected 
+  onAspectRatioDetected
 }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -42,16 +43,20 @@ const VideoPlayer = ({
   const lastSavedTimeRef = useRef<number>(0);
   const hasSetInitialTime = useRef(false);
 
-  const currentUrl = streamUrls[currentUrlIndex];
+  const proxiedStreamUrls = useMemo(
+    () => streamUrls.map((url) => toProxyStreamUrl(url)),
+    [streamUrls]
+  );
+  const currentUrl = proxiedStreamUrls[currentUrlIndex];
 
   const tryNextUrl = useCallback(() => {
-    if (currentUrlIndex < streamUrls.length - 1) {
+    if (currentUrlIndex < proxiedStreamUrls.length - 1) {
       setCurrentUrlIndex((prev) => prev + 1);
       setError(null);
     } else {
       setError("Nenhuma opção disponível");
     }
-  }, [currentUrlIndex, streamUrls.length]);
+  }, [currentUrlIndex, proxiedStreamUrls.length]);
 
   const initPlayer = useCallback(() => {
     // Reset aspect ratio detection on new video load
@@ -139,7 +144,7 @@ const VideoPlayer = ({
 
   useEffect(() => {
     setCurrentUrlIndex(0);
-  }, [streamUrls]);
+  }, [proxiedStreamUrls]);
 
   useEffect(() => {
     initPlayer();
@@ -338,7 +343,7 @@ const VideoPlayer = ({
   const isLive = !isFinite(duration) || duration === 0;
 
   // Limit options to max 2 for mobile
-  const displayedUrls = streamUrls.slice(0, 2);
+  const displayedUrls = proxiedStreamUrls.slice(0, 2);
 
   const progressPercent = isLive ? 0 : (currentTime / duration) * 100;
   const bufferedPercent = isLive ? 0 : (buffered / duration) * 100;

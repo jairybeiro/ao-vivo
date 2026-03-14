@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Hls from "hls.js";
 import { Loader2 } from "lucide-react";
 import { DesktopPlayerOverlay } from "./DesktopPlayerOverlay";
@@ -24,6 +24,7 @@ interface DesktopLessonPlayerProps {
 }
 
 import { hasValidStreamUrls } from "@/lib/hlsUtils";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 export const DesktopLessonPlayer = ({
   lesson,
@@ -62,7 +63,10 @@ export const DesktopLessonPlayer = ({
   const [showAutoPlay, setShowAutoPlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const streamUrls = lesson.streamUrls || [];
+  const streamUrls = useMemo(
+    () => (lesson.streamUrls || []).map((url) => toProxyStreamUrl(url)),
+    [lesson.streamUrls]
+  );
   const currentUrl = streamUrls[currentUrlIndex];
   const isLive = !isFinite(duration) || duration === 0;
   const progressPercent = isLive ? 0 : (currentTime / duration) * 100;

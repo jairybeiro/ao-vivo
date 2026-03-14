@@ -1,9 +1,10 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 const FORCE_PROXY_DOMAINS = ["ipsmart.icu", "embedtv", "embedtvonline", "cdn2embedtv"];
+const PROXY_PATH = "/functions/v1/proxy-stream";
 
 const isProxyUrl = (url: string): boolean => {
-  return url.includes("/functions/v1/proxy-stream");
+  return url.includes(PROXY_PATH);
 };
 
 const shouldForceProxy = (url: string): boolean => {
@@ -22,7 +23,7 @@ const shouldForceProxy = (url: string): boolean => {
 
 const buildProxyUrl = (url: string): string => {
   if (!SUPABASE_URL) return url;
-  return `${SUPABASE_URL}/functions/v1/proxy-stream?url=${encodeURIComponent(url)}`;
+  return `${SUPABASE_URL}${PROXY_PATH}?url=${encodeURIComponent(url)}`;
 };
 
 export const toProxyStreamUrl = (url: string): string => {
@@ -31,11 +32,9 @@ export const toProxyStreamUrl = (url: string): string => {
   if (!normalizedUrl || normalizedUrl === "placeholder") return normalizedUrl;
   if (isProxyUrl(normalizedUrl)) return normalizedUrl;
 
-  if (shouldForceProxy(normalizedUrl)) {
-    return buildProxyUrl(normalizedUrl);
-  }
-
-  return normalizedUrl;
+  return shouldForceProxy(normalizedUrl)
+    ? buildProxyUrl(normalizedUrl)
+    : normalizedUrl;
 };
 
 export const toProxyAssetUrl = (url: string | null | undefined): string | null => {
@@ -45,14 +44,7 @@ export const toProxyAssetUrl = (url: string | null | undefined): string | null =
   if (!normalizedUrl) return null;
   if (isProxyUrl(normalizedUrl)) return normalizedUrl;
 
-  try {
-    const parsed = new URL(normalizedUrl);
-    if (parsed.protocol === "http:") {
-      return buildProxyUrl(normalizedUrl);
-    }
-  } catch {
-    return normalizedUrl;
-  }
-
-  return normalizedUrl;
+  return shouldForceProxy(normalizedUrl)
+    ? buildProxyUrl(normalizedUrl)
+    : normalizedUrl;
 };

@@ -1,24 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-/** Domains that require proxied requests */
-const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
-
-const needsProxy = (url: string): boolean => {
-  try {
-    const parsed = new URL(url);
-    const hostname = parsed.hostname.toLowerCase();
-    return PROXY_DOMAINS.some(d => hostname.includes(d)) || parsed.protocol === 'http:';
-  } catch {
-    return false;
-  }
-};
-
-const buildProxyUrl = (url: string): string => {
-  return `${SUPABASE_URL}/functions/v1/proxy-stream?url=${encodeURIComponent(url)}`;
-};
 
 interface ResolveResult {
   resolvedUrl: string | null;
@@ -34,10 +18,10 @@ const validateUrl = async (url: string): Promise<boolean> => {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000);
-    const resp = await fetch(url, { 
-      method: 'HEAD', 
-      mode: 'no-cors',
-      signal: controller.signal 
+    await fetch(url, {
+      method: "HEAD",
+      mode: "no-cors",
+      signal: controller.signal,
     });
     clearTimeout(timeout);
     // no-cors returns opaque response (status 0), which means network is reachable
@@ -51,7 +35,10 @@ const validateUrl = async (url: string): Promise<boolean> => {
  * Hook that resolves a stream URL from an embed page via the resolve-stream edge function.
  * Validates the resolved URL and falls back if DNS/network fails.
  */
-export const useResolveStream = (embedUrl: string | null | undefined, fallbackUrls: string[]): ResolveResult & { finalStreamUrls: string[] } => {
+export const useResolveStream = (
+  embedUrl: string | null | undefined,
+  fallbackUrls: string[]
+): ResolveResult & { finalStreamUrls: string[] } => {
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,8 +62,8 @@ export const useResolveStream = (embedUrl: string | null | undefined, fallbackUr
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`,
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
           },
           body: JSON.stringify({ url: embedUrl }),
         });
@@ -87,49 +74,45 @@ export const useResolveStream = (embedUrl: string | null | undefined, fallbackUr
 
         const data = await response.json();
 
-        if (!cancelled) {
-          if (data.success && data.streamUrl) {
-            let finalUrl = data.streamUrl;
-            // If resolved URL is from a blocked domain, proxy it
-            if (needsProxy(finalUrl)) {
-              finalUrl = buildProxyUrl(finalUrl);
-            }
-            console.log("[useResolveStream] Resolved:", finalUrl);
-            
-            // Validate the resolved URL is reachable
-            const isValid = await validateUrl(finalUrl);
-            
-            if (isValid) {
-              console.log("[useResolveStream] URL validated successfully");
-              setResolvedUrl(finalUrl);
-            } else {
-              // Try allUrls if available
-              let foundValid = false;
-              if (data.allUrls && Array.isArray(data.allUrls)) {
-                for (const altUrl of data.allUrls) {
-                  if (altUrl !== data.streamUrl) {
-                    const altValid = await validateUrl(altUrl);
-                    if (altValid) {
-                      console.log("[useResolveStream] Alternative URL valid:", altUrl);
-                      setResolvedUrl(altUrl);
-                      foundValid = true;
-                      break;
-                    }
-                  }
+        if (cancelled) return;
+
+        if (data.success && data.streamUrl) {
+          const finalUrl = toProxyStreamUrl(data.streamUrl);
+          console.log("[useResolveStream] Resolved:", finalUrl);
+
+          const isValid = await validateUrl(finalUrl);
+
+          if (isValid) {
+            console.log("[useResolveStream] URL validated successfully");
+            setResolvedUrl(finalUrl);
+            return;
+          }
+
+          let foundValid = false;
+          if (data.allUrls && Array.isArray(data.allUrls)) {
+            for (const altUrl of data.allUrls) {
+              if (altUrl !== data.streamUrl) {
+                const proxiedAlt = toProxyStreamUrl(altUrl);
+                const altValid = await validateUrl(proxiedAlt);
+                if (altValid) {
+                  console.log("[useResolveStream] Alternative URL valid:", proxiedAlt);
+                  setResolvedUrl(proxiedAlt);
+                  foundValid = true;
+                  break;
                 }
               }
-              
-              if (!foundValid) {
-                console.warn("[useResolveStream] Resolved URL unreachable, falling back to embed");
-                setError("Resolved URL unreachable");
-                setResolvedUrl(null);
-              }
             }
-          } else {
-            console.warn("[useResolveStream] No stream found, using fallback");
-            setError(data.error || "No stream URL found");
+          }
+
+          if (!foundValid) {
+            console.warn("[useResolveStream] Resolved URL unreachable, falling back to embed");
+            setError("Resolved URL unreachable");
             setResolvedUrl(null);
           }
+        } else {
+          console.warn("[useResolveStream] No stream found, using fallback");
+          setError(data.error || "No stream URL found");
+          setResolvedUrl(null);
         }
       } catch (err) {
         if (!cancelled) {
@@ -143,13 +126,19 @@ export const useResolveStream = (embedUrl: string | null | undefined, fallbackUr
     };
 
     resolve();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [embedUrl]);
 
-  // Build final stream URLs: resolved URL first, then existing fallbacks
+  const proxiedFallbacks = useMemo(
+    () => fallbackUrls.map((url) => toProxyStreamUrl(url)),
+    [fallbackUrls]
+  );
+
   const finalStreamUrls = resolvedUrl
-    ? [resolvedUrl, ...fallbackUrls.filter(u => u !== resolvedUrl)]
-    : fallbackUrls;
+    ? [resolvedUrl, ...proxiedFallbacks.filter((u) => u !== resolvedUrl)]
+    : proxiedFallbacks;
 
   return { resolvedUrl, loading, error, finalStreamUrls };
 };

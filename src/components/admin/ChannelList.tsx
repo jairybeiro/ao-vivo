@@ -7,6 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Pencil, Trash2, List, Tv } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { toProxyAssetUrl } from "@/lib/streamProxy";
 
 interface Channel {
   id: string;
@@ -29,7 +30,7 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);
-    
+
     const { error } = await supabase
       .from("channels")
       .delete()
@@ -41,7 +42,7 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
       toast.success("Canal excluído com sucesso!");
       onRefresh();
     }
-    
+
     setDeletingId(null);
   };
 
@@ -67,23 +68,26 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
           </div>
         ) : (
           <div className="rounded-md border overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Canal</TableHead>
-                    <TableHead>Categoria</TableHead>
-                    <TableHead>URLs</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {channels.map((channel) => (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Canal</TableHead>
+                  <TableHead>Categoria</TableHead>
+                  <TableHead>URLs</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {channels.map((channel) => {
+                  const logoUrl = toProxyAssetUrl(channel.logo);
+
+                  return (
                     <TableRow key={channel.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {channel.logo ? (
-                            <img 
-                              src={channel.logo} 
+                          {logoUrl ? (
+                            <img
+                              src={logoUrl}
                               alt={channel.name}
                               className="w-8 h-8 rounded object-contain bg-muted"
                             />
@@ -126,7 +130,7 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Excluir Canal</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Tem certeza que deseja excluir o canal "{channel.name}"? 
+                                  Tem certeza que deseja excluir o canal "{channel.name}"?
                                   Esta ação não pode ser desfeita.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
@@ -145,9 +149,10 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
         )}
       </CardContent>
