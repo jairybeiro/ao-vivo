@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Hls from "hls.js";
 import { Play, Pause, Loader2, Volume2, VolumeX, ChevronUp, ChevronDown, X } from "lucide-react";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 interface VerticalVideoPlayerProps {
   streamUrls: string[];
