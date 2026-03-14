@@ -81,8 +81,10 @@ const resolveTxtViaProxy = async (url: string): Promise<string | null> => {
  */
 const needsProxy = (url: string): boolean => {
   try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    return PROXY_DOMAINS.some(d => hostname.includes(d));
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+    // Proxy if domain is blocked OR if URL is plain HTTP (mixed content)
+    return PROXY_DOMAINS.some(d => hostname.includes(d)) || parsed.protocol === 'http:';
   } catch {
     return false;
   }

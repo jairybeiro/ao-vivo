@@ -21,6 +21,12 @@ const Index = () => {
   
   const { toggleFavorite, isFavorite } = useFavorites();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+
+  // Dynamic categories from channels
+  const CATEGORIES = useMemo(() => {
+    const dbCategories = [...new Set(channels.map(ch => ch.category))].sort();
+    return [...BASE_CATEGORIES, ...dbCategories];
+  }, [channels]);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);

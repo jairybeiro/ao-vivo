@@ -8,8 +8,9 @@ const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
 
 const needsProxy = (url: string): boolean => {
   try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    return PROXY_DOMAINS.some(d => hostname.includes(d));
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+    return PROXY_DOMAINS.some(d => hostname.includes(d)) || parsed.protocol === 'http:';
   } catch {
     return false;
   }
