@@ -107,7 +107,7 @@ export const VerticalVideoPlayer = ({
   useEffect(() => {
     setCurrentUrlIndex(0);
     setError(null);
-  }, [streamUrls]);
+  }, [proxiedStreamUrls]);
 
   // Initialize player when active
   useEffect(() => {
