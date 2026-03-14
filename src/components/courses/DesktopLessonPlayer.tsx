@@ -63,7 +63,10 @@ export const DesktopLessonPlayer = ({
   const [showAutoPlay, setShowAutoPlay] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const streamUrls = lesson.streamUrls || [];
+  const streamUrls = useMemo(
+    () => (lesson.streamUrls || []).map((url) => toProxyStreamUrl(url)),
+    [lesson.streamUrls]
+  );
   const currentUrl = streamUrls[currentUrlIndex];
   const isLive = !isFinite(duration) || duration === 0;
   const progressPercent = isLive ? 0 : (currentTime / duration) * 100;
