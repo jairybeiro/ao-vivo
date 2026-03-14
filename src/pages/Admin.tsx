@@ -27,7 +27,7 @@ interface Channel {
 }
 
 const Admin = () => {
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, isAdmin, loading, adminCheckLoading, signOut } = useAuth();
   const navigate = useNavigate();
   
   // Estados para canais
@@ -73,7 +73,7 @@ const Admin = () => {
     }
   }, [user, isAdmin, fetchChannels]);
 
-  if (loading) {
+  if (loading || (user && adminCheckLoading)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Carregando...</div>
