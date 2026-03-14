@@ -47,13 +47,13 @@ export const VerticalVideoPlayer = ({
   const useEmbed = embedUrl && embedUrl.trim() !== "";
 
   const tryNextUrl = useCallback(() => {
-    if (currentUrlIndex < streamUrls.length - 1) {
+    if (currentUrlIndex < proxiedStreamUrls.length - 1) {
       setCurrentUrlIndex((prev) => prev + 1);
       setError(null);
     } else {
       setError("Nenhuma opção disponível");
     }
-  }, [currentUrlIndex, streamUrls.length]);
+  }, [currentUrlIndex, proxiedStreamUrls.length]);
 
   const initPlayer = useCallback(() => {
     const video = videoRef.current;
