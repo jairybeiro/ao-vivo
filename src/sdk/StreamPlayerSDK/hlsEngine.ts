@@ -3,6 +3,13 @@ import type { HlsEngineConfig, StreamPlayerError } from "./types";
 import { DEFAULT_HLS_CONFIG } from "./types";
 import { log, warn, error as logError } from "./utils";
 
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const PROXY_STREAM_PATH = "/functions/v1/proxy-stream";
+
+const isProxyStreamRequest = (url: string): boolean => {
+  return url.includes(PROXY_STREAM_PATH);
+};
+
 export class HlsEngine {
   private hls: Hls | null = null;
   private video: HTMLVideoElement | null = null;
@@ -78,6 +85,12 @@ export class HlsEngine {
       fragLoadingMaxRetry: this.config.fragLoadingMaxRetry,
       fragLoadingRetryDelay: this.config.fragLoadingRetryDelay,
       levelLoadingRetryDelay: this.config.levelLoadingRetryDelay,
+      xhrSetup: (xhr, requestUrl) => {
+        if (SUPABASE_KEY && isProxyStreamRequest(requestUrl)) {
+          xhr.setRequestHeader("apikey", SUPABASE_KEY);
+          xhr.setRequestHeader("Authorization", `Bearer ${SUPABASE_KEY}`);
+        }
+      },
     });
 
     hls.loadSource(url);

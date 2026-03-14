@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { defaultChannels } from "@/data/channels";
+import { toProxyAssetUrl } from "@/lib/streamProxy";
 
 export interface DBChannel {
   id: string;
@@ -50,7 +51,7 @@ export const useChannels = (categoryFilter?: string) => {
           id: ch.id,
           name: ch.name,
           category: "Notícias",
-          logo: ch.logo || null,
+          logo: toProxyAssetUrl(ch.logo),
           streamUrls: ch.streamUrls,
           embedUrl: null,
           isLive: true,
@@ -62,7 +63,7 @@ export const useChannels = (categoryFilter?: string) => {
           id: ch.id,
           name: ch.name,
           category: ch.category,
-          logo: ch.logo,
+          logo: toProxyAssetUrl(ch.logo),
           streamUrls: ch.stream_urls,
           embedUrl: ch.embed_url || null,
           isLive: ch.is_live ?? true,
@@ -75,7 +76,7 @@ export const useChannels = (categoryFilter?: string) => {
           id: ch.id,
           name: ch.name,
           category: "Notícias",
-          logo: ch.logo || null,
+          logo: toProxyAssetUrl(ch.logo),
           streamUrls: ch.streamUrls,
           embedUrl: null,
           isLive: true,

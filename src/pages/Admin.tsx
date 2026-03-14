@@ -14,6 +14,7 @@ import { ChannelList } from "@/components/admin/ChannelList";
 import { AdForm } from "@/components/admin/AdForm";
 import { AdList } from "@/components/admin/AdList";
 import PremiumContentList from "@/components/admin/PremiumContentList";
+import { toProxyAssetUrl } from "@/lib/streamProxy";
 
 interface Channel {
   id: string;
@@ -56,7 +57,7 @@ const Admin = () => {
           id: ch.id,
           name: ch.name,
           category: ch.category,
-          logo: ch.logo,
+          logo: toProxyAssetUrl(ch.logo),
           streamUrls: ch.stream_urls,
           embedUrl: (ch as any).embed_url || null,
           isLive: ch.is_live ?? true,
