@@ -59,6 +59,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAdminCheckLoading(false);
   };
 
+  const recoverSessionFromStorage = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.user) {
+      return false;
+    }
+
+    setSession(session);
+    setUser(session.user);
+    await checkAdminRole(session.user.id);
+    return true;
+  };
+
   useEffect(() => {
     const {
       data: { subscription },
@@ -110,11 +123,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         lastError = error instanceof Error ? error : new Error("Erro de autenticação");
       }
 
+      if (isNetworkError(lastError?.message)) {
+        const recovered = await recoverSessionFromStorage();
+        if (recovered) {
+          return { error: null };
+        }
+      }
+
       if (!isNetworkError(lastError?.message) || attempt === 2) {
         break;
       }
 
       await wait(300 * (attempt + 1));
+    }
+
+    const recovered = await recoverSessionFromStorage();
+    if (recovered) {
+      return { error: null };
     }
 
     return { error: lastError };
