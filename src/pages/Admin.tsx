@@ -221,6 +221,11 @@ const Admin = () => {
               />
             </TabsContent>
 
+            {/* Tab de Importação Xtream */}
+            <TabsContent value="import" className="space-y-6">
+              <XtreamImport onImportComplete={fetchChannels} />
+            </TabsContent>
+
             {/* Tab de Anúncios */}
             <TabsContent value="ads" className="space-y-6">
               <div className="flex justify-between items-start">
