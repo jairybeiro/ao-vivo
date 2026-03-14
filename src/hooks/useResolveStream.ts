@@ -88,14 +88,19 @@ export const useResolveStream = (embedUrl: string | null | undefined, fallbackUr
 
         if (!cancelled) {
           if (data.success && data.streamUrl) {
-            console.log("[useResolveStream] Resolved:", data.streamUrl);
+            let finalUrl = data.streamUrl;
+            // If resolved URL is from a blocked domain, proxy it
+            if (needsProxy(finalUrl)) {
+              finalUrl = buildProxyUrl(finalUrl);
+            }
+            console.log("[useResolveStream] Resolved:", finalUrl);
             
             // Validate the resolved URL is reachable
-            const isValid = await validateUrl(data.streamUrl);
+            const isValid = await validateUrl(finalUrl);
             
             if (isValid) {
               console.log("[useResolveStream] URL validated successfully");
-              setResolvedUrl(data.streamUrl);
+              setResolvedUrl(finalUrl);
             } else {
               // Try allUrls if available
               let foundValid = false;
