@@ -120,11 +120,11 @@ export const resolveSource = async (url: string): Promise<ResolvedSource> => {
     return { type: "hls", resolvedUrl: url, originalUrl: url };
   }
 
-  // For HLS URLs from blocked domains, route through proxy
-  if (type === "hls" && needsProxy(url)) {
+  // For any URL that needs proxying (blocked domain or HTTP), route through proxy
+  if (needsProxy(url)) {
     const proxied = buildProxyUrl(url);
-    log("SourceResolver: proxying HLS:", proxied);
-    return { type: "hls", resolvedUrl: proxied, originalUrl: url };
+    log("SourceResolver: proxying:", proxied);
+    return { type: type === "unknown" ? "hls" : type, resolvedUrl: proxied, originalUrl: url };
   }
 
   return { type, resolvedUrl: url, originalUrl: url };
