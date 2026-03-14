@@ -7,6 +7,9 @@ const TXT_EXTENSIONS = [".txt"];
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+/** Domains that require proxied requests (block direct browser access via Referer check) */
+const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
+
 const detectSourceType = (url: string): SourceType => {
   const lower = url.toLowerCase().split("?")[0].split("#")[0];
 
@@ -65,8 +68,28 @@ const resolveTxtViaProxy = async (url: string): Promise<string | null> => {
 };
 
 /**
+ * Check if a URL needs to be proxied (domain blocks direct browser requests).
+ */
+const needsProxy = (url: string): boolean => {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return PROXY_DOMAINS.some(d => hostname.includes(d));
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Build a proxied URL that goes through our proxy-stream edge function.
+ */
+const buildProxyUrl = (url: string): string => {
+  return `${SUPABASE_URL}/functions/v1/proxy-stream?url=${encodeURIComponent(url)}`;
+};
+
+/**
  * Resolve a source URL to a playable format.
  * For .txt files, fetches the actual HLS URL via server proxy.
+ * For blocked domains, routes through proxy-stream edge function.
  */
 export const resolveSource = async (url: string): Promise<ResolvedSource> => {
   const type = detectSourceType(url);
@@ -75,10 +98,22 @@ export const resolveSource = async (url: string): Promise<ResolvedSource> => {
   if (type === "txt") {
     const resolved = await resolveTxtViaProxy(url);
     if (resolved && resolved !== url) {
+      // Check if the resolved URL also needs proxying
+      if (needsProxy(resolved)) {
+        const proxied = buildProxyUrl(resolved);
+        log("SourceResolver: TXT resolved + proxied:", proxied);
+        return { type: "hls", resolvedUrl: proxied, originalUrl: url };
+      }
       return { type: "hls", resolvedUrl: resolved, originalUrl: url };
     }
-    // Fallback: pass .txt URL directly to HLS.js (some servers serve it as playlist)
     return { type: "hls", resolvedUrl: url, originalUrl: url };
+  }
+
+  // For HLS URLs from blocked domains, route through proxy
+  if (type === "hls" && needsProxy(url)) {
+    const proxied = buildProxyUrl(url);
+    log("SourceResolver: proxying HLS:", proxied);
+    return { type: "hls", resolvedUrl: proxied, originalUrl: url };
   }
 
   return { type, resolvedUrl: url, originalUrl: url };

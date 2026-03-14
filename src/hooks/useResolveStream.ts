@@ -3,6 +3,22 @@ import { useState, useEffect } from "react";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+/** Domains that require proxied requests */
+const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
+
+const needsProxy = (url: string): boolean => {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return PROXY_DOMAINS.some(d => hostname.includes(d));
+  } catch {
+    return false;
+  }
+};
+
+const buildProxyUrl = (url: string): string => {
+  return `${SUPABASE_URL}/functions/v1/proxy-stream?url=${encodeURIComponent(url)}`;
+};
+
 interface ResolveResult {
   resolvedUrl: string | null;
   loading: boolean;
@@ -72,14 +88,19 @@ export const useResolveStream = (embedUrl: string | null | undefined, fallbackUr
 
         if (!cancelled) {
           if (data.success && data.streamUrl) {
-            console.log("[useResolveStream] Resolved:", data.streamUrl);
+            let finalUrl = data.streamUrl;
+            // If resolved URL is from a blocked domain, proxy it
+            if (needsProxy(finalUrl)) {
+              finalUrl = buildProxyUrl(finalUrl);
+            }
+            console.log("[useResolveStream] Resolved:", finalUrl);
             
             // Validate the resolved URL is reachable
-            const isValid = await validateUrl(data.streamUrl);
+            const isValid = await validateUrl(finalUrl);
             
             if (isValid) {
               console.log("[useResolveStream] URL validated successfully");
-              setResolvedUrl(data.streamUrl);
+              setResolvedUrl(finalUrl);
             } else {
               // Try allUrls if available
               let foundValid = false;
