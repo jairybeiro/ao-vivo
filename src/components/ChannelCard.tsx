@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { Radio } from "lucide-react";
 import type { DBChannel } from "@/hooks/useChannels";
+import { toProxyAssetUrl } from "@/lib/streamProxy";
 
 interface ChannelCardProps {
   channel: DBChannel;
@@ -12,6 +13,8 @@ interface ChannelCardProps {
 
 const ChannelCard = forwardRef<HTMLDivElement, ChannelCardProps>(
   ({ channel, isSelected, onSelect }, ref) => {
+    const logoUrl = toProxyAssetUrl(channel.logo);
+
     return (
       <div
         ref={ref}
@@ -20,9 +23,9 @@ const ChannelCard = forwardRef<HTMLDivElement, ChannelCardProps>(
         }`}
         onClick={() => onSelect(channel)}
       >
-        {channel.logo ? (
+        {logoUrl ? (
           <img
-            src={channel.logo}
+            src={logoUrl}
             alt={channel.name}
             className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-muted"
           />

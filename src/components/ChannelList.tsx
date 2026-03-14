@@ -1,6 +1,7 @@
 import { Radio } from "lucide-react";
 import type { DBChannel } from "@/hooks/useChannels";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toProxyAssetUrl } from "@/lib/streamProxy";
 
 interface ChannelListProps {
   channels: DBChannel[];
@@ -48,38 +49,42 @@ const ChannelList = ({ channels, selectedChannel, onSelectChannel, loading }: Ch
               <p className="text-sm">Nenhum canal nesta categoria</p>
             </div>
           ) : (
-            channels.map((channel) => (
-              <button
-                key={channel.id}
-                onClick={() => onSelectChannel(channel)}
-                className={`w-full flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg transition-all duration-200 ${
-                  selectedChannel?.id === channel.id
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-sidebar-accent text-sidebar-foreground"
-                }`}
-              >
-                {channel.logo ? (
-                  <img
-                    src={channel.logo}
-                    alt={channel.name}
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover"
-                  />
-                ) : (
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-md bg-accent flex items-center justify-center">
-                    <Radio className="w-4 h-4 md:w-5 md:h-5" />
+            channels.map((channel) => {
+              const logoUrl = toProxyAssetUrl(channel.logo);
+
+              return (
+                <button
+                  key={channel.id}
+                  onClick={() => onSelectChannel(channel)}
+                  className={`w-full flex items-center gap-2 md:gap-3 p-2 md:p-3 rounded-lg transition-all duration-200 ${
+                    selectedChannel?.id === channel.id
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-sidebar-accent text-sidebar-foreground"
+                  }`}
+                >
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={channel.name}
+                      className="w-8 h-8 md:w-10 md:h-10 rounded-md object-cover"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-md bg-accent flex items-center justify-center">
+                      <Radio className="w-4 h-4 md:w-5 md:h-5" />
+                    </div>
+                  )}
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="font-medium text-sm md:text-base truncate">{channel.name}</p>
+                    <p className={`text-xs ${selectedChannel?.id === channel.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                      Ao vivo
+                    </p>
                   </div>
-                )}
-                <div className="flex-1 text-left min-w-0">
-                  <p className="font-medium text-sm md:text-base truncate">{channel.name}</p>
-                  <p className={`text-xs ${selectedChannel?.id === channel.id ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                    Ao vivo
-                  </p>
-                </div>
-                {selectedChannel?.id === channel.id && (
-                  <div className="w-2 h-2 rounded-full bg-live animate-live-pulse flex-shrink-0" />
-                )}
-              </button>
-            ))
+                  {selectedChannel?.id === channel.id && (
+                    <div className="w-2 h-2 rounded-full bg-live animate-live-pulse flex-shrink-0" />
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
       </div>

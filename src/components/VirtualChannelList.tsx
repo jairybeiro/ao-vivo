@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Radio } from "lucide-react";
 import type { DBChannel } from "@/hooks/useChannels";
+import { toProxyAssetUrl } from "@/lib/streamProxy";
 
 interface VirtualChannelListProps {
   channels: DBChannel[];
@@ -49,6 +50,7 @@ const VirtualChannelList = ({
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const channel = channels[virtualItem.index];
           const isSelected = selectedChannelId === channel.id;
+          const logoUrl = toProxyAssetUrl(channel.logo);
 
           return (
             <div
@@ -71,9 +73,9 @@ const VirtualChannelList = ({
                 }`}
                 onClick={() => onSelect(channel)}
               >
-                {channel.logo ? (
+                {logoUrl ? (
                   <img
-                    src={channel.logo}
+                    src={logoUrl}
                     alt={channel.name}
                     className="w-8 h-8 rounded-lg object-cover flex-shrink-0 bg-muted"
                     loading="lazy"
