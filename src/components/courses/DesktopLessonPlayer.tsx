@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Hls from "hls.js";
 import { Loader2 } from "lucide-react";
 import { DesktopPlayerOverlay } from "./DesktopPlayerOverlay";
@@ -24,6 +24,7 @@ interface DesktopLessonPlayerProps {
 }
 
 import { hasValidStreamUrls } from "@/lib/hlsUtils";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 export const DesktopLessonPlayer = ({
   lesson,
