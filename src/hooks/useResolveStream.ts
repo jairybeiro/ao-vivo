@@ -3,6 +3,22 @@ import { useState, useEffect } from "react";
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+/** Domains that require proxied requests */
+const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
+
+const needsProxy = (url: string): boolean => {
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+    return PROXY_DOMAINS.some(d => hostname.includes(d));
+  } catch {
+    return false;
+  }
+};
+
+const buildProxyUrl = (url: string): string => {
+  return `${SUPABASE_URL}/functions/v1/proxy-stream?url=${encodeURIComponent(url)}`;
+};
+
 interface ResolveResult {
   resolvedUrl: string | null;
   loading: boolean;
