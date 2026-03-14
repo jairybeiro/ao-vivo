@@ -27,7 +27,7 @@ interface Channel {
 }
 
 const Admin = () => {
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, isAdmin, loading, adminCheckLoading, signOut } = useAuth();
   const navigate = useNavigate();
   
   // Estados para canais
