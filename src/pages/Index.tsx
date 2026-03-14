@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tv, Lock, Search, Star } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const CATEGORIES = ["Todos", "Favoritos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
+const BASE_CATEGORIES = ["Todos", "Favoritos"];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,6 +21,12 @@ const Index = () => {
   
   const { toggleFavorite, isFavorite } = useFavorites();
   const [selectedCategory, setSelectedCategory] = useState("Todos");
+
+  // Dynamic categories from channels
+  const CATEGORIES = useMemo(() => {
+    const dbCategories = [...new Set(channels.map(ch => ch.category))].sort();
+    return [...BASE_CATEGORIES, ...dbCategories];
+  }, [channels]);
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);

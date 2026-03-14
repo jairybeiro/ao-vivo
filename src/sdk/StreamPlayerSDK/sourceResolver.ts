@@ -10,6 +10,15 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 /** Domains that require proxied requests (block direct browser access via Referer check) */
 const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
 
+/** Check if URL is plain HTTP (needs proxy to avoid mixed content) */
+const isInsecureHttp = (url: string): boolean => {
+  try {
+    return new URL(url).protocol === 'http:';
+  } catch {
+    return false;
+  }
+};
+
 const detectSourceType = (url: string): SourceType => {
   const lower = url.toLowerCase().split("?")[0].split("#")[0];
 
@@ -72,8 +81,10 @@ const resolveTxtViaProxy = async (url: string): Promise<string | null> => {
  */
 const needsProxy = (url: string): boolean => {
   try {
-    const hostname = new URL(url).hostname.toLowerCase();
-    return PROXY_DOMAINS.some(d => hostname.includes(d));
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.toLowerCase();
+    // Proxy if domain is blocked OR if URL is plain HTTP (mixed content)
+    return PROXY_DOMAINS.some(d => hostname.includes(d)) || parsed.protocol === 'http:';
   } catch {
     return false;
   }
@@ -109,11 +120,11 @@ export const resolveSource = async (url: string): Promise<ResolvedSource> => {
     return { type: "hls", resolvedUrl: url, originalUrl: url };
   }
 
-  // For HLS URLs from blocked domains, route through proxy
-  if (type === "hls" && needsProxy(url)) {
+  // For any URL that needs proxying (blocked domain or HTTP), route through proxy
+  if (needsProxy(url)) {
     const proxied = buildProxyUrl(url);
-    log("SourceResolver: proxying HLS:", proxied);
-    return { type: "hls", resolvedUrl: proxied, originalUrl: url };
+    log("SourceResolver: proxying:", proxied);
+    return { type: type === "unknown" ? "hls" : type, resolvedUrl: proxied, originalUrl: url };
   }
 
   return { type, resolvedUrl: url, originalUrl: url };

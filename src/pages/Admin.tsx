@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film } from "lucide-react";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download } from "lucide-react";
+import XtreamImport from "@/components/admin/XtreamImport";
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
 import { AdForm } from "@/components/admin/AdForm";
@@ -184,10 +185,14 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="channels" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="channels" className="flex items-center gap-2">
                 <Tv className="w-4 h-4" />
                 Canais
+              </TabsTrigger>
+              <TabsTrigger value="import" className="flex items-center gap-2">
+                <Download className="w-4 h-4" />
+                Importar
               </TabsTrigger>
               <TabsTrigger value="ads" className="flex items-center gap-2">
                 <Megaphone className="w-4 h-4" />
@@ -214,6 +219,11 @@ const Admin = () => {
                 onEdit={handleEditChannel}
                 onRefresh={fetchChannels}
               />
+            </TabsContent>
+
+            {/* Tab de Importação Xtream */}
+            <TabsContent value="import" className="space-y-6">
+              <XtreamImport onImportComplete={fetchChannels} />
             </TabsContent>
 
             {/* Tab de Anúncios */}
