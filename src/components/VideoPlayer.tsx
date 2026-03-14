@@ -144,7 +144,7 @@ const VideoPlayer = ({
 
   useEffect(() => {
     setCurrentUrlIndex(0);
-  }, [streamUrls]);
+  }, [proxiedStreamUrls]);
 
   useEffect(() => {
     initPlayer();
