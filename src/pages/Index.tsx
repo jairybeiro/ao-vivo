@@ -12,7 +12,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Tv, Lock, Search, Star } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const CATEGORIES = ["Todos", "Favoritos", "Notícias", "Esportes", "Filmes", "Variedades", "Locais"];
+const BASE_CATEGORIES = ["Todos", "Favoritos"];
 
 const Index = () => {
   const navigate = useNavigate();
