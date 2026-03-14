@@ -10,6 +10,15 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 /** Domains that require proxied requests (block direct browser access via Referer check) */
 const PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
 
+/** Check if URL is plain HTTP (needs proxy to avoid mixed content) */
+const isInsecureHttp = (url: string): boolean => {
+  try {
+    return new URL(url).protocol === 'http:';
+  } catch {
+    return false;
+  }
+};
+
 const detectSourceType = (url: string): SourceType => {
   const lower = url.toLowerCase().split("?")[0].split("#")[0];
 
