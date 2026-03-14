@@ -20,16 +20,25 @@ const AdminLogin = () => {
     setIsLoading(true);
 
     const { error } = await signIn(email, password);
-    
+
     if (error) {
+      const lower = error.message.toLowerCase();
+      const description = lower.includes("invalid login credentials")
+        ? "Email ou senha inválidos"
+        : lower.includes("email not confirmed")
+          ? "Confirme seu email antes de entrar"
+          : lower.includes("failed to fetch") || lower.includes("network")
+            ? "Falha temporária de conexão. Tente novamente"
+            : error.message;
+
       toast.error("Erro ao fazer login", {
-        description: error.message,
+        description,
       });
     } else {
       toast.success("Login realizado com sucesso!");
       navigate("/admin");
     }
-    
+
     setIsLoading(false);
   };
 

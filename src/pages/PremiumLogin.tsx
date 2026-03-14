@@ -25,6 +25,24 @@ const PremiumLogin = () => {
     return null;
   }
 
+  const getLoginErrorMessage = (message: string) => {
+    const lower = message.toLowerCase();
+
+    if (lower.includes("invalid login credentials")) {
+      return "Email ou senha inválidos";
+    }
+
+    if (lower.includes("email not confirmed")) {
+      return "Confirme seu email antes de entrar";
+    }
+
+    if (lower.includes("failed to fetch") || lower.includes("network")) {
+      return "Falha temporária de conexão. Tente novamente";
+    }
+
+    return message || "Erro ao fazer login";
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail || !loginPassword) {
@@ -37,7 +55,7 @@ const PremiumLogin = () => {
     setLoading(false);
 
     if (error) {
-      toast.error("Credenciais inválidas");
+      toast.error(getLoginErrorMessage(error.message));
     } else {
       toast.success("Login realizado com sucesso!");
       navigate("/premium");
@@ -66,10 +84,11 @@ const PremiumLogin = () => {
     setLoading(false);
 
     if (error) {
-      if (error.message.includes("already registered")) {
-        toast.error("Este email já está cadastrado");
+      const lower = error.message.toLowerCase();
+      if (lower.includes("already registered")) {
+        toast.error("Este email já está cadastrado. Use a aba Entrar.");
       } else {
-        toast.error("Erro ao criar conta");
+        toast.error(error.message || "Erro ao criar conta");
       }
     } else {
       toast.success("Conta criada com sucesso! Verifique seu email.");
