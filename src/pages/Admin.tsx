@@ -73,7 +73,7 @@ const Admin = () => {
     }
   }, [user, isAdmin, fetchChannels]);
 
-  if (loading) {
+  if (loading || (user && adminCheckLoading)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-muted-foreground">Carregando...</div>
