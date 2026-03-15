@@ -45,8 +45,15 @@ Deno.serve(async (req) => {
 
     console.log('[proxy-stream] Fetching:', targetUrl);
 
+    // Forward Range header for MP4 seeking support
+    const fetchHeaders: Record<string, string> = { ...SPOOF_HEADERS };
+    const rangeHeader = req.headers.get('Range');
+    if (rangeHeader) {
+      fetchHeaders['Range'] = rangeHeader;
+    }
+
     const response = await fetch(targetUrl, {
-      headers: SPOOF_HEADERS,
+      headers: fetchHeaders,
     });
 
     if (!response.ok) {
@@ -93,14 +100,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // For .ts segments and other binary content — stream through
-    const body = await response.arrayBuffer();
-    return new Response(body, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': contentType || 'video/mp2t',
-        'Cache-Control': 'public, max-age=10',
-      },
+    // For .ts segments, MP4, and other binary content — stream through
+    const responseHeaders: Record<string, string> = {
+      ...corsHeaders,
+      'Content-Type': contentType || 'video/mp2t',
+      'Cache-Control': 'public, max-age=10',
+    };
+
+    // Forward content-range and accept-ranges for MP4 seeking
+    const contentRange = response.headers.get('content-range');
+    const contentLength = response.headers.get('content-length');
+    const acceptRanges = response.headers.get('accept-ranges');
+    if (contentRange) responseHeaders['Content-Range'] = contentRange;
+    if (contentLength) responseHeaders['Content-Length'] = contentLength;
+    if (acceptRanges) responseHeaders['Accept-Ranges'] = acceptRanges;
+    else responseHeaders['Accept-Ranges'] = 'bytes';
+
+    return new Response(response.body, {
+      status: response.status, // preserve 206 Partial Content
+      headers: responseHeaders,
     });
 
   } catch (error) {

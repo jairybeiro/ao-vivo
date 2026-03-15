@@ -90,46 +90,30 @@ Deno.serve(async (req) => {
       const vodStreams: XtreamVod[] = await vodResp.json();
       console.log(`[import-vod] Got ${vodStreams.length} movies`);
 
-      // Get existing by xtream_id
-      const { data: existingMovies } = await supabase
-        .from('vod_movies')
-        .select('xtream_id');
-      const existingMovieIds = new Set((existingMovies || []).map(m => m.xtream_id));
+      const movieRows = vodStreams.map(s => ({
+        name: s.name,
+        category: vodCatMap.get(s.category_id) || 'Filmes',
+        stream_url: `${baseUrl}/movie/${username}/${password}/${s.stream_id}.${s.container_extension || 'mp4'}`,
+        cover_url: s.stream_icon || null,
+        rating: s.rating ? parseFloat(s.rating) || null : null,
+        xtream_id: s.stream_id,
+        is_active: true,
+      }));
 
-      const newMovies = vodStreams
-        .filter(s => !existingMovieIds.has(s.stream_id))
-        .map(s => ({
-          name: s.name,
-          category: vodCatMap.get(s.category_id) || 'Filmes',
-          stream_url: `${baseUrl}/movie/${username}/${password}/${s.stream_id}.${s.container_extension || 'mp4'}`,
-          cover_url: s.stream_icon || null,
-          rating: s.rating ? parseFloat(s.rating) || null : null,
-          xtream_id: s.stream_id,
-          is_active: true,
-        }));
-
-      // Insert in batches
+      // Upsert in batches (dedup by xtream_id unique index)
       const batchSize = 100;
-      for (let i = 0; i < newMovies.length; i += batchSize) {
-        const batch = newMovies.slice(i, i + batchSize);
-        const { error } = await supabase.from('vod_movies').insert(batch);
+      for (let i = 0; i < movieRows.length; i += batchSize) {
+        const batch = movieRows.slice(i, i + batchSize);
+        const { error, count } = await supabase
+          .from('vod_movies')
+          .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: false })
+          .select('id');
         if (error) {
           console.error(`[import-vod] Movie batch ${i} error:`, error.message);
           errors++;
         } else {
           moviesInserted += batch.length;
         }
-      }
-
-      // Update existing movies' stream URLs
-      const toUpdate = vodStreams.filter(s => existingMovieIds.has(s.stream_id));
-      for (const s of toUpdate) {
-        const streamUrl = `${baseUrl}/movie/${username}/${password}/${s.stream_id}.${s.container_extension || 'mp4'}`;
-        const { error } = await supabase
-          .from('vod_movies')
-          .update({ stream_url: streamUrl, is_active: true })
-          .eq('xtream_id', s.stream_id);
-        if (!error) moviesUpdated++;
       }
     }
 
