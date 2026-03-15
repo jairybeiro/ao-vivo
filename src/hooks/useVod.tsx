@@ -30,7 +30,12 @@ export interface VodEpisode {
   duration_secs: number | null;
 }
 
-export const useVodMovies = (categoryFilter?: string) => {
+const ADULT_KEYWORDS = ['adult', 'adulto', 'xxx', 'porn', '18+', 'erotic', 'erótic'];
+
+const isAdultCategory = (cat: string) =>
+  ADULT_KEYWORDS.some(kw => cat.toLowerCase().includes(kw));
+
+export const useVodMovies = (categoryFilter?: string, showAdult = false) => {
   const [movies, setMovies] = useState<VodMovie[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,10 +43,10 @@ export const useVodMovies = (categoryFilter?: string) => {
   const fetchCategories = useCallback(async () => {
     const { data } = await supabase.from("vod_movies").select("category");
     if (data) {
-      const unique = [...new Set(data.map((r: any) => r.category))].sort();
-      setCategories(unique);
+      const all = [...new Set(data.map((r: any) => r.category))].sort();
+      setCategories(showAdult ? all : all.filter(c => !isAdultCategory(c)));
     }
-  }, []);
+  }, [showAdult]);
 
   const fetchMovies = useCallback(async () => {
     setLoading(true);
@@ -57,19 +62,20 @@ export const useVodMovies = (categoryFilter?: string) => {
 
     const { data, error } = await query;
     if (!error && data) {
+      const mapped = data.map((m: any) => ({
+        id: m.id,
+        name: m.name,
+        category: m.category,
+        stream_url: m.stream_url,
+        cover_url: m.cover_url,
+        rating: m.rating,
+      }));
       setMovies(
-        data.map((m: any) => ({
-          id: m.id,
-          name: m.name,
-          category: m.category,
-          stream_url: m.stream_url,
-          cover_url: m.cover_url,
-          rating: m.rating,
-        }))
+        showAdult ? mapped : mapped.filter(m => !isAdultCategory(m.category))
       );
     }
     setLoading(false);
-  }, [categoryFilter]);
+  }, [categoryFilter, showAdult]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
   useEffect(() => { fetchMovies(); }, [fetchMovies]);
