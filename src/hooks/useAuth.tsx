@@ -108,24 +108,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
+    console.log("[Auth] signIn called for:", email);
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt < 3; attempt++) {
       try {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        console.log(`[Auth] signIn attempt ${attempt + 1}`);
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-        if (!error) {
+        console.log("[Auth] signIn response:", { 
+          hasSession: !!data?.session, 
+          hasUser: !!data?.user,
+          errorMessage: error?.message,
+          errorStatus: (error as any)?.status
+        });
+
+        if (!error && data?.session) {
+          console.log("[Auth] signIn SUCCESS");
           return { error: null };
         }
 
-        lastError = error as Error;
+        if (error) {
+          lastError = error as Error;
+        } else {
+          // No error but no session either
+          lastError = new Error("Login retornou sem sessão");
+        }
       } catch (error) {
+        console.error("[Auth] signIn EXCEPTION:", error);
         lastError = error instanceof Error ? error : new Error("Erro de autenticação");
       }
 
       if (isNetworkError(lastError?.message)) {
+        console.log("[Auth] Network error detected, trying session recovery...");
         const recovered = await recoverSessionFromStorage();
         if (recovered) {
+          console.log("[Auth] Session recovered from storage!");
           return { error: null };
         }
       }
@@ -137,11 +155,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await wait(300 * (attempt + 1));
     }
 
-    const recovered = await recoverSessionFromStorage();
-    if (recovered) {
-      return { error: null };
-    }
-
+    console.log("[Auth] All attempts failed, final error:", lastError?.message);
     return { error: lastError };
   };
 
