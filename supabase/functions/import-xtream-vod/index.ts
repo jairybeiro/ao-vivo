@@ -46,6 +46,24 @@ interface XtreamSeriesInfo {
   episodes: Record<string, XtreamEpisode[]>;
 }
 
+// Helper: fetch all existing xtream_ids from a table
+async function getAllExistingXtreamIds(supabase: any, table: string): Promise<Set<number>> {
+  const ids = new Set<number>();
+  let from = 0;
+  const batchSize = 1000;
+  while (true) {
+    const { data, error } = await supabase
+      .from(table)
+      .select('xtream_id')
+      .range(from, from + batchSize - 1);
+    if (error || !data || data.length === 0) break;
+    for (const row of data) ids.add(row.xtream_id);
+    if (data.length < batchSize) break;
+    from += batchSize;
+  }
+  return ids;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -60,7 +78,7 @@ Deno.serve(async (req) => {
     const importType = body.type || 'both';
     const page = body.page || 0;
     const pageSize = body.pageSize || 200;
-    const mode = body.mode || 'import'; // 'import' or 'check'
+    const mode = body.mode || 'import';
 
     if (!dns || !username || !password) {
       return new Response(
@@ -89,10 +107,8 @@ Deno.serve(async (req) => {
         const vodStreams: XtreamVod[] = await vodResp.json();
         moviesInApi = vodStreams.length;
 
-        const { count } = await supabase
-          .from('vod_movies')
-          .select('id', { count: 'exact', head: true });
-        moviesInDb = count || 0;
+        const existingIds = await getAllExistingXtreamIds(supabase, 'vod_movies');
+        moviesInDb = existingIds.size;
       }
 
       if (importType === 'series' || importType === 'both') {
@@ -102,10 +118,8 @@ Deno.serve(async (req) => {
         const seriesList: XtreamSeries[] = await serResp.json();
         seriesInApi = seriesList.length;
 
-        const { count } = await supabase
-          .from('vod_series')
-          .select('id', { count: 'exact', head: true });
-        seriesInDb = count || 0;
+        const existingIds = await getAllExistingXtreamIds(supabase, 'vod_series');
+        seriesInDb = existingIds.size;
       }
 
       return new Response(
@@ -123,11 +137,12 @@ Deno.serve(async (req) => {
     }
 
     // ========== IMPORT MODE ==========
+    // Key optimization: fetch ALL from API, filter out existing, paginate only NEW items
     let moviesInserted = 0;
     let seriesInserted = 0;
     let episodesInserted = 0;
     let errors = 0;
-    let totalInApi = 0;
+    let totalNew = 0;
     let hasMore = false;
 
     // ========== MOVIES ==========
@@ -147,25 +162,31 @@ Deno.serve(async (req) => {
         `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_vod_streams`
       );
       const vodStreams: XtreamVod[] = await vodResp.json();
-      totalInApi = vodStreams.length;
 
+      // Get ALL existing IDs from DB at once
+      const existingIds = await getAllExistingXtreamIds(supabase, 'vod_movies');
+      
+      // Filter to only NEW items
+      const newItems = vodStreams.filter(s => !existingIds.has(s.stream_id));
+      totalNew = newItems.length;
+
+      console.log(`[import-vod] Movies: ${vodStreams.length} in API, ${existingIds.size} in DB, ${totalNew} new`);
+
+      if (totalNew === 0) {
+        return new Response(
+          JSON.stringify({ success: true, moviesInserted: 0, seriesInserted: 0, episodesInserted: 0, errors: 0, totalNew: 0, hasMore: false, page }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Paginate only the new items
       const startIdx = page * pageSize;
-      const slice = vodStreams.slice(startIdx, startIdx + pageSize);
-      hasMore = (startIdx + pageSize) < vodStreams.length;
+      const slice = newItems.slice(startIdx, startIdx + pageSize);
+      hasMore = (startIdx + pageSize) < totalNew;
 
-      console.log(`[import-vod] Movies: ${totalInApi} total, page ${page}, processing ${slice.length}`);
+      console.log(`[import-vod] Processing ${slice.length} new movies (page ${page})`);
 
-      const sliceXtreamIds = slice.map(s => s.stream_id);
-      const { data: existingMovies } = await supabase
-        .from('vod_movies')
-        .select('xtream_id')
-        .in('xtream_id', sliceXtreamIds);
-      const existingMovieIds = new Set((existingMovies || []).map((m: any) => m.xtream_id));
-      const newMovies = slice.filter(s => !existingMovieIds.has(s.stream_id));
-
-      console.log(`[import-vod] Movies page ${page}: ${slice.length} in slice, ${newMovies.length} new, ${existingMovieIds.size} already exist`);
-
-      const movieRows = newMovies.map(s => ({
+      const movieRows = slice.map(s => ({
         name: s.name,
         category: vodCatMap.get(s.category_id) || 'Filmes',
         stream_url: `${baseUrl}/movie/${username}/${password}/${s.stream_id}.${s.container_extension || 'mp4'}`,
@@ -180,7 +201,7 @@ Deno.serve(async (req) => {
         const batch = movieRows.slice(i, i + batchSize);
         const { error } = await supabase
           .from('vod_movies')
-          .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: false });
+          .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: true });
         if (error) {
           console.error(`[import-vod] Movie batch error:`, error.message);
           errors++;
@@ -207,13 +228,29 @@ Deno.serve(async (req) => {
         `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_series`
       );
       const seriesList: XtreamSeries[] = await serResp.json();
-      totalInApi = seriesList.length;
 
+      // Get ALL existing series IDs at once
+      const existingIds = await getAllExistingXtreamIds(supabase, 'vod_series');
+      
+      // Filter to only NEW series
+      const newSeries = seriesList.filter(s => !existingIds.has(s.series_id));
+      totalNew = newSeries.length;
+
+      console.log(`[import-vod] Series: ${seriesList.length} in API, ${existingIds.size} in DB, ${totalNew} new`);
+
+      if (totalNew === 0) {
+        return new Response(
+          JSON.stringify({ success: true, moviesInserted: 0, seriesInserted: 0, episodesInserted: 0, errors: 0, totalNew: 0, hasMore: false, page }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Paginate only the new series
       const startIdx = page * pageSize;
-      const seriesToProcess = seriesList.slice(startIdx, startIdx + pageSize);
-      hasMore = (startIdx + pageSize) < seriesList.length;
+      const seriesToProcess = newSeries.slice(startIdx, startIdx + pageSize);
+      hasMore = (startIdx + pageSize) < totalNew;
 
-      console.log(`[import-vod] Series: ${totalInApi} total, page ${page}, processing ${seriesToProcess.length}`);
+      console.log(`[import-vod] Processing ${seriesToProcess.length} new series (page ${page})`);
 
       const seriesRows = seriesToProcess.map(ser => ({
         name: ser.name,
@@ -228,7 +265,7 @@ Deno.serve(async (req) => {
       if (seriesRows.length > 0) {
         const { error } = await supabase
           .from('vod_series')
-          .upsert(seriesRows, { onConflict: 'xtream_id', ignoreDuplicates: false });
+          .upsert(seriesRows, { onConflict: 'xtream_id', ignoreDuplicates: true });
         if (error) {
           console.error('[import-vod] Series upsert error:', error.message);
           errors++;
@@ -237,6 +274,7 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Fetch episodes only for new series
       for (const ser of seriesToProcess) {
         try {
           const { data: seriesRow } = await supabase
@@ -246,16 +284,6 @@ Deno.serve(async (req) => {
             .single();
 
           if (!seriesRow) continue;
-
-          const { count: existingEpCount } = await supabase
-            .from('vod_episodes')
-            .select('id', { count: 'exact', head: true })
-            .eq('series_id', seriesRow.id);
-
-          if (existingEpCount && existingEpCount > 0) {
-            console.log(`[import-vod] Series "${ser.name}" already has ${existingEpCount} episodes, skipping`);
-            continue;
-          }
 
           const epResp = await fetch(
             `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_series_info&series_id=${ser.series_id}`
@@ -285,7 +313,7 @@ Deno.serve(async (req) => {
                 const batch = episodeRows.slice(i, i + 200);
                 const { error } = await supabase
                   .from('vod_episodes')
-                  .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: false });
+                  .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: true });
                 if (error) {
                   console.error(`[import-vod] Episode error (${ser.name}):`, error.message);
                   errors++;
@@ -309,7 +337,7 @@ Deno.serve(async (req) => {
         seriesInserted,
         episodesInserted,
         errors,
-        totalInApi,
+        totalNew,
         hasMore,
         page,
       }),
