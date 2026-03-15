@@ -35,7 +35,7 @@ const VodBrowse = () => {
               <Film className="w-6 h-6 text-primary" />
               <h1 className="text-lg font-bold text-foreground">Filmes & Séries</h1>
             </div>
-            <NavLink to="/" label="Canais" />
+            <NavLink to="/">Canais</NavLink>
           </div>
         </div>
       </header>
