@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVodMovies, useVodSeries } from "@/hooks/useVod";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,13 +10,15 @@ import { NavLink } from "@/components/NavLink";
 
 const VodBrowse = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const showAdult = searchParams.get("adult") === "1";
   const [activeTab, setActiveTab] = useState("movies");
   const [movieCategory, setMovieCategory] = useState("Todos");
   const [seriesCategory, setSeriesCategory] = useState("Todos");
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { movies, categories: movieCategories, loading: moviesLoading } = useVodMovies(movieCategory);
-  const { series, categories: seriesCategories, loading: seriesLoading } = useVodSeries(seriesCategory);
+  const { movies, categories: movieCategories, loading: moviesLoading } = useVodMovies(movieCategory, showAdult);
+  const { series, categories: seriesCategories, loading: seriesLoading } = useVodSeries(seriesCategory, showAdult);
 
   const filteredMovies = searchTerm
     ? movies.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()))
