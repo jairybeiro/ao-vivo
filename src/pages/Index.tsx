@@ -77,17 +77,7 @@ const Index = () => {
             </div>
           </div>
 
-          {!isMobile && (
-            <div className="flex-1 overflow-x-auto">
-              <CategoryTabs
-                categories={CATEGORIES}
-                selectedCategory={selectedCategory}
-                onSelectCategory={handleCategoryChange}
-              />
-            </div>
-          )}
-
-          {isMobile && <div className="flex-1" />}
+          <div className="flex-1" />
 
           <Button variant="outline" size="sm" onClick={() => navigate("/vod")} className="flex-shrink-0 hidden sm:flex">
             <Film className="w-4 h-4 mr-2" />
