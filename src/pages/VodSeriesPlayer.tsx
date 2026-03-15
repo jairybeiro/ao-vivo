@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Play } from "lucide-react";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 import type { VodSeries, VodEpisode } from "@/hooks/useVod";
 
 const VodSeriesPlayer = () => {
