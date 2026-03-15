@@ -326,7 +326,7 @@ export type Database = {
           stream_url: string
           title: string
           updated_at: string
-          xtream_id: number | null
+          xtream_id: number
         }
         Insert: {
           cover_url?: string | null
@@ -339,7 +339,7 @@ export type Database = {
           stream_url: string
           title: string
           updated_at?: string
-          xtream_id?: number | null
+          xtream_id: number
         }
         Update: {
           cover_url?: string | null
@@ -352,7 +352,7 @@ export type Database = {
           stream_url?: string
           title?: string
           updated_at?: string
-          xtream_id?: number | null
+          xtream_id?: number
         }
         Relationships: [
           {
@@ -375,7 +375,7 @@ export type Database = {
           rating: number | null
           stream_url: string
           updated_at: string
-          xtream_id: number | null
+          xtream_id: number
         }
         Insert: {
           category?: string
@@ -387,7 +387,7 @@ export type Database = {
           rating?: number | null
           stream_url: string
           updated_at?: string
-          xtream_id?: number | null
+          xtream_id: number
         }
         Update: {
           category?: string
@@ -399,7 +399,7 @@ export type Database = {
           rating?: number | null
           stream_url?: string
           updated_at?: string
-          xtream_id?: number | null
+          xtream_id?: number
         }
         Relationships: []
       }
@@ -414,7 +414,7 @@ export type Database = {
           plot: string | null
           rating: number | null
           updated_at: string
-          xtream_id: number | null
+          xtream_id: number
         }
         Insert: {
           category?: string
@@ -426,7 +426,7 @@ export type Database = {
           plot?: string | null
           rating?: number | null
           updated_at?: string
-          xtream_id?: number | null
+          xtream_id: number
         }
         Update: {
           category?: string
@@ -438,7 +438,7 @@ export type Database = {
           plot?: string | null
           rating?: number | null
           updated_at?: string
-          xtream_id?: number | null
+          xtream_id?: number
         }
         Relationships: []
       }
