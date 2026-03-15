@@ -57,9 +57,10 @@ Deno.serve(async (req) => {
     const dns = body.dns || '';
     const username = body.username || '';
     const password = body.password || '';
-    const importType = body.type || 'both'; // 'movies', 'series', 'both'
+    const importType = body.type || 'both';
     const page = body.page || 0;
     const pageSize = body.pageSize || 200;
+    const mode = body.mode || 'import'; // 'import' or 'check'
 
     if (!dns || !username || !password) {
       return new Response(
@@ -74,6 +75,54 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // ========== CHECK MODE ==========
+    if (mode === 'check') {
+      let moviesInApi = 0;
+      let seriesInApi = 0;
+      let moviesInDb = 0;
+      let seriesInDb = 0;
+
+      if (importType === 'movies' || importType === 'both') {
+        const vodResp = await fetch(
+          `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_vod_streams`
+        );
+        const vodStreams: XtreamVod[] = await vodResp.json();
+        moviesInApi = vodStreams.length;
+
+        const { count } = await supabase
+          .from('vod_movies')
+          .select('id', { count: 'exact', head: true });
+        moviesInDb = count || 0;
+      }
+
+      if (importType === 'series' || importType === 'both') {
+        const serResp = await fetch(
+          `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_series`
+        );
+        const seriesList: XtreamSeries[] = await serResp.json();
+        seriesInApi = seriesList.length;
+
+        const { count } = await supabase
+          .from('vod_series')
+          .select('id', { count: 'exact', head: true });
+        seriesInDb = count || 0;
+      }
+
+      return new Response(
+        JSON.stringify({
+          mode: 'check',
+          moviesInApi,
+          moviesInDb,
+          newMovies: Math.max(0, moviesInApi - moviesInDb),
+          seriesInApi,
+          seriesInDb,
+          newSeries: Math.max(0, seriesInApi - seriesInDb),
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // ========== IMPORT MODE ==========
     let moviesInserted = 0;
     let seriesInserted = 0;
     let episodesInserted = 0;
@@ -81,7 +130,7 @@ Deno.serve(async (req) => {
     let totalInApi = 0;
     let hasMore = false;
 
-    // ========== MOVIES (paginated) ==========
+    // ========== MOVIES ==========
     if (importType === 'movies') {
       console.log('[import-vod] Fetching VOD categories...');
       const vodCatResp = await fetch(
@@ -106,7 +155,6 @@ Deno.serve(async (req) => {
 
       console.log(`[import-vod] Movies: ${totalInApi} total, page ${page}, processing ${slice.length}`);
 
-      // Get already imported xtream_ids for this slice to skip them
       const sliceXtreamIds = slice.map(s => s.stream_id);
       const { data: existingMovies } = await supabase
         .from('vod_movies')
@@ -127,7 +175,6 @@ Deno.serve(async (req) => {
         is_active: true,
       }));
 
-      // Insert only new movies in batches
       const batchSize = 500;
       for (let i = 0; i < movieRows.length; i += batchSize) {
         const batch = movieRows.slice(i, i + batchSize);
@@ -143,7 +190,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ========== SERIES (paginated, with episodes) ==========
+    // ========== SERIES ==========
     if (importType === 'series') {
       console.log('[import-vod] Fetching series categories...');
       const serCatResp = await fetch(
@@ -168,7 +215,6 @@ Deno.serve(async (req) => {
 
       console.log(`[import-vod] Series: ${totalInApi} total, page ${page}, processing ${seriesToProcess.length}`);
 
-      // Upsert series metadata
       const seriesRows = seriesToProcess.map(ser => ({
         name: ser.name,
         category: serCatMap.get(ser.category_id) || 'Séries',
@@ -191,7 +237,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Fetch episodes only for series that don't have episodes yet
       for (const ser of seriesToProcess) {
         try {
           const { data: seriesRow } = await supabase
@@ -202,7 +247,6 @@ Deno.serve(async (req) => {
 
           if (!seriesRow) continue;
 
-          // Check if this series already has episodes imported
           const { count: existingEpCount } = await supabase
             .from('vod_episodes')
             .select('id', { count: 'exact', head: true })
