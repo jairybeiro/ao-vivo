@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Film, Clapperboard, Search, Star } from "lucide-react";
-import NavLink from "@/components/NavLink";
+import { NavLink } from "@/components/NavLink";
 
 const VodBrowse = () => {
   const navigate = useNavigate();
