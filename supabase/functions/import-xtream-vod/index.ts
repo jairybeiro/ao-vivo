@@ -58,6 +58,8 @@ Deno.serve(async (req) => {
     const username = body.username || '5541996151706';
     const password = body.password || '5541996151706';
     const importType = body.type || 'both'; // 'movies', 'series', 'both'
+    const seriesPage = body.seriesPage || 0; // pagination for series
+    const seriesPageSize = body.seriesPageSize || 50; // how many series per call
 
     const baseUrl = dns.replace(/\/$/, '');
 
@@ -66,10 +68,12 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let moviesInserted = 0;
-    let moviesUpdated = 0;
     let seriesInserted = 0;
     let episodesInserted = 0;
     let errors = 0;
+    let totalSeriesInApi = 0;
+    let totalMoviesInApi = 0;
+    let hasMoreSeries = false;
 
     // ========== MOVIES ==========
     if (importType === 'movies' || importType === 'both') {
@@ -88,6 +92,7 @@ Deno.serve(async (req) => {
         `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_vod_streams`
       );
       const vodStreams: XtreamVod[] = await vodResp.json();
+      totalMoviesInApi = vodStreams.length;
       console.log(`[import-vod] Got ${vodStreams.length} movies`);
 
       const movieRows = vodStreams.map(s => ({
@@ -100,14 +105,13 @@ Deno.serve(async (req) => {
         is_active: true,
       }));
 
-      // Upsert in batches (dedup by xtream_id unique index)
-      const batchSize = 100;
+      // Upsert in batches
+      const batchSize = 200;
       for (let i = 0; i < movieRows.length; i += batchSize) {
         const batch = movieRows.slice(i, i + batchSize);
-        const { error, count } = await supabase
+        const { error } = await supabase
           .from('vod_movies')
-          .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: false })
-          .select('id');
+          .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: false });
         if (error) {
           console.error(`[import-vod] Movie batch ${i} error:`, error.message);
           errors++;
@@ -129,89 +133,90 @@ Deno.serve(async (req) => {
         serCatMap.set(cat.category_id, cat.category_name);
       }
 
-      console.log('[import-vod] Fetching series...');
+      console.log('[import-vod] Fetching series list...');
       const serResp = await fetch(
         `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_series`
       );
       const seriesList: XtreamSeries[] = await serResp.json();
-      console.log(`[import-vod] Got ${seriesList.length} series`);
+      totalSeriesInApi = seriesList.length;
+      console.log(`[import-vod] Got ${seriesList.length} series total, processing page ${seriesPage} (size ${seriesPageSize})`);
 
-      // Get existing by xtream_id
-      const { data: existingSeries } = await supabase
-        .from('vod_series')
-        .select('id, xtream_id');
-      const existingSeriesMap = new Map<number, string>();
-      for (const s of existingSeries || []) {
-        if (s.xtream_id) existingSeriesMap.set(s.xtream_id, s.id);
+      // Paginate series processing
+      const startIdx = seriesPage * seriesPageSize;
+      const seriesToProcess = seriesList.slice(startIdx, startIdx + seriesPageSize);
+      hasMoreSeries = (startIdx + seriesPageSize) < seriesList.length;
+
+      // Batch upsert series metadata first
+      const seriesRows = seriesToProcess.map(ser => ({
+        name: ser.name,
+        category: serCatMap.get(ser.category_id) || 'Séries',
+        cover_url: ser.cover || null,
+        plot: ser.plot || null,
+        rating: ser.rating ? parseFloat(ser.rating) || null : null,
+        xtream_id: ser.series_id,
+        is_active: true,
+      }));
+
+      if (seriesRows.length > 0) {
+        const { error } = await supabase
+          .from('vod_series')
+          .upsert(seriesRows, { onConflict: 'xtream_id', ignoreDuplicates: false });
+        if (error) {
+          console.error('[import-vod] Series batch upsert error:', error.message);
+          errors++;
+        } else {
+          seriesInserted += seriesRows.length;
+        }
       }
 
-      // Process series (limit to first 200 to avoid timeout)
-      const seriesToProcess = seriesList.slice(0, 200);
-
+      // Now fetch episodes for each series in this page
       for (const ser of seriesToProcess) {
         try {
-          let seriesDbId = existingSeriesMap.get(ser.series_id);
+          // Get the DB id for this series
+          const { data: seriesRow } = await supabase
+            .from('vod_series')
+            .select('id')
+            .eq('xtream_id', ser.series_id)
+            .single();
 
-          if (!seriesDbId) {
-            // Insert new series
-            const { data: inserted, error } = await supabase
-              .from('vod_series')
-              .insert({
-                name: ser.name,
-                category: serCatMap.get(ser.category_id) || 'Séries',
-                cover_url: ser.cover || null,
-                plot: ser.plot || null,
-                rating: ser.rating ? parseFloat(ser.rating) || null : null,
-                xtream_id: ser.series_id,
-                is_active: true,
-              })
-              .select('id')
-              .single();
+          if (!seriesRow) continue;
 
-            if (error) {
-              console.error(`[import-vod] Series insert error (${ser.name}):`, error.message);
-              errors++;
-              continue;
-            }
-            seriesDbId = inserted.id;
-            seriesInserted++;
-          }
-
-          // Fetch episodes for this series
           const epResp = await fetch(
             `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_series_info&series_id=${ser.series_id}`
           );
           const seriesInfo: XtreamSeriesInfo = await epResp.json();
 
           if (seriesInfo.episodes) {
-            // Get existing episodes for this series
-            const { data: existingEps } = await supabase
-              .from('vod_episodes')
-              .select('xtream_id')
-              .eq('series_id', seriesDbId);
-            const existingEpIds = new Set((existingEps || []).map(e => e.xtream_id));
-
+            const episodeRows: any[] = [];
             for (const [seasonNum, episodes] of Object.entries(seriesInfo.episodes)) {
               if (!Array.isArray(episodes)) continue;
               for (const ep of episodes) {
-                const epXtreamId = parseInt(ep.id);
-                if (existingEpIds.has(epXtreamId)) continue;
-
-                const { error } = await supabase.from('vod_episodes').insert({
-                  series_id: seriesDbId,
+                episodeRows.push({
+                  series_id: seriesRow.id,
                   season: parseInt(seasonNum) || 1,
                   episode_num: ep.episode_num || 1,
                   title: ep.title || `Episódio ${ep.episode_num}`,
                   stream_url: `${baseUrl}/series/${username}/${password}/${ep.id}.${ep.container_extension || 'mp4'}`,
                   cover_url: ep.info?.movie_image || null,
                   duration_secs: ep.info?.duration_secs || null,
-                  xtream_id: epXtreamId,
+                  xtream_id: parseInt(ep.id),
                 });
+              }
+            }
 
+            // Batch upsert episodes
+            if (episodeRows.length > 0) {
+              const epBatchSize = 100;
+              for (let i = 0; i < episodeRows.length; i += epBatchSize) {
+                const batch = episodeRows.slice(i, i + epBatchSize);
+                const { error } = await supabase
+                  .from('vod_episodes')
+                  .upsert(batch, { onConflict: 'xtream_id', ignoreDuplicates: false });
                 if (error) {
+                  console.error(`[import-vod] Episode batch error (${ser.name}):`, error.message);
                   errors++;
                 } else {
-                  episodesInserted++;
+                  episodesInserted += batch.length;
                 }
               }
             }
@@ -227,11 +232,13 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         moviesInserted,
-        moviesUpdated,
         seriesInserted,
         episodesInserted,
         errors,
-        totalSeriesInApi: importType !== 'movies' ? 'check logs' : 'n/a',
+        totalMoviesInApi,
+        totalSeriesInApi,
+        hasMoreSeries,
+        seriesPage,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
