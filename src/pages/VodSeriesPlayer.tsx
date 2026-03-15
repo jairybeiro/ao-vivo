@@ -98,7 +98,7 @@ const VodSeriesPlayer = () => {
           {currentEpisode ? (
             <video
               ref={videoRef}
-              src={currentEpisode.stream_url}
+              src={toProxyStreamUrl(currentEpisode.stream_url)}
               controls
               autoPlay
               className="w-full max-h-[60vh] lg:max-h-[calc(100vh-56px)]"
