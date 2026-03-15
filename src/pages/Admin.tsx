@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download } from "lucide-react";
+import VodImport from "@/components/admin/VodImport";
 import XtreamImport from "@/components/admin/XtreamImport";
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
