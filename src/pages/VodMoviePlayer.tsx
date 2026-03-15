@@ -65,7 +65,7 @@ const VodMoviePlayer = () => {
       <div className="flex-1 flex items-center justify-center">
         <video
           ref={videoRef}
-          src={movie.stream_url}
+          src={toProxyStreamUrl(movie.stream_url)}
           controls
           autoPlay
           className="w-full max-h-[calc(100vh-56px)]"
