@@ -195,6 +195,22 @@ const Index = () => {
                 />
               </div>
             </div>
+            {/* Category filter chips */}
+            <div className="flex-shrink-0 flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => handleCategoryChange(cat)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                    selectedCategory === cat
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {cat === "Favoritos" && "⭐ "}{cat}
+                </button>
+              ))}
+            </div>
             {loading ? (
               <div className="flex-1 flex items-center justify-center text-muted-foreground">
                 Carregando canais...
