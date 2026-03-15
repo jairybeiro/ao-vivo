@@ -16,10 +16,9 @@ interface ImportResult {
   seriesInserted: number;
   episodesInserted: number;
   errors: number;
-  totalMoviesInApi: number;
-  totalSeriesInApi: number;
-  hasMoreSeries: boolean;
-  seriesPage: number;
+  totalInApi: number;
+  hasMore: boolean;
+  page: number;
 }
 
 const VodImport = () => {
@@ -32,7 +31,7 @@ const VodImport = () => {
   const [totalResult, setTotalResult] = useState<{ movies: number; series: number; episodes: number; errors: number } | null>(null);
   const cancelRef = useRef(false);
 
-  const callImport = async (type: string, seriesPage = 0): Promise<ImportResult> => {
+  const callImport = async (type: "movies" | "series", page: number, pageSize: number): Promise<ImportResult> => {
     const response = await fetch(`${SUPABASE_URL}/functions/v1/import-xtream-vod`, {
       method: "POST",
       headers: {
@@ -40,12 +39,48 @@ const VodImport = () => {
         apikey: SUPABASE_KEY,
         Authorization: `Bearer ${SUPABASE_KEY}`,
       },
-      body: JSON.stringify({ dns, username, password, type, seriesPage, seriesPageSize: 50 }),
+      body: JSON.stringify({ dns, username, password, type, page, pageSize }),
     });
 
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Erro na importação");
     return data;
+  };
+
+  const importPaginated = async (type: "movies" | "series", pageSize: number) => {
+    let page = 0;
+    let totalItems = 0;
+    let totalInserted = { movies: 0, series: 0, episodes: 0, errors: 0 };
+
+    // First call to discover total
+    setProgress({ current: 0, total: 1, phase: `Carregando ${type === "movies" ? "filmes" : "séries"}...` });
+    const first = await callImport(type, 0, pageSize);
+    
+    totalItems = first.totalInApi;
+    totalInserted.movies += first.moviesInserted;
+    totalInserted.series += first.seriesInserted;
+    totalInserted.episodes += first.episodesInserted;
+    totalInserted.errors += first.errors;
+
+    const totalPages = Math.ceil(totalItems / pageSize);
+    setProgress({ current: 1, total: totalPages, phase: `${type === "movies" ? "Filmes" : "Séries"}: página 1 de ${totalPages} (${totalItems} itens)` });
+
+    page = 1;
+    while (first.hasMore && page < totalPages) {
+      if (cancelRef.current) throw new Error("Cancelado");
+      
+      setProgress({ current: page + 1, total: totalPages, phase: `${type === "movies" ? "Filmes" : "Séries"}: página ${page + 1} de ${totalPages}` });
+      const result = await callImport(type, page, pageSize);
+      totalInserted.movies += result.moviesInserted;
+      totalInserted.series += result.seriesInserted;
+      totalInserted.episodes += result.episodesInserted;
+      totalInserted.errors += result.errors;
+
+      if (!result.hasMore) break;
+      page++;
+    }
+
+    return totalInserted;
   };
 
   const handleImport = async () => {
@@ -58,61 +93,34 @@ const VodImport = () => {
     setTotalResult(null);
     cancelRef.current = false;
 
-    let totalMovies = 0, totalSeries = 0, totalEpisodes = 0, totalErrors = 0;
+    let totals = { movies: 0, series: 0, episodes: 0, errors: 0 };
 
     try {
-      // Phase 1: Movies
       if (importType === "movies" || importType === "both") {
-        setProgress({ current: 0, total: 1, phase: "Importando filmes..." });
-        const result = await callImport("movies");
-        totalMovies = result.moviesInserted;
-        totalErrors += result.errors;
+        const r = await importPaginated("movies", 500);
+        totals.movies += r.movies;
+        totals.errors += r.errors;
       }
 
       if (cancelRef.current) throw new Error("Cancelado");
 
-      // Phase 2: Series (paginated)
       if (importType === "series" || importType === "both") {
-        // First call to get total
-        setProgress({ current: 0, total: 1, phase: "Carregando séries (página 1)..." });
-        const firstResult = await callImport("series", 0);
-        totalSeries += firstResult.seriesInserted;
-        totalEpisodes += firstResult.episodesInserted;
-        totalErrors += firstResult.errors;
-
-        const totalInApi = firstResult.totalSeriesInApi;
-        const pageSize = 50;
-        const totalPages = Math.ceil(totalInApi / pageSize);
-
-        setProgress({ current: 1, total: totalPages, phase: `Séries: página 1 de ${totalPages}` });
-
-        // Continue with remaining pages
-        let page = 1;
-        while (firstResult.hasMoreSeries || page < totalPages) {
-          if (cancelRef.current) throw new Error("Cancelado");
-          if (page >= totalPages) break;
-
-          setProgress({ current: page + 1, total: totalPages, phase: `Séries: página ${page + 1} de ${totalPages}` });
-          const result = await callImport("series", page);
-          totalSeries += result.seriesInserted;
-          totalEpisodes += result.episodesInserted;
-          totalErrors += result.errors;
-
-          if (!result.hasMoreSeries) break;
-          page++;
-        }
+        const r = await importPaginated("series", 30);
+        totals.series += r.series;
+        totals.episodes += r.episodes;
+        totals.errors += r.errors;
       }
 
-      setTotalResult({ movies: totalMovies, series: totalSeries, episodes: totalEpisodes, errors: totalErrors });
-      toast.success(`Importação completa! ${totalMovies} filmes, ${totalSeries} séries, ${totalEpisodes} episódios`);
+      setTotalResult(totals);
+      toast.success(`Importação completa! ${totals.movies} filmes, ${totals.series} séries, ${totals.episodes} episódios`);
     } catch (err) {
       if ((err as Error).message === "Cancelado") {
         toast.info("Importação cancelada");
       } else {
         toast.error(err instanceof Error ? err.message : "Erro na importação VOD");
       }
-      if (totalMovies || totalSeries || totalEpisodes) {
-        setTotalResult({ movies: totalMovies, series: totalSeries, episodes: totalEpisodes, errors: totalErrors });
+      if (totals.movies || totals.series || totals.episodes) {
+        setTotalResult(totals);
       }
     } finally {
       setLoading(false);
@@ -129,7 +137,7 @@ const VodImport = () => {
           Importar Filmes e Séries (VOD)
         </CardTitle>
         <CardDescription>
-          Importe filmes e séries da API Xtream Codes. Séries são importadas em páginas para evitar timeout.
+          Importe filmes e séries da API Xtream Codes. O sistema importa em páginas para evitar timeout e não duplica conteúdo.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
