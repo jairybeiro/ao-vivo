@@ -53,7 +53,7 @@ const callImport = async (
 };
 
 const importPaginated = async (
-  config: ImportMessage['config']!,
+  config: NonNullable<ImportMessage['config']>,
   type: 'movies' | 'series',
   pageSize: number
 ) => {
