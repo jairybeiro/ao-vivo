@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Fetch episodes for each series
+      // Fetch episodes only for series that don't have episodes yet
       for (const ser of seriesToProcess) {
         try {
           const { data: seriesRow } = await supabase
@@ -201,6 +201,17 @@ Deno.serve(async (req) => {
             .single();
 
           if (!seriesRow) continue;
+
+          // Check if this series already has episodes imported
+          const { count: existingEpCount } = await supabase
+            .from('vod_episodes')
+            .select('id', { count: 'exact', head: true })
+            .eq('series_id', seriesRow.id);
+
+          if (existingEpCount && existingEpCount > 0) {
+            console.log(`[import-vod] Series "${ser.name}" already has ${existingEpCount} episodes, skipping`);
+            continue;
+          }
 
           const epResp = await fetch(
             `${baseUrl}/player_api.php?username=${username}&password=${password}&action=get_series_info&series_id=${ser.series_id}`
