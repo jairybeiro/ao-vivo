@@ -13,6 +13,9 @@ import Premium from "./pages/Premium";
 import PremiumLogin from "./pages/PremiumLogin";
 import PremiumWatch from "./pages/PremiumWatch";
 import CourseView from "./pages/CourseView";
+import VodBrowse from "./pages/VodBrowse";
+import VodMoviePlayer from "./pages/VodMoviePlayer";
+import VodSeriesPlayer from "./pages/VodSeriesPlayer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +33,9 @@ const App = () => (
             <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
             <Route path="/premium/watch/:id" element={<ProtectedRoute><PremiumWatch /></ProtectedRoute>} />
             <Route path="/course/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
+            <Route path="/vod" element={<ProtectedRoute><VodBrowse /></ProtectedRoute>} />
+            <Route path="/vod/movie/:id" element={<ProtectedRoute><VodMoviePlayer /></ProtectedRoute>} />
+            <Route path="/vod/series/:id" element={<ProtectedRoute><VodSeriesPlayer /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             
             {/* Rotas públicas */}

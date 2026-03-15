@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download } from "lucide-react";
+import VodImport from "@/components/admin/VodImport";
 import XtreamImport from "@/components/admin/XtreamImport";
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
@@ -186,7 +187,7 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="channels" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="channels" className="flex items-center gap-2">
                 <Tv className="w-4 h-4" />
                 Canais
@@ -225,6 +226,7 @@ const Admin = () => {
             {/* Tab de Importação Xtream */}
             <TabsContent value="import" className="space-y-6">
               <XtreamImport onImportComplete={fetchChannels} />
+              <VodImport />
             </TabsContent>
 
             {/* Tab de Anúncios */}

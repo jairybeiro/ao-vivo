@@ -314,6 +314,134 @@ export type Database = {
         }
         Relationships: []
       }
+      vod_episodes: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          duration_secs: number | null
+          episode_num: number
+          id: string
+          season: number
+          series_id: string
+          stream_url: string
+          title: string
+          updated_at: string
+          xtream_id: number | null
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          duration_secs?: number | null
+          episode_num?: number
+          id?: string
+          season?: number
+          series_id: string
+          stream_url: string
+          title: string
+          updated_at?: string
+          xtream_id?: number | null
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          duration_secs?: number | null
+          episode_num?: number
+          id?: string
+          season?: number
+          series_id?: string
+          stream_url?: string
+          title?: string
+          updated_at?: string
+          xtream_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vod_episodes_series_id_fkey"
+            columns: ["series_id"]
+            isOneToOne: false
+            referencedRelation: "vod_series"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vod_movies: {
+        Row: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          rating: number | null
+          stream_url: string
+          updated_at: string
+          xtream_id: number | null
+        }
+        Insert: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          rating?: number | null
+          stream_url: string
+          updated_at?: string
+          xtream_id?: number | null
+        }
+        Update: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          rating?: number | null
+          stream_url?: string
+          updated_at?: string
+          xtream_id?: number | null
+        }
+        Relationships: []
+      }
+      vod_series: {
+        Row: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          plot: string | null
+          rating: number | null
+          updated_at: string
+          xtream_id: number | null
+        }
+        Insert: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          plot?: string | null
+          rating?: number | null
+          updated_at?: string
+          xtream_id?: number | null
+        }
+        Update: {
+          category?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          plot?: string | null
+          rating?: number | null
+          updated_at?: string
+          xtream_id?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

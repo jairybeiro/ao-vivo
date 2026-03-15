@@ -8,7 +8,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star } from "lucide-react";
+import { Tv, Lock, Search, Star, Film } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const BASE_CATEGORIES = ["Todos", "Favoritos"];
@@ -89,6 +89,10 @@ const Index = () => {
 
           {isMobile && <div className="flex-1" />}
 
+          <Button variant="outline" size="sm" onClick={() => navigate("/vod")} className="flex-shrink-0 hidden sm:flex">
+            <Film className="w-4 h-4 mr-2" />
+            Filmes
+          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/premium")} className="flex-shrink-0 hidden sm:flex">
             <Lock className="w-4 h-4 mr-2" />
             Premium
