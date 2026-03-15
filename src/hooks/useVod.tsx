@@ -30,7 +30,12 @@ export interface VodEpisode {
   duration_secs: number | null;
 }
 
-export const useVodMovies = (categoryFilter?: string) => {
+const ADULT_KEYWORDS = ['adult', 'adulto', 'xxx', 'porn', '18+', 'erotic', 'erótic'];
+
+const isAdultCategory = (cat: string) =>
+  ADULT_KEYWORDS.some(kw => cat.toLowerCase().includes(kw));
+
+export const useVodMovies = (categoryFilter?: string, showAdult = false) => {
   const [movies, setMovies] = useState<VodMovie[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,10 +43,10 @@ export const useVodMovies = (categoryFilter?: string) => {
   const fetchCategories = useCallback(async () => {
     const { data } = await supabase.from("vod_movies").select("category");
     if (data) {
-      const unique = [...new Set(data.map((r: any) => r.category))].sort();
-      setCategories(unique);
+      const all = [...new Set(data.map((r: any) => r.category))].sort();
+      setCategories(showAdult ? all : all.filter(c => !isAdultCategory(c)));
     }
-  }, []);
+  }, [showAdult]);
 
   const fetchMovies = useCallback(async () => {
     setLoading(true);
@@ -57,19 +62,20 @@ export const useVodMovies = (categoryFilter?: string) => {
 
     const { data, error } = await query;
     if (!error && data) {
+      const mapped = data.map((m: any) => ({
+        id: m.id,
+        name: m.name,
+        category: m.category,
+        stream_url: m.stream_url,
+        cover_url: m.cover_url,
+        rating: m.rating,
+      }));
       setMovies(
-        data.map((m: any) => ({
-          id: m.id,
-          name: m.name,
-          category: m.category,
-          stream_url: m.stream_url,
-          cover_url: m.cover_url,
-          rating: m.rating,
-        }))
+        showAdult ? mapped : mapped.filter(m => !isAdultCategory(m.category))
       );
     }
     setLoading(false);
-  }, [categoryFilter]);
+  }, [categoryFilter, showAdult]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
   useEffect(() => { fetchMovies(); }, [fetchMovies]);
@@ -77,7 +83,7 @@ export const useVodMovies = (categoryFilter?: string) => {
   return { movies, categories, loading, refetch: fetchMovies };
 };
 
-export const useVodSeries = (categoryFilter?: string) => {
+export const useVodSeries = (categoryFilter?: string, showAdult = false) => {
   const [series, setSeries] = useState<VodSeries[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,10 +91,10 @@ export const useVodSeries = (categoryFilter?: string) => {
   const fetchCategories = useCallback(async () => {
     const { data } = await supabase.from("vod_series").select("category");
     if (data) {
-      const unique = [...new Set(data.map((r: any) => r.category))].sort();
-      setCategories(unique);
+      const all = [...new Set(data.map((r: any) => r.category))].sort();
+      setCategories(showAdult ? all : all.filter(c => !isAdultCategory(c)));
     }
-  }, []);
+  }, [showAdult]);
 
   const fetchSeries = useCallback(async () => {
     setLoading(true);
@@ -104,19 +110,20 @@ export const useVodSeries = (categoryFilter?: string) => {
 
     const { data, error } = await query;
     if (!error && data) {
+      const mapped = data.map((s: any) => ({
+        id: s.id,
+        name: s.name,
+        category: s.category,
+        cover_url: s.cover_url,
+        plot: s.plot,
+        rating: s.rating,
+      }));
       setSeries(
-        data.map((s: any) => ({
-          id: s.id,
-          name: s.name,
-          category: s.category,
-          cover_url: s.cover_url,
-          plot: s.plot,
-          rating: s.rating,
-        }))
+        showAdult ? mapped : mapped.filter(s => !isAdultCategory(s.category))
       );
     }
     setLoading(false);
-  }, [categoryFilter]);
+  }, [categoryFilter, showAdult]);
 
   useEffect(() => { fetchCategories(); }, [fetchCategories]);
   useEffect(() => { fetchSeries(); }, [fetchSeries]);
