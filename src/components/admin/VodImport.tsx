@@ -1,24 +1,23 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Film, Clapperboard, Loader2, CheckCircle, XCircle } from "lucide-react";
+import { Film, Clapperboard, Loader2, CheckCircle, XCircle, Search, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-interface ImportResult {
-  moviesInserted: number;
-  seriesInserted: number;
-  episodesInserted: number;
-  errors: number;
-  totalInApi: number;
-  hasMore: boolean;
-  page: number;
+interface CheckResult {
+  moviesInApi: number;
+  moviesInDb: number;
+  newMovies: number;
+  seriesInApi: number;
+  seriesInDb: number;
+  newSeries: number;
 }
 
 const VodImport = () => {
@@ -26,64 +25,21 @@ const VodImport = () => {
   const [username, setUsername] = useState("5541996151706");
   const [password, setPassword] = useState("5541996151706");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [importType, setImportType] = useState<"movies" | "series" | "both">("both");
   const [progress, setProgress] = useState({ current: 0, total: 0, phase: "" });
   const [totalResult, setTotalResult] = useState<{ movies: number; series: number; episodes: number; errors: number } | null>(null);
-  const cancelRef = useRef(false);
+  const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
+  const workerRef = useRef<Worker | null>(null);
 
-  const callImport = async (type: "movies" | "series", page: number, pageSize: number): Promise<ImportResult> => {
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/import-xtream-vod`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-      },
-      body: JSON.stringify({ dns, username, password, type, page, pageSize }),
-    });
+  // Cleanup worker on unmount
+  useEffect(() => {
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, []);
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || "Erro na importação");
-    return data;
-  };
-
-  const importPaginated = async (type: "movies" | "series", pageSize: number) => {
-    let page = 0;
-    let totalItems = 0;
-    let totalInserted = { movies: 0, series: 0, episodes: 0, errors: 0 };
-
-    // First call to discover total
-    setProgress({ current: 0, total: 1, phase: `Carregando ${type === "movies" ? "filmes" : "séries"}...` });
-    const first = await callImport(type, 0, pageSize);
-    
-    totalItems = first.totalInApi;
-    totalInserted.movies += first.moviesInserted;
-    totalInserted.series += first.seriesInserted;
-    totalInserted.episodes += first.episodesInserted;
-    totalInserted.errors += first.errors;
-
-    const totalPages = Math.ceil(totalItems / pageSize);
-    setProgress({ current: 1, total: totalPages, phase: `${type === "movies" ? "Filmes" : "Séries"}: página 1 de ${totalPages} (${totalItems} itens)` });
-
-    page = 1;
-    while (first.hasMore && page < totalPages) {
-      if (cancelRef.current) throw new Error("Cancelado");
-      
-      setProgress({ current: page + 1, total: totalPages, phase: `${type === "movies" ? "Filmes" : "Séries"}: página ${page + 1} de ${totalPages}` });
-      const result = await callImport(type, page, pageSize);
-      totalInserted.movies += result.moviesInserted;
-      totalInserted.series += result.seriesInserted;
-      totalInserted.episodes += result.episodesInserted;
-      totalInserted.errors += result.errors;
-
-      if (!result.hasMore) break;
-      page++;
-    }
-
-    return totalInserted;
-  };
-
-  const handleImport = async () => {
+  const handleImport = useCallback(() => {
     if (!dns || !username || !password) {
       toast.error("Preencha todos os campos");
       return;
@@ -91,39 +47,104 @@ const VodImport = () => {
 
     setLoading(true);
     setTotalResult(null);
-    cancelRef.current = false;
+    setCheckResult(null);
 
-    let totals = { movies: 0, series: 0, episodes: 0, errors: 0 };
+    // Terminate previous worker if any
+    workerRef.current?.terminate();
+
+    const worker = new Worker(
+      new URL("../../workers/vodImportWorker.ts", import.meta.url),
+      { type: "module" }
+    );
+    workerRef.current = worker;
+
+    worker.onmessage = (e) => {
+      const msg = e.data;
+
+      if (msg.type === "progress") {
+        setProgress({ current: msg.current, total: msg.total, phase: msg.phase });
+      } else if (msg.type === "done") {
+        setTotalResult(msg.totals);
+        setLoading(false);
+        toast.success(
+          `Importação completa! ${msg.totals.movies} filmes, ${msg.totals.series} séries, ${msg.totals.episodes} episódios`
+        );
+        worker.terminate();
+        workerRef.current = null;
+      } else if (msg.type === "cancelled") {
+        toast.info("Importação cancelada");
+        if (msg.totals) setTotalResult(msg.totals);
+        setLoading(false);
+        worker.terminate();
+        workerRef.current = null;
+      } else if (msg.type === "error") {
+        toast.error(msg.message || "Erro na importação VOD");
+        if (msg.totals) setTotalResult(msg.totals);
+        setLoading(false);
+        worker.terminate();
+        workerRef.current = null;
+      }
+    };
+
+    worker.onerror = (err) => {
+      console.error("Worker error:", err);
+      toast.error("Erro no worker de importação");
+      setLoading(false);
+      worker.terminate();
+      workerRef.current = null;
+    };
+
+    worker.postMessage({
+      type: "start",
+      config: {
+        dns,
+        username,
+        password,
+        importType,
+        supabaseUrl: SUPABASE_URL,
+        supabaseKey: SUPABASE_KEY,
+      },
+    });
+  }, [dns, username, password, importType]);
+
+  const handleCancel = () => {
+    workerRef.current?.postMessage({ type: "cancel" });
+  };
+
+  const handleCheck = async () => {
+    if (!dns || !username || !password) {
+      toast.error("Preencha todos os campos");
+      return;
+    }
+
+    setChecking(true);
+    setCheckResult(null);
 
     try {
-      if (importType === "movies" || importType === "both") {
-        const r = await importPaginated("movies", 500);
-        totals.movies += r.movies;
-        totals.errors += r.errors;
-      }
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/import-xtream-vod`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+        },
+        body: JSON.stringify({ dns, username, password, type: importType, mode: "check" }),
+      });
 
-      if (cancelRef.current) throw new Error("Cancelado");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Erro na verificação");
 
-      if (importType === "series" || importType === "both") {
-        const r = await importPaginated("series", 30);
-        totals.series += r.series;
-        totals.episodes += r.episodes;
-        totals.errors += r.errors;
-      }
-
-      setTotalResult(totals);
-      toast.success(`Importação completa! ${totals.movies} filmes, ${totals.series} séries, ${totals.episodes} episódios`);
-    } catch (err) {
-      if ((err as Error).message === "Cancelado") {
-        toast.info("Importação cancelada");
+      setCheckResult(data);
+      const totalNew = (data.newMovies || 0) + (data.newSeries || 0);
+      if (totalNew > 0) {
+        toast.info(`Encontrado ${totalNew} conteúdo(s) novo(s)!`);
       } else {
-        toast.error(err instanceof Error ? err.message : "Erro na importação VOD");
+        toast.success("Tudo atualizado! Nenhum conteúdo novo encontrado.");
       }
-      if (totals.movies || totals.series || totals.episodes) {
-        setTotalResult(totals);
-      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao verificar novidades");
     } finally {
-      setLoading(false);
+      setChecking(false);
     }
   };
 
@@ -137,22 +158,22 @@ const VodImport = () => {
           Importar Filmes e Séries (VOD)
         </CardTitle>
         <CardDescription>
-          Importe filmes e séries da API Xtream Codes. O sistema importa em páginas para evitar timeout e não duplica conteúdo.
+          A importação roda em segundo plano — você pode navegar em outras abas sem interromper o processo. Use "Verificar Novidades" para checar se há conteúdo novo antes de importar.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-2">
             <Label htmlFor="vod-dns">DNS / URL</Label>
-            <Input id="vod-dns" value={dns} onChange={(e) => setDns(e.target.value)} placeholder="http://servidor.com" />
+            <Input id="vod-dns" value={dns} onChange={(e) => setDns(e.target.value)} placeholder="http://servidor.com" disabled={loading} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="vod-user">Usuário</Label>
-            <Input id="vod-user" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" />
+            <Input id="vod-user" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" disabled={loading} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="vod-pass">Senha</Label>
-            <Input id="vod-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="password" />
+            <Input id="vod-pass" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="password" disabled={loading} />
           </div>
         </div>
 
@@ -160,31 +181,66 @@ const VodImport = () => {
           <Label>O que importar?</Label>
           <Tabs value={importType} onValueChange={(v) => setImportType(v as any)}>
             <TabsList className="grid grid-cols-3 w-full max-w-sm">
-              <TabsTrigger value="both">Tudo</TabsTrigger>
-              <TabsTrigger value="movies" className="flex items-center gap-1">
+              <TabsTrigger value="both" disabled={loading}>Tudo</TabsTrigger>
+              <TabsTrigger value="movies" className="flex items-center gap-1" disabled={loading}>
                 <Film className="w-3 h-3" /> Filmes
               </TabsTrigger>
-              <TabsTrigger value="series" className="flex items-center gap-1">
+              <TabsTrigger value="series" className="flex items-center gap-1" disabled={loading}>
                 <Clapperboard className="w-3 h-3" /> Séries
               </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
-        <div className="flex gap-2">
-          <Button onClick={handleImport} disabled={loading} className="flex-1">
-            {loading ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Importando...</>
+        <div className="flex gap-2 flex-wrap">
+          <Button onClick={handleCheck} disabled={loading || checking} variant="outline">
+            {checking ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
             ) : (
-              <><Film className="w-4 h-4 mr-2" /> Importar {importType === "movies" ? "Filmes" : importType === "series" ? "Séries" : "Tudo"}</>
+              <><Search className="w-4 h-4 mr-2" /> Verificar Novidades</>
             )}
           </Button>
+
+          <Button onClick={handleImport} disabled={loading} className="flex-1 min-w-[200px]">
+            {loading ? (
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Importando (segundo plano)...</>
+            ) : (
+              <><RefreshCw className="w-4 h-4 mr-2" /> Importar {importType === "movies" ? "Filmes" : importType === "series" ? "Séries" : "Tudo"}</>
+            )}
+          </Button>
+
           {loading && (
-            <Button variant="destructive" onClick={() => { cancelRef.current = true; }}>
+            <Button variant="destructive" onClick={handleCancel}>
               <XCircle className="w-4 h-4 mr-1" /> Cancelar
             </Button>
           )}
         </div>
+
+        {checkResult && (
+          <div className="rounded-lg border border-border bg-muted/50 p-4 space-y-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-primary">
+              <Search className="w-4 h-4" /> Resultado da Verificação
+            </div>
+            <div className="text-sm text-muted-foreground space-y-1">
+              {(importType === "movies" || importType === "both") && (
+                <>
+                  <p>Filmes na API: <strong>{checkResult.moviesInApi}</strong> | No banco: <strong>{checkResult.moviesInDb}</strong></p>
+                  <p className={checkResult.newMovies > 0 ? "text-primary font-medium" : ""}>
+                    → {checkResult.newMovies > 0 ? `${checkResult.newMovies} filme(s) novo(s)` : "Nenhum filme novo"}
+                  </p>
+                </>
+              )}
+              {(importType === "series" || importType === "both") && (
+                <>
+                  <p>Séries na API: <strong>{checkResult.seriesInApi}</strong> | No banco: <strong>{checkResult.seriesInDb}</strong></p>
+                  <p className={checkResult.newSeries > 0 ? "text-primary font-medium" : ""}>
+                    → {checkResult.newSeries > 0 ? `${checkResult.newSeries} série(s) nova(s)` : "Nenhuma série nova"}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {loading && progress.phase && (
           <div className="space-y-2">
