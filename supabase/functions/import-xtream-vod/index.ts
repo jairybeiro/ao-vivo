@@ -106,7 +106,18 @@ Deno.serve(async (req) => {
 
       console.log(`[import-vod] Movies: ${totalInApi} total, page ${page}, processing ${slice.length}`);
 
-      const movieRows = slice.map(s => ({
+      // Get already imported xtream_ids for this slice to skip them
+      const sliceXtreamIds = slice.map(s => s.stream_id);
+      const { data: existingMovies } = await supabase
+        .from('vod_movies')
+        .select('xtream_id')
+        .in('xtream_id', sliceXtreamIds);
+      const existingMovieIds = new Set((existingMovies || []).map((m: any) => m.xtream_id));
+      const newMovies = slice.filter(s => !existingMovieIds.has(s.stream_id));
+
+      console.log(`[import-vod] Movies page ${page}: ${slice.length} in slice, ${newMovies.length} new, ${existingMovieIds.size} already exist`);
+
+      const movieRows = newMovies.map(s => ({
         name: s.name,
         category: vodCatMap.get(s.category_id) || 'Filmes',
         stream_url: `${baseUrl}/movie/${username}/${password}/${s.stream_id}.${s.container_extension || 'mp4'}`,
@@ -116,7 +127,7 @@ Deno.serve(async (req) => {
         is_active: true,
       }));
 
-      // Upsert in batches of 500
+      // Insert only new movies in batches
       const batchSize = 500;
       for (let i = 0; i < movieRows.length; i += batchSize) {
         const batch = movieRows.slice(i, i + batchSize);
