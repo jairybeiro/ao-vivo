@@ -45,8 +45,15 @@ Deno.serve(async (req) => {
 
     console.log('[proxy-stream] Fetching:', targetUrl);
 
+    // Forward Range header for MP4 seeking support
+    const fetchHeaders: Record<string, string> = { ...SPOOF_HEADERS };
+    const rangeHeader = req.headers.get('Range');
+    if (rangeHeader) {
+      fetchHeaders['Range'] = rangeHeader;
+    }
+
     const response = await fetch(targetUrl, {
-      headers: SPOOF_HEADERS,
+      headers: fetchHeaders,
     });
 
     if (!response.ok) {
