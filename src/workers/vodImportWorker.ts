@@ -25,7 +25,7 @@ interface ImportResult {
 let cancelled = false;
 
 const callImport = async (
-  config: ImportMessage['config']!,
+  config: NonNullable<ImportMessage['config']>,
   type: 'movies' | 'series',
   page: number,
   pageSize: number
