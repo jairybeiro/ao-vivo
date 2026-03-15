@@ -13,6 +13,9 @@ import Premium from "./pages/Premium";
 import PremiumLogin from "./pages/PremiumLogin";
 import PremiumWatch from "./pages/PremiumWatch";
 import CourseView from "./pages/CourseView";
+import VodBrowse from "./pages/VodBrowse";
+import VodMoviePlayer from "./pages/VodMoviePlayer";
+import VodSeriesPlayer from "./pages/VodSeriesPlayer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
