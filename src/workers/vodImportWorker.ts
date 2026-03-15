@@ -17,7 +17,7 @@ interface ImportResult {
   seriesInserted: number;
   episodesInserted: number;
   errors: number;
-  totalInApi: number;
+  totalNew: number;
   hasMore: boolean;
   page: number;
 }
@@ -57,39 +57,51 @@ const importPaginated = async (
   type: 'movies' | 'series',
   pageSize: number
 ) => {
-  let page = 0;
   const totals = { movies: 0, series: 0, episodes: 0, errors: 0 };
+  const label = type === 'movies' ? 'Filmes' : 'Séries';
 
   self.postMessage({
     type: 'progress',
-    phase: `Carregando ${type === 'movies' ? 'filmes' : 'séries'}...`,
+    phase: `Verificando ${label.toLowerCase()} novos...`,
     current: 0,
     total: 1,
   });
 
+  // First call - the server filters to only NEW items
   const first = await callImport(config, type, 0, pageSize);
-  const totalItems = first.totalInApi;
+  const totalNew = first.totalNew;
   totals.movies += first.moviesInserted;
   totals.series += first.seriesInserted;
   totals.episodes += first.episodesInserted;
   totals.errors += first.errors;
 
-  const totalPages = Math.ceil(totalItems / pageSize);
+  // If nothing new, return immediately
+  if (totalNew === 0) {
+    self.postMessage({
+      type: 'progress',
+      phase: `${label}: nenhum conteúdo novo encontrado ✓`,
+      current: 1,
+      total: 1,
+    });
+    return totals;
+  }
+
+  const totalPages = Math.ceil(totalNew / pageSize);
 
   self.postMessage({
     type: 'progress',
-    phase: `${type === 'movies' ? 'Filmes' : 'Séries'}: página 1 de ${totalPages} (${totalItems} itens)`,
+    phase: `${label}: página 1 de ${totalPages} (${totalNew} novos)`,
     current: 1,
     total: totalPages,
   });
 
-  page = 1;
+  let page = 1;
   while (first.hasMore && page < totalPages) {
     if (cancelled) throw new Error('Cancelado');
 
     self.postMessage({
       type: 'progress',
-      phase: `${type === 'movies' ? 'Filmes' : 'Séries'}: página ${page + 1} de ${totalPages}`,
+      phase: `${label}: página ${page + 1} de ${totalPages} (${totalNew} novos)`,
       current: page + 1,
       total: totalPages,
     });
