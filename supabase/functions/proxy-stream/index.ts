@@ -28,12 +28,32 @@ Deno.serve(async (req) => {
   try {
     let targetUrl: string | null = null;
 
-    if (req.method === 'GET') {
+    if (req.method === 'GET' || req.method === 'HEAD') {
       const params = new URL(req.url).searchParams;
       targetUrl = params.get('url');
     } else if (req.method === 'POST') {
       const body = await req.json();
       targetUrl = body.url;
+    }
+
+    // For HEAD requests, just check if the upstream is reachable
+    if (req.method === 'HEAD' && targetUrl) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000);
+        const headResp = await fetch(targetUrl, {
+          method: 'HEAD',
+          headers: SPOOF_HEADERS,
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        return new Response(null, {
+          status: headResp.status,
+          headers: corsHeaders,
+        });
+      } catch {
+        return new Response(null, { status: 502, headers: corsHeaders });
+      }
     }
 
     if (!targetUrl) {
