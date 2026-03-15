@@ -66,14 +66,27 @@ export const ChannelList = ({ channels, loading, onEdit, onRefresh }: ChannelLis
     if (selectedIds.size === 0) return;
     setBulkDeleting(true);
     const ids = Array.from(selectedIds);
-    const { error } = await supabase.from("channels").delete().in("id", ids);
-    if (error) {
-      toast.error("Erro ao excluir canais", { description: error.message });
-    } else {
-      toast.success(`${ids.length} canal(is) excluído(s) com sucesso!`);
-      setSelectedIds(new Set());
-      onRefresh();
+    const BATCH_SIZE = 50;
+    let deletedCount = 0;
+    let lastError: string | null = null;
+
+    for (let i = 0; i < ids.length; i += BATCH_SIZE) {
+      const batch = ids.slice(i, i + BATCH_SIZE);
+      const { error } = await supabase.from("channels").delete().in("id", batch);
+      if (error) {
+        lastError = error.message;
+        break;
+      }
+      deletedCount += batch.length;
     }
+
+    if (lastError) {
+      toast.error("Erro ao excluir canais", { description: `${deletedCount} excluídos antes do erro: ${lastError}` });
+    } else {
+      toast.success(`${deletedCount} canal(is) excluído(s) com sucesso!`);
+    }
+    setSelectedIds(new Set());
+    onRefresh();
     setBulkDeleting(false);
   };
 
