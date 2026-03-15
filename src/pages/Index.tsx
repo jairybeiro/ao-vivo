@@ -89,6 +89,10 @@ const Index = () => {
 
           {isMobile && <div className="flex-1" />}
 
+          <Button variant="outline" size="sm" onClick={() => navigate("/vod")} className="flex-shrink-0 hidden sm:flex">
+            <Film className="w-4 h-4 mr-2" />
+            Filmes
+          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate("/premium")} className="flex-shrink-0 hidden sm:flex">
             <Lock className="w-4 h-4 mr-2" />
             Premium
