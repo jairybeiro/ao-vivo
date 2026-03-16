@@ -68,7 +68,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div ref={mainRef} tabIndex={-1} className="min-h-screen bg-background flex flex-col" style={{ outline: "none" }}>
       {/* Header */}
       <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-4">
