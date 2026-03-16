@@ -314,6 +314,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_watch_progress: {
+        Row: {
+          content_cover_url: string | null
+          content_id: string
+          content_name: string
+          content_type: string
+          created_at: string
+          current_time_secs: number
+          duration_secs: number
+          finished: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content_cover_url?: string | null
+          content_id: string
+          content_name?: string
+          content_type: string
+          created_at?: string
+          current_time_secs?: number
+          duration_secs?: number
+          finished?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content_cover_url?: string | null
+          content_id?: string
+          content_name?: string
+          content_type?: string
+          created_at?: string
+          current_time_secs?: number
+          duration_secs?: number
+          finished?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vod_episodes: {
         Row: {
           cover_url: string | null

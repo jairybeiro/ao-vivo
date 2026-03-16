@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toProxyStreamUrl } from "@/lib/streamProxy";
 import { isHlsUrl } from "@/lib/hlsUtils";
+import { useSaveWatchProgress, useGetWatchProgress } from "@/hooks/useWatchProgress";
 import Hls from "hls.js";
 import {
   Play,
@@ -21,18 +22,24 @@ interface VodPlayerProps {
   title?: string;
   subtitle?: string;
   poster?: string;
+  contentType?: "movie" | "episode";
+  contentId?: string;
+  contentName?: string;
+  contentCoverUrl?: string | null;
   nextEpisode?: { title: string; onPlay: () => void } | null;
   onBack?: () => void;
   onEnded?: () => void;
 }
 
-const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded }: VodPlayerProps) => {
+const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded }: VodPlayerProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
   const countdownTimer = useRef<ReturnType<typeof setInterval>>();
+  const saveInterval = useRef<ReturnType<typeof setInterval>>();
+  const resumedRef = useRef(false);
 
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
@@ -47,9 +54,65 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
   const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [showResumePrompt, setShowResumePrompt] = useState(false);
+
+  const { saveProgress } = useSaveWatchProgress();
+  const { progress: savedProgress } = useGetWatchProgress(
+    contentType || "movie",
+    contentId
+  );
 
   const proxiedSrc = toProxyStreamUrl(src);
   const isHls = isHlsUrl(src);
+
+  // Save progress periodically and on unmount
+  const doSave = useCallback(() => {
+    const v = videoRef.current;
+    if (!v || !contentType || !contentId) return;
+    saveProgress({
+      contentType,
+      contentId,
+      currentTime: v.currentTime,
+      duration: v.duration || 0,
+      contentName: contentName || title || "",
+      contentCoverUrl: contentCoverUrl || poster,
+    });
+  }, [contentType, contentId, contentName, contentCoverUrl, title, poster, saveProgress]);
+
+  // Auto-save every 15 seconds
+  useEffect(() => {
+    if (contentType && contentId) {
+      saveInterval.current = setInterval(() => {
+        if (playing) doSave();
+      }, 15000);
+    }
+    return () => {
+      clearInterval(saveInterval.current);
+      // Save on unmount
+      doSave();
+    };
+  }, [contentType, contentId, playing, doSave]);
+
+  // Show resume prompt when saved progress is available
+  useEffect(() => {
+    if (savedProgress && savedProgress.current_time_secs > 10 && !resumedRef.current) {
+      setShowResumePrompt(true);
+    }
+  }, [savedProgress]);
+
+  const handleResume = () => {
+    const v = videoRef.current;
+    if (v && savedProgress) {
+      v.currentTime = savedProgress.current_time_secs;
+    }
+    resumedRef.current = true;
+    setShowResumePrompt(false);
+  };
+
+  const handleStartOver = () => {
+    resumedRef.current = true;
+    setShowResumePrompt(false);
+  };
 
   // Initialize video source
   useEffect(() => {
@@ -59,8 +122,8 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
     setLoading(true);
     setError(null);
     setCountdown(null);
+    resumedRef.current = false;
 
-    // Cleanup previous HLS
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
@@ -86,11 +149,9 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
       });
       hlsRef.current = hls;
     } else if (isHls && video.canPlayType("application/vnd.apple.mpegurl")) {
-      // Native HLS (Safari)
       video.src = proxiedSrc;
       video.play().catch(() => {});
     } else {
-      // MP4 or other direct source
       video.src = proxiedSrc;
       video.play().catch(() => {});
     }
@@ -109,7 +170,7 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
     if (!video) return;
 
     const onPlay = () => { setPlaying(true); setLoading(false); };
-    const onPause = () => setPlaying(false);
+    const onPause = () => { setPlaying(false); doSave(); };
     const onWaiting = () => setLoading(true);
     const onCanPlay = () => setLoading(false);
     const onTimeUpdate = () => {
@@ -121,8 +182,9 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
     const onDurationChange = () => setDuration(video.duration || 0);
     const onError = () => { setError("Erro ao reproduzir"); setLoading(false); };
     const onVolumeChange = () => { setVolume(video.volume); setMuted(video.muted); };
-    const onEnded = () => {
+    const onVideoEnded = () => {
       setPlaying(false);
+      doSave();
       if (nextEpisode) {
         startCountdown();
       }
@@ -136,7 +198,7 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
     video.addEventListener("durationchange", onDurationChange);
     video.addEventListener("error", onError);
     video.addEventListener("volumechange", onVolumeChange);
-    video.addEventListener("ended", onEnded);
+    video.addEventListener("ended", onVideoEnded);
 
     return () => {
       video.removeEventListener("play", onPlay);
@@ -147,9 +209,9 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
       video.removeEventListener("durationchange", onDurationChange);
       video.removeEventListener("error", onError);
       video.removeEventListener("volumechange", onVolumeChange);
-      video.removeEventListener("ended", onEnded);
+      video.removeEventListener("ended", onVideoEnded);
     };
-  }, [nextEpisode]);
+  }, [nextEpisode, doSave]);
 
   // Auto-hide controls
   const resetHideTimer = useCallback(() => {
@@ -196,7 +258,6 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
     setCountdown(null);
   };
 
-  // Controls
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
@@ -265,7 +326,6 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
       onClick={(e) => {
-        // Only toggle play if clicking the video area, not controls
         if ((e.target as HTMLElement).closest("[data-controls]")) return;
         togglePlay();
       }}
@@ -292,6 +352,29 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
           <button onClick={() => { setError(null); videoRef.current?.load(); }} className="text-white underline text-sm">
             Tentar novamente
           </button>
+        </div>
+      )}
+
+      {/* Resume prompt */}
+      {showResumePrompt && savedProgress && (
+        <div data-controls className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
+          <div className="text-center space-y-4 p-6">
+            <p className="text-white text-sm">Você parou em <span className="font-bold text-primary">{formatTime(savedProgress.current_time_secs)}</span></p>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={handleStartOver}
+                className="px-4 py-2 rounded bg-muted text-foreground text-sm hover:bg-muted/80 transition"
+              >
+                Começar do início
+              </button>
+              <button
+                onClick={handleResume}
+                className="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 transition flex items-center gap-1"
+              >
+                <Play className="w-4 h-4" /> Retomar de {formatTime(savedProgress.current_time_secs)}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -345,7 +428,7 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
         <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 pt-3">
           <div className="flex items-center gap-3">
             <button
-              onClick={(e) => { e.stopPropagation(); onBack ? onBack() : navigate(-1); }}
+              onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
               className="text-white hover:text-primary transition p-1"
             >
               <ArrowLeft className="w-6 h-6" />
@@ -358,7 +441,7 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
         </div>
 
         {/* Center play button (when paused) */}
-        {!playing && !loading && !error && countdown === null && (
+        {!playing && !loading && !error && countdown === null && !showResumePrompt && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <Play className="w-8 h-8 text-white ml-1" />
@@ -378,11 +461,8 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
               seek(pct * duration);
             }}
           >
-            {/* Buffered */}
             <div className="absolute h-full bg-white/30 rounded-full" style={{ width: `${bufferedPercent}%` }} />
-            {/* Progress */}
             <div className="absolute h-full bg-primary rounded-full" style={{ width: `${progressPercent}%` }} />
-            {/* Thumb */}
             <div
               className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover/progress:opacity-100 transition"
               style={{ left: `${progressPercent}%`, transform: `translate(-50%, -50%)` }}
@@ -391,22 +471,15 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
 
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-1 md:gap-2">
-              {/* Play/Pause */}
               <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="text-white hover:text-primary transition p-1.5">
                 {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
               </button>
-
-              {/* Skip back */}
               <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="text-white hover:text-primary transition p-1.5">
                 <SkipBack className="w-5 h-5" />
               </button>
-
-              {/* Skip forward */}
               <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-primary transition p-1.5">
                 <SkipForward className="w-5 h-5" />
               </button>
-
-              {/* Volume */}
               <div className="flex items-center gap-1 group/vol">
                 <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:text-primary transition p-1.5">
                   {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -420,15 +493,12 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
                   className="w-0 group-hover/vol:w-20 transition-all accent-primary h-1 cursor-pointer"
                 />
               </div>
-
-              {/* Time */}
               <span className="text-white/80 text-xs ml-1 tabular-nums hidden sm:block">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             </div>
 
             <div className="flex items-center gap-1 md:gap-2">
-              {/* Next episode button */}
               {nextEpisode && (
                 <button
                   onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }}
@@ -438,8 +508,6 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
                   <span className="hidden sm:inline">Próximo</span>
                 </button>
               )}
-
-              {/* Speed */}
               <div className="relative">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
@@ -463,8 +531,6 @@ const VodPlayer = ({ src, title, subtitle, poster, nextEpisode, onBack, onEnded 
                   </div>
                 )}
               </div>
-
-              {/* Fullscreen */}
               <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white hover:text-primary transition p-1.5">
                 <Maximize className="w-5 h-5" />
               </button>

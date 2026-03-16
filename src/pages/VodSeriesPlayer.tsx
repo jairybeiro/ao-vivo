@@ -83,9 +83,9 @@ const VodSeriesPlayer = () => {
   const seasonNumbers = [...seasons.keys()].sort((a, b) => a - b);
 
   return (
-    <div className="h-screen bg-black flex flex-col lg:flex-row overflow-hidden">
+    <div className="h-screen bg-black flex flex-col lg:flex-row">
       {/* Player area */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         {currentEpisode ? (
           <VodPlayer
             key={currentEpisode.id}
@@ -93,6 +93,10 @@ const VodSeriesPlayer = () => {
             title={series.name}
             subtitle={`S${currentEpisode.season}E${currentEpisode.episode_num} - ${currentEpisode.title}`}
             poster={currentEpisode.cover_url || series.cover_url || undefined}
+            contentType="episode"
+            contentId={currentEpisode.id}
+            contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
+            contentCoverUrl={currentEpisode.cover_url || series.cover_url}
             onBack={() => navigate("/vod")}
             nextEpisode={
               nextEp
@@ -111,7 +115,7 @@ const VodSeriesPlayer = () => {
       </div>
 
       {/* Episode sidebar */}
-      <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-white/10 bg-black/95 flex flex-col max-h-[35vh] lg:max-h-none">
+      <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-white/10 bg-black/95 flex flex-col max-h-[35vh] lg:max-h-none overflow-hidden">
         <div className="p-3 border-b border-white/10 shrink-0">
           <h2 className="text-white font-semibold text-sm truncate">{series.name}</h2>
           {series.plot && (

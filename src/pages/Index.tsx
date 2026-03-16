@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
 import VirtualChannelList from "@/components/VirtualChannelList";
@@ -16,6 +16,11 @@ const BASE_CATEGORIES = ["Todos", "Favoritos"];
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    mainRef.current?.focus();
+  }, []);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
@@ -63,7 +68,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div ref={mainRef} tabIndex={-1} className="min-h-screen bg-background flex flex-col" style={{ outline: "none" }}>
       {/* Header */}
       <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-4">
