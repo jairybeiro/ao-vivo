@@ -1,15 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useVodMovies, useVodSeries } from "@/hooks/useVod";
+import { useContinueWatching, WatchProgress } from "@/hooks/useWatchProgress";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { Film, Clapperboard, Search, Star } from "lucide-react";
+import { Film, Clapperboard, Search, Star, PlayCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+
+const formatTime = (s: number) => {
+  if (!isFinite(s) || s < 0) return "0:00";
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = Math.floor(s % 60);
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+};
 
 const VodBrowse = () => {
   const navigate = useNavigate();
+  const mainRef = useRef<HTMLDivElement>(null);
   const [searchParams] = useSearchParams();
   const showAdult = searchParams.get("adult") === "1";
   const [activeTab, setActiveTab] = useState("movies");
@@ -19,6 +30,12 @@ const VodBrowse = () => {
 
   const { movies, categories: movieCategories, loading: moviesLoading } = useVodMovies(movieCategory, showAdult);
   const { series, categories: seriesCategories, loading: seriesLoading } = useVodSeries(seriesCategory, showAdult);
+  const { items: continueWatching, loading: cwLoading } = useContinueWatching();
+
+  // Auto-focus for immediate scroll
+  useEffect(() => {
+    mainRef.current?.focus();
+  }, []);
 
   const filteredMovies = searchTerm
     ? movies.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -28,8 +45,18 @@ const VodBrowse = () => {
     ? series.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
     : series;
 
+  const handleContinueClick = (item: WatchProgress) => {
+    if (item.content_type === "movie") {
+      navigate(`/vod/movie/${item.content_id}`);
+    } else {
+      // For episodes, we need to navigate to the series player
+      // The content_id is the episode id, but we need to find the series
+      navigate(`/vod/movie/${item.content_id}?type=episode`);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background overflow-y-auto">
+    <div ref={mainRef} tabIndex={-1} className="min-h-screen bg-background" style={{ outline: "none" }}>
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
@@ -43,6 +70,49 @@ const VodBrowse = () => {
       </header>
 
       <main className="container mx-auto px-4 py-4 space-y-4">
+        {/* Continue Watching */}
+        {!cwLoading && continueWatching.length > 0 && (
+          <div className="space-y-2">
+            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <PlayCircle className="w-4 h-4 text-primary" />
+              Continuar Assistindo
+            </h2>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {continueWatching.map(item => {
+                const pct = item.duration_secs > 0 ? (item.current_time_secs / item.duration_secs) * 100 : 0;
+                return (
+                  <div
+                    key={item.id}
+                    className="flex-shrink-0 w-40 cursor-pointer group"
+                    onClick={() => handleContinueClick(item)}
+                  >
+                    <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative">
+                      {item.content_cover_url ? (
+                        <img src={item.content_cover_url} alt={item.content_name} className="w-full h-full object-cover" loading="lazy" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Film className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <PlayCircle className="w-10 h-10 text-white" />
+                      </div>
+                      {/* Progress bar */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted-foreground/30">
+                        <div className="h-full bg-primary" style={{ width: `${Math.min(pct, 100)}%` }} />
+                      </div>
+                    </div>
+                    <p className="text-xs font-medium truncate mt-1">{item.content_name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {formatTime(item.current_time_secs)} / {formatTime(item.duration_secs)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

@@ -56,6 +56,10 @@ const VodMoviePlayer = () => {
         title={movie.name}
         subtitle={movie.category}
         poster={movie.cover_url || undefined}
+        contentType="movie"
+        contentId={movie.id}
+        contentName={movie.name}
+        contentCoverUrl={movie.cover_url}
         onBack={() => navigate("/vod")}
       />
     </div>
