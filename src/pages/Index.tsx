@@ -16,6 +16,11 @@ const BASE_CATEGORIES = ["Todos", "Favoritos"];
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    mainRef.current?.focus();
+  }, []);
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
