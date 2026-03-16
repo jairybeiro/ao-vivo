@@ -37,8 +37,7 @@ const VirtualChannelList = ({
   return (
     <div
       ref={parentRef}
-      className="flex-1 min-h-0 overflow-y-auto rounded-lg border border-border bg-card/50"
-      style={{ contain: "strict" }}
+      className="rounded-lg border border-border bg-card/50 overflow-hidden"
     >
       <div
         style={{
