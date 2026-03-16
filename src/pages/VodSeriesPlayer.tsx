@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useVodEpisodes } from "@/hooks/useVod";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Play, ChevronRight } from "lucide-react";
 import VodPlayer from "@/components/VodPlayer";
@@ -139,8 +139,7 @@ const VodSeriesPlayer = () => {
               </TabsList>
             </div>
             {seasonNumbers.map(s => (
-              <TabsContent key={s} value={String(s)} className="m-0 flex-1 min-h-0">
-                <ScrollArea className="h-full">
+              <TabsContent key={s} value={String(s)} className="m-0 flex-1 min-h-0 overflow-y-auto">
                   <div className="space-y-0.5 p-2">
                     {(seasons.get(s) || []).map(ep => {
                       const isCurrent = currentEpisode?.id === ep.id;
@@ -173,7 +172,6 @@ const VodSeriesPlayer = () => {
                       );
                     })}
                   </div>
-                </ScrollArea>
               </TabsContent>
             ))}
           </Tabs>
