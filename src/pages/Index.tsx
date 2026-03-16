@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CategoryTabs from "@/components/CategoryTabs";
 import VirtualChannelList from "@/components/VirtualChannelList";
