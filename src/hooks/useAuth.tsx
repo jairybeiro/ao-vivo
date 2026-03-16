@@ -59,17 +59,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setAdminCheckLoading(false);
   };
 
-  const recoverSessionFromStorage = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (!session?.user) {
+  const applyRecoveredSession = async (currentSession: Session | null) => {
+    if (!currentSession?.user) {
       return false;
     }
 
-    setSession(session);
-    setUser(session.user);
-    await checkAdminRole(session.user.id);
+    setSession(currentSession);
+    setUser(currentSession.user);
+    await checkAdminRole(currentSession.user.id);
     return true;
+  };
+
+  const recoverSessionFromStorage = async () => {
+    const {
+      data: { session: storedSession },
+    } = await supabase.auth.getSession();
+
+    return applyRecoveredSession(storedSession);
+  };
+
+  const waitForRecoveredSession = async (attempts = 6, delay = 250) => {
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      const recovered = await recoverSessionFromStorage();
+      if (recovered) {
+        return true;
+      }
+
+      await wait(delay * (attempt + 1));
+    }
+
+    return false;
   };
 
   useEffect(() => {
@@ -116,22 +135,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log(`[Auth] signIn attempt ${attempt + 1}`);
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-        console.log("[Auth] signIn response:", { 
-          hasSession: !!data?.session, 
+        console.log("[Auth] signIn response:", {
+          hasSession: !!data?.session,
           hasUser: !!data?.user,
           errorMessage: error?.message,
-          errorStatus: (error as any)?.status
+          errorStatus: (error as { status?: number } | null)?.status,
         });
 
         if (!error && data?.session) {
           console.log("[Auth] signIn SUCCESS");
-          return { error: null };
+          return { error: null };}
+
+        if (!error && data?.user) {
+          const recovered = await waitForRecoveredSession(6, 200);
+          if (recovered) {
+            console.log("[Auth] User found and session recovered after login response");
+            return { error: null };
+          }
         }
 
         if (error) {
           lastError = error as Error;
         } else {
-          // No error but no session either
           lastError = new Error("Login retornou sem sessão");
         }
       } catch (error) {
@@ -139,11 +164,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         lastError = error instanceof Error ? error : new Error("Erro de autenticação");
       }
 
-      if (isNetworkError(lastError?.message)) {
-        console.log("[Auth] Network error detected, trying session recovery...");
-        const recovered = await recoverSessionFromStorage();
+      if (isNetworkError(lastError?.message) || lastError?.message === "Login retornou sem sessão") {
+        console.log("[Auth] Login inconclusivo, aguardando recuperação de sessão...");
+        const recovered = await waitForRecoveredSession(6, 300);
         if (recovered) {
-          console.log("[Auth] Session recovered from storage!");
+          console.log("[Auth] Session recovered after delayed auth state update");
           return { error: null };
         }
       }
