@@ -335,7 +335,6 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         className="w-full h-full object-contain"
         poster={poster || undefined}
         playsInline
-        crossOrigin="anonymous"
       />
 
       {/* Loading spinner */}
