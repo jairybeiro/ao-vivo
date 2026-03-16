@@ -29,21 +29,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [adminCheckLoading, setAdminCheckLoading] = useState(false);
 
   const checkAdminRole = async (userId: string) => {
-    setAdminCheckLoading(true);
     let lastError: Error | null = null;
+    setAdminCheckLoading(true);
 
     for (let attempt = 0; attempt < 3; attempt++) {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "admin",
+      });
 
       if (!error) {
-        setIsAdmin(!!data);
+        setIsAdmin(Boolean(data));
         setAdminCheckLoading(false);
-        return;
+        return Boolean(data);
       }
 
       lastError = error as Error;
@@ -57,15 +55,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.error("Erro ao validar role admin:", lastError);
     setIsAdmin(false);
     setAdminCheckLoading(false);
+    return false;
   };
 
-  const applyRecoveredSession = async (currentSession: Session | null) => {
+  const applySessionState = async (currentSession: Session | null) => {
+    setSession(currentSession);
+    setUser(currentSession?.user ?? null);
+
     if (!currentSession?.user) {
+      setIsAdmin(false);
+      setAdminCheckLoading(false);
       return false;
     }
 
-    setSession(currentSession);
-    setUser(currentSession.user);
     await checkAdminRole(currentSession.user.id);
     return true;
   };
@@ -75,7 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       data: { session: storedSession },
     } = await supabase.auth.getSession();
 
-    return applyRecoveredSession(storedSession);
+    return applySessionState(storedSession);
   };
 
   const waitForRecoveredSession = async (attempts = 6, delay = 250) => {
@@ -94,33 +96,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        setTimeout(() => {
-          checkAdminRole(session.user.id);
-        }, 0);
-      } else {
-        setIsAdmin(false);
-        setAdminCheckLoading(false);
-      }
-
-      setLoading(false);
+    } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      void applySessionState(currentSession).finally(() => {
+        setLoading(false);
+      });
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        checkAdminRole(session.user.id);
-      } else {
-        setAdminCheckLoading(false);
-      }
-
-      setLoading(false);
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      void applySessionState(session).finally(() => {
+        setLoading(false);
+      });
     });
 
     return () => subscription.unsubscribe();
@@ -143,8 +128,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
 
         if (!error && data?.session) {
+          await applySessionState(data.session);
           console.log("[Auth] signIn SUCCESS");
-          return { error: null };}
+          return { error: null };
+        }
 
         if (!error && data?.user) {
           const recovered = await waitForRecoveredSession(6, 200);
