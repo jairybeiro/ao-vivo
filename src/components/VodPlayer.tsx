@@ -412,15 +412,23 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         </div>
       )}
 
+      {/* Click-to-play/pause overlay (covers the video area) */}
+      <div
+        className={`absolute inset-0 z-10 cursor-pointer transition-opacity duration-300 ${
+          countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""
+        }`}
+        onClick={togglePlay}
+      />
+
       {/* Netflix-style controls overlay */}
       <div
         data-controls
-        className={`absolute inset-0 transition-opacity duration-300 ${
-          showControls || !playing ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`absolute inset-0 z-20 transition-opacity duration-300 pointer-events-none ${
+          showControls || !playing ? "opacity-100" : "opacity-0"
         }`}
       >
         {/* Top gradient + info */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 pt-3">
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 pt-3 pointer-events-auto">
           <div className="flex items-center gap-3">
             <button
               onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
@@ -437,7 +445,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
 
         {/* Center play button (when paused) */}
         {!playing && !loading && !error && countdown === null && !showResumePrompt && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={togglePlay}>
             <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
               <Play className="w-8 h-8 text-white ml-1" />
             </div>
