@@ -89,8 +89,8 @@ export const useContinueWatching = (showAdult = false) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { setLoading(false); return; }
 
       const { data } = await supabase
         .from("user_watch_progress")
