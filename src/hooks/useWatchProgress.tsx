@@ -31,7 +31,7 @@ export const useSaveWatchProgress = () => {
 
       await supabase.from("user_watch_progress").upsert(
         {
-          user_id: user.id,
+          user_id: session.user.id,
           content_type: params.contentType,
           content_id: params.contentId,
           current_time_secs: params.currentTime,
