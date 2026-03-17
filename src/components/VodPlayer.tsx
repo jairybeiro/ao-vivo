@@ -453,7 +453,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         )}
 
         {/* Bottom controls */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-3 pt-12">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-3 pt-12 pointer-events-auto">
           {/* Progress bar */}
           <div
             className="relative h-1 hover:h-2 transition-all bg-white/20 rounded-full mb-3 cursor-pointer group/progress"
