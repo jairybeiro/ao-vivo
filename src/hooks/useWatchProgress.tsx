@@ -24,8 +24,8 @@ export const useSaveWatchProgress = () => {
       contentName: string;
       contentCoverUrl?: string | null;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const finished = params.duration > 0 && params.currentTime / params.duration > 0.95;
 
