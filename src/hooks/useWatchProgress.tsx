@@ -57,8 +57,8 @@ export const useGetWatchProgress = (contentType: "movie" | "episode", contentId:
   useEffect(() => {
     if (!contentId) { setLoading(false); return; }
     const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { setLoading(false); return; }
 
       const { data } = await supabase
         .from("user_watch_progress")
