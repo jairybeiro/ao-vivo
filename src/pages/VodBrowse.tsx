@@ -30,7 +30,7 @@ const VodBrowse = () => {
 
   const { movies, categories: movieCategories, loading: moviesLoading } = useVodMovies(movieCategory, showAdult);
   const { series, categories: seriesCategories, loading: seriesLoading } = useVodSeries(seriesCategory, showAdult);
-  const { items: continueWatching, loading: cwLoading } = useContinueWatching();
+  const { items: continueWatching, loading: cwLoading } = useContinueWatching(showAdult);
 
   // Auto-focus for immediate scroll
   useEffect(() => {

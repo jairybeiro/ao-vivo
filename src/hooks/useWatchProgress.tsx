@@ -24,14 +24,14 @@ export const useSaveWatchProgress = () => {
       contentName: string;
       contentCoverUrl?: string | null;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
       const finished = params.duration > 0 && params.currentTime / params.duration > 0.95;
 
       await supabase.from("user_watch_progress").upsert(
         {
-          user_id: user.id,
+          user_id: session.user.id,
           content_type: params.contentType,
           content_id: params.contentId,
           current_time_secs: params.currentTime,
@@ -57,13 +57,13 @@ export const useGetWatchProgress = (contentType: "movie" | "episode", contentId:
   useEffect(() => {
     if (!contentId) { setLoading(false); return; }
     const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { setLoading(false); return; }
 
       const { data } = await supabase
         .from("user_watch_progress")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .eq("content_type", contentType)
         .eq("content_id", contentId)
         .maybeSingle();
@@ -79,30 +79,78 @@ export const useGetWatchProgress = (contentType: "movie" | "episode", contentId:
   return { progress, loading };
 };
 
-export const useContinueWatching = () => {
+const ADULT_KEYWORDS = ['adult', 'adulto', 'xxx', 'porn', '18+', 'erotic', 'erótic'];
+const isAdultCategory = (cat: string) =>
+  ADULT_KEYWORDS.some(kw => cat.toLowerCase().includes(kw));
+
+export const useContinueWatching = (showAdult = false) => {
   const [items, setItems] = useState<WatchProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetch = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setLoading(false); return; }
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { setLoading(false); return; }
 
       const { data } = await supabase
         .from("user_watch_progress")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .eq("finished", false)
         .order("updated_at", { ascending: false })
         .limit(20);
 
-      if (data) {
-        setItems(data.filter((d: any) => d.current_time_secs > 10) as unknown as WatchProgress[]);
+      if (!data) { setLoading(false); return; }
+
+      const filtered = data.filter((d: any) => d.current_time_secs > 10) as unknown as WatchProgress[];
+
+      if (showAdult || filtered.length === 0) {
+        setItems(filtered);
+        setLoading(false);
+        return;
       }
+
+      // Cross-reference with vod_movies and vod_series to find adult categories
+      const movieIds = filtered.filter(i => i.content_type === "movie").map(i => i.content_id);
+      const episodeIds = filtered.filter(i => i.content_type === "episode").map(i => i.content_id);
+
+      const adultContentIds = new Set<string>();
+
+      if (movieIds.length > 0) {
+        const { data: movies } = await supabase
+          .from("vod_movies")
+          .select("id, category")
+          .in("id", movieIds);
+        movies?.forEach((m: any) => {
+          if (isAdultCategory(m.category)) adultContentIds.add(m.id);
+        });
+      }
+
+      if (episodeIds.length > 0) {
+        const { data: episodes } = await supabase
+          .from("vod_episodes")
+          .select("id, series_id")
+          .in("id", episodeIds);
+        if (episodes && episodes.length > 0) {
+          const seriesIds = [...new Set(episodes.map((e: any) => e.series_id))];
+          const { data: seriesList } = await supabase
+            .from("vod_series")
+            .select("id, category")
+            .in("id", seriesIds);
+          const adultSeriesIds = new Set(
+            seriesList?.filter((s: any) => isAdultCategory(s.category)).map((s: any) => s.id) || []
+          );
+          episodes.forEach((e: any) => {
+            if (adultSeriesIds.has(e.series_id)) adultContentIds.add(e.id);
+          });
+        }
+      }
+
+      setItems(filtered.filter(i => !adultContentIds.has(i.content_id)));
       setLoading(false);
     };
-    fetch();
-  }, []);
+    fetchData();
+  }, [showAdult]);
 
   return { items, loading };
 };
