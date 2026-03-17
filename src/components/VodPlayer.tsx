@@ -325,10 +325,6 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       className="relative w-full h-full bg-black select-none group"
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest("[data-controls]")) return;
-        togglePlay();
-      }}
     >
       <video
         ref={videoRef}
