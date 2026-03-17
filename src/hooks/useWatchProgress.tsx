@@ -63,7 +63,7 @@ export const useGetWatchProgress = (contentType: "movie" | "episode", contentId:
       const { data } = await supabase
         .from("user_watch_progress")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .eq("content_type", contentType)
         .eq("content_id", contentId)
         .maybeSingle();
