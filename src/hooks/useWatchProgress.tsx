@@ -95,7 +95,7 @@ export const useContinueWatching = (showAdult = false) => {
       const { data } = await supabase
         .from("user_watch_progress")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .eq("finished", false)
         .order("updated_at", { ascending: false })
         .limit(20);
