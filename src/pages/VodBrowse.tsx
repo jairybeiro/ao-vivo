@@ -176,13 +176,13 @@ const VodBrowse = () => {
           <TabsContent value="movies" className="mt-4">
             {moviesLoading ? (
               <div className="text-center text-muted-foreground py-12">Carregando filmes...</div>
-            ) : filteredMovies.length === 0 ? (
+            ) : movies.length === 0 ? (
               <div className="text-center text-muted-foreground py-12">
                 Nenhum filme encontrado. Importe filmes pelo painel admin.
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {filteredMovies.map(movie => (
+                {movies.map(movie => (
                   <Card
                     key={movie.id}
                     className="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all overflow-hidden"
