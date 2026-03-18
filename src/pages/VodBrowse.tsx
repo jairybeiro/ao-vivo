@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { useVodMovies, useVodSeries } from "@/hooks/useVod";
 import { useContinueWatching, WatchProgress } from "@/hooks/useWatchProgress";
 import { Input } from "@/components/ui/input";
@@ -52,13 +53,22 @@ const VodBrowse = () => {
     return () => clearTimeout(searchTimerRef.current);
   }, [searchTerm, activeTab]);
 
-  const handleContinueClick = (item: WatchProgress) => {
+  const handleContinueClick = async (item: WatchProgress) => {
     if (item.content_type === "movie") {
       navigate(`/vod/movie/${item.content_id}`);
     } else {
-      // For episodes, we need to navigate to the series player
-      // The content_id is the episode id, but we need to find the series
-      navigate(`/vod/movie/${item.content_id}?type=episode`);
+      // For episodes, look up the series_id to navigate correctly
+      const { data: episode } = await supabase
+        .from("vod_episodes")
+        .select("series_id")
+        .eq("id", item.content_id)
+        .maybeSingle();
+      if (episode?.series_id) {
+        navigate(`/vod/series/${episode.series_id}`);
+      } else {
+        // Fallback: episode no longer exists, clean up progress
+        navigate("/vod");
+      }
     }
   };
 
