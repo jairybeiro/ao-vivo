@@ -23,19 +23,65 @@ const BLOCKED_SCRIPT_DOMAINS = [
 /** CSS injected into proxied HTML pages – stealth approach keeps DOM intact */
 const INJECTED_CSS = `
 <style>
-  #vipFullscreenHost, .skm {
-    opacity: 0.01 !important;
-    transform: scale(0.001) !important;
+  #vipFullscreenHost, .skm, [class*="vip"], [id*="vip"], [class*="overlay-ad"], [class*="modal-vip"] {
+    opacity: 0 !important;
     pointer-events: none !important;
+    transform: scale(0) !important;
+    display: block !important;
     position: absolute !important;
     left: -9999px !important;
-    z-index: -1 !important;
+    top: -9999px !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    z-index: -9999 !important;
   }
   video, iframe {
     position: relative !important;
     z-index: 1 !important;
   }
 </style>
+`;
+
+/** Script injected before </body> – MutationObserver to nuke modals dynamically */
+const INJECTED_SCRIPT = `
+<script>
+(function(){
+  var targets = ['#vipFullscreenHost', '.skm', '[class*="vip"]', '[id*="vip"]', '[class*="overlay-ad"]', '[class*="modal-vip"]'];
+  function nuke(){
+    targets.forEach(function(sel){
+      document.querySelectorAll(sel).forEach(function(el){
+        el.style.setProperty('opacity','0','important');
+        el.style.setProperty('pointer-events','none','important');
+        el.style.setProperty('transform','scale(0)','important');
+        el.style.setProperty('display','block','important');
+        el.style.setProperty('position','absolute','important');
+        el.style.setProperty('left','-9999px','important');
+        el.style.setProperty('top','-9999px','important');
+        el.style.setProperty('width','0','important');
+        el.style.setProperty('height','0','important');
+        el.style.setProperty('overflow','hidden','important');
+        el.style.setProperty('z-index','-9999','important');
+      });
+    });
+    // Also catch canvas/svg overlays
+    document.querySelectorAll('canvas, svg').forEach(function(el){
+      var s = window.getComputedStyle(el);
+      if(s.position==='fixed'||s.position==='absolute'){
+        var z = parseInt(s.zIndex)||0;
+        if(z>10){
+          el.style.setProperty('opacity','0','important');
+          el.style.setProperty('pointer-events','none','important');
+        }
+      }
+    });
+  }
+  nuke();
+  var obs = new MutationObserver(nuke);
+  obs.observe(document.documentElement, {childList:true,subtree:true,attributes:true});
+  setInterval(nuke, 500);
+})();
+</script>
 `;
 
 /**
@@ -68,7 +114,14 @@ function cleanHtml(html: string, targetUrl: string): string {
     html = INJECTED_CSS + html;
   }
 
-  // 3. Rewrite relative resource URLs to be absolute (so CSS/JS/images load)
+  // 3. Inject MutationObserver script before </body>
+  if (html.includes('</body>')) {
+    html = html.replace('</body>', INJECTED_SCRIPT + '</body>');
+  } else {
+    html += INJECTED_SCRIPT;
+  }
+
+  // 4. Rewrite relative resource URLs to be absolute (so CSS/JS/images load)
   const baseUrl = new URL(targetUrl);
   const origin = baseUrl.origin;
 
