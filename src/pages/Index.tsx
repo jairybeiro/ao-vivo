@@ -1,6 +1,5 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import CategoryTabs from "@/components/CategoryTabs";
 import VirtualChannelList from "@/components/VirtualChannelList";
 import PlayerContainer from "@/components/PlayerContainer";
 import { useChannels, DBChannel } from "@/hooks/useChannels";
@@ -12,6 +11,7 @@ import { Tv, Lock, Search, Star, Film } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const BASE_CATEGORIES = ["Todos", "Favoritos"];
+const LAST_CHANNEL_KEY = "streamplayer_last_channel";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -21,12 +21,12 @@ const Index = () => {
   useEffect(() => {
     mainRef.current?.focus();
   }, []);
+
   const [selectedCategory, setSelectedCategory] = useState("Todos");
   const [searchQuery, setSearchQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
 
-  // Server-side category filtering
   const { channels, categories: dbCategories, loading } = useChannels(selectedCategory);
   const { toggleFavorite, isFavorite } = useFavorites();
 
@@ -34,18 +34,33 @@ const Index = () => {
     return [...BASE_CATEGORIES, ...dbCategories];
   }, [dbCategories]);
 
+  // Restore last channel once channels load
+  useEffect(() => {
+    if (selectedChannel || channels.length === 0) return;
+    try {
+      const saved = localStorage.getItem(LAST_CHANNEL_KEY);
+      if (saved) {
+        const lastId = JSON.parse(saved) as string;
+        const found = channels.find((ch) => ch.id === lastId);
+        if (found) {
+          setSelectedChannel(found);
+          return;
+        }
+      }
+    } catch { /* ignore */ }
+    // Fallback: select first channel
+    setSelectedChannel(channels[0]);
+  }, [channels, selectedChannel]);
+
   const filteredChannels = useMemo(() => {
     let result = channels;
-
     if (selectedCategory === "Favoritos") {
       result = result.filter((ch) => isFavorite(ch.id));
     }
-
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter((ch) => ch.name.toLowerCase().includes(q));
     }
-
     return result;
   }, [channels, selectedCategory, searchQuery, isFavorite]);
 
@@ -54,9 +69,12 @@ const Index = () => {
     setMenuOpen(false);
   };
 
-  const handleSelectChannel = (channel: DBChannel) => {
+  const handleSelectChannel = useCallback((channel: DBChannel) => {
     setSelectedChannel(channel);
-  };
+    try {
+      localStorage.setItem(LAST_CHANNEL_KEY, JSON.stringify(channel.id));
+    } catch { /* ignore */ }
+  }, []);
 
   const emptyState = (
     <div className="flex-1 flex items-center justify-center text-muted-foreground">
@@ -68,9 +86,9 @@ const Index = () => {
   );
 
   return (
-    <div ref={mainRef} tabIndex={-1} className="min-h-screen bg-background flex flex-col" style={{ outline: "none" }}>
-      {/* Header */}
-      <div className="px-3 md:px-4 py-2 md:py-4 flex-shrink-0 border-b border-border bg-card/50 backdrop-blur-sm">
+    <div ref={mainRef} tabIndex={-1} className="h-screen flex flex-col overflow-hidden" style={{ outline: "none" }}>
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 px-3 md:px-4 py-2 md:py-4 border-b border-border bg-card/50 backdrop-blur-sm z-20">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
@@ -81,9 +99,7 @@ const Index = () => {
               <p className="text-xs text-muted-foreground">TV ao vivo</p>
             </div>
           </div>
-
           <div className="flex-1" />
-
           <Button variant="outline" size="sm" onClick={() => navigate("/vod")} className="flex-shrink-0 hidden sm:flex">
             <Film className="w-4 h-4 mr-2" />
             Filmes
@@ -152,19 +168,19 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-6 gap-3 md:gap-6 mt-2">
+      {/* Main Content - fills remaining height */}
+      <main className="flex-1 min-h-0 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-4 gap-3 md:gap-4 mt-2">
         {/* Player Area */}
         <div className="flex-1 min-h-0 flex flex-col gap-3">
           {selectedChannel && (
-            <div className="flex-shrink-0 lg:sticky lg:top-2 lg:z-10">
+            <div className="flex-shrink-0">
               <PlayerContainer channel={selectedChannel} />
             </div>
           )}
 
-          {/* Mobile: Search + Virtual Channel List below player */}
+          {/* Mobile: Search + Channel List below player - scrollable */}
           {isMobile && (
-            <>
+            <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-y-auto">
               <div className="flex-shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -189,13 +205,13 @@ const Index = () => {
                   onSelect={handleSelectChannel}
                 />
               )}
-            </>
+            </div>
           )}
         </div>
 
-        {/* Desktop: Virtual Channel List Sidebar */}
+        {/* Desktop: Sidebar with independent scroll */}
         {!isMobile && (
-          <div className="hidden lg:flex lg:flex-none lg:w-80 flex-col gap-3">
+          <div className="hidden lg:flex lg:flex-none lg:w-80 flex-col gap-3 min-h-0">
             <div className="flex-shrink-0">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -208,7 +224,7 @@ const Index = () => {
               </div>
             </div>
             {/* Category filter chips */}
-            <div className="flex-shrink-0 flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
+            <div className="flex-shrink-0 flex flex-wrap gap-1.5">
               {CATEGORIES.map((cat) => (
                 <button
                   key={cat}
@@ -223,21 +239,24 @@ const Index = () => {
                 </button>
               ))}
             </div>
-            {loading ? (
-              <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                Carregando canais...
-              </div>
-            ) : filteredChannels.length === 0 ? (
-              emptyState
-            ) : (
-              <VirtualChannelList
-                channels={filteredChannels}
-                selectedChannelId={selectedChannel?.id}
-                isFavorite={isFavorite}
-                onToggleFavorite={toggleFavorite}
-                onSelect={handleSelectChannel}
-              />
-            )}
+            {/* Channel list with independent scroll */}
+            <div className="flex-1 min-h-0 overflow-y-auto rounded-lg">
+              {loading ? (
+                <div className="flex-1 flex items-center justify-center text-muted-foreground py-12">
+                  Carregando canais...
+                </div>
+              ) : filteredChannels.length === 0 ? (
+                emptyState
+              ) : (
+                <VirtualChannelList
+                  channels={filteredChannels}
+                  selectedChannelId={selectedChannel?.id}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  onSelect={handleSelectChannel}
+                />
+              )}
+            </div>
           </div>
         )}
       </main>
