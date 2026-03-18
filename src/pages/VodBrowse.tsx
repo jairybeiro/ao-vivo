@@ -221,13 +221,13 @@ const VodBrowse = () => {
           <TabsContent value="series" className="mt-4">
             {seriesLoading ? (
               <div className="text-center text-muted-foreground py-12">Carregando séries...</div>
-            ) : filteredSeries.length === 0 ? (
+            ) : series.length === 0 ? (
               <div className="text-center text-muted-foreground py-12">
                 Nenhuma série encontrada. Importe séries pelo painel admin.
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {filteredSeries.map(s => (
+                {series.map(s => (
                   <Card
                     key={s.id}
                     className="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all overflow-hidden"
