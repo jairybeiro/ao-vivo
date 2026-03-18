@@ -27,9 +27,10 @@ const VodBrowse = () => {
   const [movieCategory, setMovieCategory] = useState("Todos");
   const [seriesCategory, setSeriesCategory] = useState("Todos");
   const [searchTerm, setSearchTerm] = useState("");
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const { movies, categories: movieCategories, loading: moviesLoading } = useVodMovies(movieCategory, showAdult);
-  const { series, categories: seriesCategories, loading: seriesLoading } = useVodSeries(seriesCategory, showAdult);
+  const { movies, categories: movieCategories, loading: moviesLoading, refetch: refetchMovies } = useVodMovies(movieCategory, showAdult);
+  const { series, categories: seriesCategories, loading: seriesLoading, refetch: refetchSeries } = useVodSeries(seriesCategory, showAdult);
   const { items: continueWatching, loading: cwLoading } = useContinueWatching(showAdult);
 
   // Auto-focus for immediate scroll
@@ -37,13 +38,19 @@ const VodBrowse = () => {
     mainRef.current?.focus();
   }, []);
 
-  const filteredMovies = searchTerm
-    ? movies.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : movies;
-
-  const filteredSeries = searchTerm
-    ? series.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : series;
+  // Debounced server-side search across all categories
+  useEffect(() => {
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      const term = searchTerm.trim() || undefined;
+      if (activeTab === "movies") {
+        refetchMovies(term);
+      } else {
+        refetchSeries(term);
+      }
+    }, 300);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [searchTerm, activeTab]);
 
   const handleContinueClick = (item: WatchProgress) => {
     if (item.content_type === "movie") {
@@ -169,13 +176,13 @@ const VodBrowse = () => {
           <TabsContent value="movies" className="mt-4">
             {moviesLoading ? (
               <div className="text-center text-muted-foreground py-12">Carregando filmes...</div>
-            ) : filteredMovies.length === 0 ? (
+            ) : movies.length === 0 ? (
               <div className="text-center text-muted-foreground py-12">
                 Nenhum filme encontrado. Importe filmes pelo painel admin.
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {filteredMovies.map(movie => (
+                {movies.map(movie => (
                   <Card
                     key={movie.id}
                     className="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all overflow-hidden"
@@ -214,13 +221,13 @@ const VodBrowse = () => {
           <TabsContent value="series" className="mt-4">
             {seriesLoading ? (
               <div className="text-center text-muted-foreground py-12">Carregando séries...</div>
-            ) : filteredSeries.length === 0 ? (
+            ) : series.length === 0 ? (
               <div className="text-center text-muted-foreground py-12">
                 Nenhuma série encontrada. Importe séries pelo painel admin.
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {filteredSeries.map(s => (
+                {series.map(s => (
                   <Card
                     key={s.id}
                     className="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all overflow-hidden"
