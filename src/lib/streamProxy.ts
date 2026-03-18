@@ -37,6 +37,14 @@ export const toProxyStreamUrl = (url: string): string => {
     : normalizedUrl;
 };
 
+export const toProxyEmbedUrl = (url: string): string => {
+  if (!url || !SUPABASE_URL) return url;
+  const normalizedUrl = url.trim();
+  if (!normalizedUrl) return normalizedUrl;
+  if (isProxyUrl(normalizedUrl)) return normalizedUrl;
+  return buildProxyUrl(normalizedUrl);
+};
+
 export const toProxyAssetUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
 

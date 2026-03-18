@@ -14,14 +14,61 @@ const SPOOF_HEADERS = {
   'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
 };
 
+/** Domains whose <script> tags must be stripped from HTML */
+const BLOCKED_SCRIPT_DOMAINS = [
+  'p.mrktmtrcs.net',
+  'waust.at',
+];
+
+/** CSS injected into proxied HTML pages to hide ad / VIP overlays */
+const INJECTED_CSS = `
+<style>
+  #vipFullscreenHost { display: none !important; }
+  .skm { display: none !important; pointer-events: none !important; }
+</style>
+`;
+
 /**
- * Proxy edge function for HLS streams.
- * 
- * GET  ?url=<encoded_url>  → proxies the content (m3u8 playlist or .ts segment)
- * POST { url }             → same via JSON body
- * 
- * Rewrites URLs inside .m3u8 playlists so sub-resources also go through this proxy.
+ * Strip ad-related <script> tags and inject corrective CSS into HTML.
  */
+function cleanHtml(html: string, targetUrl: string): string {
+  // 1. Remove <script> tags from blocked domains
+  for (const domain of BLOCKED_SCRIPT_DOMAINS) {
+    // Matches <script ...src="...domain..."...>...</script> and self-closing
+    const pattern = new RegExp(
+      `<script[^>]*src=["'][^"']*${domain.replace(/\./g, '\\.')}[^"']*["'][^>]*>([\\s\\S]*?)<\\/script>`,
+      'gi'
+    );
+    html = html.replace(pattern, '<!-- blocked -->');
+
+    // Also catch self-closing or empty script tags
+    const selfClosing = new RegExp(
+      `<script[^>]*src=["'][^"']*${domain.replace(/\./g, '\\.')}[^"']*["'][^>]*\\/?>`,
+      'gi'
+    );
+    html = html.replace(selfClosing, '<!-- blocked -->');
+  }
+
+  // 2. Inject corrective CSS right after <head> (or at the top if no <head>)
+  if (html.includes('<head>')) {
+    html = html.replace('<head>', '<head>' + INJECTED_CSS);
+  } else if (html.includes('<head ')) {
+    html = html.replace(/<head\s[^>]*>/, (match) => match + INJECTED_CSS);
+  } else {
+    html = INJECTED_CSS + html;
+  }
+
+  // 3. Rewrite relative resource URLs to be absolute (so CSS/JS/images load)
+  const baseUrl = new URL(targetUrl);
+  const origin = baseUrl.origin;
+
+  // Fix src="/ and href="/ to be absolute
+  html = html.replace(/(src|href|action)="\/(?!\/)/gi, `$1="${origin}/`);
+  html = html.replace(/(src|href|action)='\/(?!\/)/gi, `$1='${origin}/`);
+
+  return html;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -88,18 +135,32 @@ Deno.serve(async (req) => {
 
     const contentType = response.headers.get('content-type') || '';
     const isPlaylist = targetUrl.includes('.m3u8') || contentType.includes('mpegurl') || contentType.includes('x-mpegURL');
+    const isHtml = contentType.includes('text/html');
 
+    // --- HTML page (embed) → clean ads and inject CSS ---
+    if (isHtml) {
+      console.log('[proxy-stream] HTML detected, cleaning ads...');
+      let html = await response.text();
+      html = cleanHtml(html, targetUrl);
+
+      return new Response(html, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-cache',
+        },
+      });
+    }
+
+    // --- M3U8 playlist → rewrite URLs ---
     if (isPlaylist) {
-      // It's an m3u8 playlist — rewrite URLs to go through this proxy
       const text = await response.text();
       const proxyBase = new URL(req.url).origin + new URL(req.url).pathname;
       const baseUrl = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
 
       const rewritten = text.split('\n').map(line => {
         const trimmed = line.trim();
-        // Skip comments/tags and empty lines
         if (!trimmed || trimmed.startsWith('#')) {
-          // But check for URI= inside tags (e.g., #EXT-X-KEY:...URI="...")
           if (trimmed.includes('URI="')) {
             return trimmed.replace(/URI="([^"]+)"/g, (_match, uri) => {
               const absoluteUri = uri.startsWith('http') ? uri : baseUrl + uri;
@@ -108,7 +169,6 @@ Deno.serve(async (req) => {
           }
           return line;
         }
-        // It's a URL line (segment or variant playlist)
         const absoluteUrl = trimmed.startsWith('http') ? trimmed : baseUrl + trimmed;
         return `${proxyBase}?url=${encodeURIComponent(absoluteUrl)}`;
       }).join('\n');
@@ -122,14 +182,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // For .ts segments, MP4, and other binary content — stream through
+    // --- Binary content (.ts, MP4, etc.) → stream through ---
     const responseHeaders: Record<string, string> = {
       ...corsHeaders,
       'Content-Type': contentType || 'video/mp2t',
       'Cache-Control': 'public, max-age=10',
     };
 
-    // Forward content-range and accept-ranges for MP4 seeking
     const contentRange = response.headers.get('content-range');
     const contentLength = response.headers.get('content-length');
     const acceptRanges = response.headers.get('accept-ranges');
@@ -139,7 +198,7 @@ Deno.serve(async (req) => {
     else responseHeaders['Accept-Ranges'] = 'bytes';
 
     return new Response(response.body, {
-      status: response.status, // preserve 206 Partial Content
+      status: response.status,
       headers: responseHeaders,
     });
 
