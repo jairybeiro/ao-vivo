@@ -23,6 +23,7 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
     const [clickCount, setClickCount] = useState(0);
     const [showPreRoll, setShowPreRoll] = useState(enablePreRoll);
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const proxiedEmbedUrl = toProxyEmbedUrl(embedUrl);
 
     const isProtectionActive = clickCount < REQUIRED_CLICKS;
 
