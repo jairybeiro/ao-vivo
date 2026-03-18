@@ -517,8 +517,50 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      search_vod_movies_public: {
+        Args: { cat?: string; search_term: string }
+        Returns: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          rating: number | null
+          stream_url: string
+          updated_at: string
+          xtream_id: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "vod_movies"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       search_vod_series: {
         Args: { search_term: string }
+        Returns: {
+          category: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          plot: string | null
+          rating: number | null
+          updated_at: string
+          xtream_id: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "vod_series"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      search_vod_series_public: {
+        Args: { cat?: string; search_term: string }
         Returns: {
           category: string
           cover_url: string | null
