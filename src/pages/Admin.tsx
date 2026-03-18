@@ -189,22 +189,36 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="channels" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="channels" className="flex items-center gap-2">
-                <Tv className="w-4 h-4" />
-                Canais
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7">
+              <TabsTrigger value="channels" className="flex items-center gap-1 text-xs md:text-sm">
+                <Tv className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Canais</span>
+                <span className="md:hidden">Canais</span>
               </TabsTrigger>
-              <TabsTrigger value="import" className="flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                Importar
+              <TabsTrigger value="movies" className="flex items-center gap-1 text-xs md:text-sm">
+                <Film className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Filmes</span>
+                <span className="md:hidden">Filmes</span>
               </TabsTrigger>
-              <TabsTrigger value="ads" className="flex items-center gap-2">
-                <Megaphone className="w-4 h-4" />
-                Anúncios
+              <TabsTrigger value="series" className="flex items-center gap-1 text-xs md:text-sm">
+                <Clapperboard className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Séries</span>
+                <span className="md:hidden">Séries</span>
               </TabsTrigger>
-              <TabsTrigger value="premium" className="flex items-center gap-2">
-                <Film className="w-4 h-4" />
-                Premium
+              <TabsTrigger value="import" className="flex items-center gap-1 text-xs md:text-sm">
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Importar</span>
+                <span className="md:hidden">Import</span>
+              </TabsTrigger>
+              <TabsTrigger value="ads" className="flex items-center gap-1 text-xs md:text-sm">
+                <Megaphone className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Anúncios</span>
+                <span className="md:hidden">Ads</span>
+              </TabsTrigger>
+              <TabsTrigger value="premium" className="flex items-center gap-1 text-xs md:text-sm">
+                <Film className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Premium</span>
+                <span className="md:hidden">VIP</span>
               </TabsTrigger>
             </TabsList>
 
