@@ -56,7 +56,7 @@ const VodBrowse = () => {
   };
 
   return (
-    <div ref={mainRef} tabIndex={-1} className="min-h-screen bg-background" style={{ outline: "none" }}>
+    <div ref={mainRef} tabIndex={-1} className="h-screen overflow-y-auto bg-background" style={{ outline: "none" }}>
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
