@@ -365,10 +365,10 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       )}
 
       {/* Resume prompt */}
-      {showResumePrompt && savedProgress && (
+      {showResumePrompt && resumeTimeRef.current != null && (
         <div data-controls className="absolute inset-0 flex items-center justify-center bg-black/80 z-40">
           <div className="text-center space-y-4 p-6">
-            <p className="text-white text-sm">Você parou em <span className="font-bold text-primary">{formatTime(savedProgress.current_time_secs)}</span></p>
+            <p className="text-white text-sm">Você parou em <span className="font-bold text-primary">{formatTime(resumeTimeRef.current)}</span></p>
             <div className="flex gap-3 justify-center">
               <button
                 onClick={handleStartOver}
@@ -380,7 +380,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                 onClick={handleResume}
                 className="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 transition flex items-center gap-1"
               >
-                <Play className="w-4 h-4" /> Retomar de {formatTime(savedProgress.current_time_secs)}
+                <Play className="w-4 h-4" /> Retomar de {formatTime(resumeTimeRef.current)}
               </button>
             </div>
           </div>
