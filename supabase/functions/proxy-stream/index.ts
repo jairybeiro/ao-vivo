@@ -20,11 +20,21 @@ const BLOCKED_SCRIPT_DOMAINS = [
   'waust.at',
 ];
 
-/** CSS injected into proxied HTML pages to hide ad / VIP overlays */
+/** CSS injected into proxied HTML pages – stealth approach keeps DOM intact */
 const INJECTED_CSS = `
 <style>
-  #vipFullscreenHost { display: none !important; }
-  .skm { display: none !important; pointer-events: none !important; }
+  #vipFullscreenHost, .skm {
+    opacity: 0.01 !important;
+    transform: scale(0.001) !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    left: -9999px !important;
+    z-index: -1 !important;
+  }
+  video, iframe {
+    position: relative !important;
+    z-index: 1 !important;
+  }
 </style>
 `;
 
