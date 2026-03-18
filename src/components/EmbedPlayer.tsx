@@ -65,7 +65,7 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
         {iframeLoaded && (
           <iframe
             ref={iframeRef}
-            src={embedUrl}
+            src={proxiedEmbedUrl}
             title={channelName}
             width="100%"
             height="100%"
