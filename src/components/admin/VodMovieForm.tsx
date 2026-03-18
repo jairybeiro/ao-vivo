@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -25,7 +25,9 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
   const [streamUrl, setStreamUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
   const [rating, setRating] = useState("");
+  const [tmdbId, setTmdbId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingTmdb, setIsFetchingTmdb] = useState(false);
 
   const isEditing = !!editingMovie;
 
@@ -36,25 +38,39 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       setStreamUrl(editingMovie.stream_url);
       setCoverUrl(editingMovie.cover_url || "");
       setRating(editingMovie.rating?.toString() || "");
+      setTmdbId("");
     } else {
       resetForm();
     }
   }, [editingMovie]);
 
   const resetForm = () => {
-    setName("");
-    setCategory("Filmes");
-    setStreamUrl("");
-    setCoverUrl("");
-    setRating("");
+    setName(""); setCategory("Filmes"); setStreamUrl(""); setCoverUrl(""); setRating(""); setTmdbId("");
+  };
+
+  const fetchTmdb = async () => {
+    if (!tmdbId.trim()) { toast.error("Informe o código TMDB"); return; }
+    setIsFetchingTmdb(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("tmdb-lookup", {
+        body: { tmdb_id: tmdbId.trim(), type: "movie" },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data.name) setName(data.name);
+      if (data.cover_url) setCoverUrl(data.cover_url);
+      if (data.rating) setRating(data.rating.toString());
+      if (data.category) setCategory(data.category);
+      toast.success("Dados do TMDB carregados!");
+    } catch (err: any) {
+      toast.error("Erro ao buscar TMDB", { description: err.message });
+    }
+    setIsFetchingTmdb(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !streamUrl.trim()) {
-      toast.error("Preencha o nome e a URL do stream");
-      return;
-    }
+    if (!name.trim() || !streamUrl.trim()) { toast.error("Preencha o nome e a URL do stream"); return; }
     setIsSubmitting(true);
 
     const payload = {
@@ -66,35 +82,39 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
     };
 
     if (isEditing && editingMovie) {
-      const { error } = await supabase
-        .from("vod_movies")
-        .update(payload)
-        .eq("id", editingMovie.id);
-      if (error) {
-        toast.error("Erro ao atualizar filme", { description: error.message });
-      } else {
-        toast.success("Filme atualizado!");
-        resetForm();
-        onSuccess();
-      }
+      const { error } = await supabase.from("vod_movies").update(payload).eq("id", editingMovie.id);
+      if (error) toast.error("Erro ao atualizar filme", { description: error.message });
+      else { toast.success("Filme atualizado!"); resetForm(); onSuccess(); }
     } else {
       const { error } = await supabase.from("vod_movies").insert({
         ...payload,
         xtream_id: -Math.floor(Math.random() * 900000 + 100000),
       });
-      if (error) {
-        toast.error("Erro ao adicionar filme", { description: error.message });
-      } else {
-        toast.success("Filme adicionado!");
-        resetForm();
-        onSuccess();
-      }
+      if (error) toast.error("Erro ao adicionar filme", { description: error.message });
+      else { toast.success("Filme adicionado!"); resetForm(); onSuccess(); }
     }
     setIsSubmitting(false);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* TMDB Lookup */}
+      <div className="flex items-end gap-2 p-3 rounded-lg border border-dashed border-primary/30 bg-primary/5">
+        <div className="flex-1 space-y-1">
+          <Label className="text-xs font-medium text-primary">Código TMDB (opcional)</Label>
+          <Input
+            placeholder="Ex: 603 (Matrix)"
+            value={tmdbId}
+            onChange={(e) => setTmdbId(e.target.value)}
+            className="h-8 text-sm"
+          />
+        </div>
+        <Button type="button" size="sm" variant="secondary" onClick={fetchTmdb} disabled={isFetchingTmdb}>
+          {isFetchingTmdb ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+          <span className="ml-1">Buscar</span>
+        </Button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Nome do Filme</Label>
@@ -109,13 +129,15 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       <div className="space-y-2">
         <Label>URL do Stream (mp4, m3u8, txt, ts)</Label>
         <Input placeholder="https://...mp4 ou .m3u8 ou .txt ou .ts" value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} required />
-        <p className="text-xs text-muted-foreground">Formatos suportados: .mp4, .m3u8, .txt, .ts</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>URL da Capa (opcional)</Label>
           <Input placeholder="https://..." value={coverUrl} onChange={(e) => setCoverUrl(e.target.value)} />
+          {coverUrl && (
+            <img src={coverUrl} alt="Preview" className="w-16 h-24 object-cover rounded border border-border" />
+          )}
         </div>
         <div className="space-y-2">
           <Label>Nota (opcional)</Label>
@@ -125,12 +147,10 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
 
       <div className="flex gap-2">
         <Button type="submit" className="flex-1" disabled={isSubmitting}>
-          {isSubmitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
           {isEditing ? "Atualizar Filme" : "Adicionar Filme"}
         </Button>
-        {isEditing && onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        )}
+        {isEditing && onCancel && <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>}
       </div>
     </form>
   );
