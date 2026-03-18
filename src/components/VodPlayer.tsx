@@ -95,25 +95,37 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     };
   }, [contentType, contentId, playing, doSave]);
 
+  // Store the resume time so it survives even if savedProgress gets overwritten
+  const resumeTimeRef = useRef<number | null>(null);
+
   // Show resume prompt when saved progress is available
   useEffect(() => {
     if (savedProgress && savedProgress.current_time_secs > 10 && !resumedRef.current) {
+      resumeTimeRef.current = savedProgress.current_time_secs;
       setShowResumePrompt(true);
+      // Pause video while prompt is showing
+      const v = videoRef.current;
+      if (v && !v.paused) v.pause();
     }
   }, [savedProgress]);
 
   const handleResume = () => {
     const v = videoRef.current;
-    if (v && savedProgress) {
-      v.currentTime = savedProgress.current_time_secs;
+    const targetTime = resumeTimeRef.current;
+    if (v && targetTime != null && targetTime > 0) {
+      v.currentTime = targetTime;
     }
     resumedRef.current = true;
     setShowResumePrompt(false);
+    videoRef.current?.play().catch(() => {});
   };
 
   const handleStartOver = () => {
+    const v = videoRef.current;
+    if (v) v.currentTime = 0;
     resumedRef.current = true;
     setShowResumePrompt(false);
+    videoRef.current?.play().catch(() => {});
   };
 
   // Initialize video source
