@@ -6,8 +6,6 @@
 import { useState, useCallback, useRef, forwardRef } from "react";
 import { Play, Loader2, Shield } from "lucide-react";
 import { PreRollAd, type PreRollAdData } from "./ads";
-import { toProxyEmbedUrl } from "@/lib/streamProxy";
-
 interface EmbedPlayerProps {
   embedUrl: string;
   channelName?: string;
@@ -23,7 +21,6 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
     const [clickCount, setClickCount] = useState(0);
     const [showPreRoll, setShowPreRoll] = useState(enablePreRoll);
     const iframeRef = useRef<HTMLIFrameElement>(null);
-    const proxiedEmbedUrl = toProxyEmbedUrl(embedUrl);
 
     const isProtectionActive = clickCount < REQUIRED_CLICKS;
 
