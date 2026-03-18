@@ -168,11 +168,32 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
 
   const toggleFullscreen = async () => {
     const el = containerRef.current;
+    const video = videoRef.current;
     if (!el) return;
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
+
+    // Check if already fullscreen
+    const isFs = document.fullscreenElement || (document as any).webkitFullscreenElement;
+
+    if (isFs) {
+      // Exit fullscreen
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+      } else if ((document as any).webkitExitFullscreen) {
+        (document as any).webkitExitFullscreen();
+      }
+      // Unlock orientation
+      try { screen.orientation?.unlock(); } catch {}
     } else {
-      await el.requestFullscreen();
+      // iOS Safari: use webkitEnterFullscreen on video element
+      if (video && (video as any).webkitEnterFullscreen) {
+        (video as any).webkitEnterFullscreen();
+      } else if (el.requestFullscreen) {
+        await el.requestFullscreen();
+      } else if ((el as any).webkitRequestFullscreen) {
+        (el as any).webkitRequestFullscreen();
+      }
+      // Lock to landscape on mobile
+      try { await screen.orientation?.lock("landscape"); } catch {}
     }
   };
 
