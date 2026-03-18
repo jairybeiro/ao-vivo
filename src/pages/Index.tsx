@@ -130,7 +130,14 @@ const Index = () => {
                     </button>
                   ))}
                 </div>
-                <div className="p-2 border-t mt-auto">
+                <div className="p-2 border-t mt-auto space-y-1">
+                  <button
+                    onClick={() => { setMenuOpen(false); navigate("/vod"); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <Film className="w-4 h-4" />
+                    Filmes & Séries
+                  </button>
                   <button
                     onClick={() => { setMenuOpen(false); navigate("/premium"); }}
                     className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
