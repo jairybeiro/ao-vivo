@@ -1,6 +1,9 @@
-import { Radio } from "lucide-react";
+import { useState } from "react";
+import { Radio, ChevronDown, ChevronUp } from "lucide-react";
 import type { DBChannel } from "@/hooks/useChannels";
 import { toProxyAssetUrl } from "@/lib/streamProxy";
+
+const INITIAL_VISIBLE = 6;
 
 interface VirtualChannelListProps {
   channels: DBChannel[];
@@ -15,14 +18,19 @@ const VirtualChannelList = ({
   selectedChannelId,
   onSelect,
 }: VirtualChannelListProps) => {
+  const [expanded, setExpanded] = useState(false);
+
   if (channels.length === 0) {
     return null;
   }
 
+  const visibleChannels = expanded ? channels : channels.slice(0, INITIAL_VISIBLE);
+  const hasMore = channels.length > INITIAL_VISIBLE;
+
   return (
     <div className="rounded-lg border border-border bg-card/50 overflow-hidden">
       <div className="flex flex-col gap-1 p-2">
-        {channels.map((channel) => {
+        {visibleChannels.map((channel) => {
           const isSelected = selectedChannelId === channel.id;
           const logoUrl = toProxyAssetUrl(channel.logo);
 
@@ -60,6 +68,24 @@ const VirtualChannelList = ({
           );
         })}
       </div>
+      {hasMore && (
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors border-t border-border"
+        >
+          {expanded ? (
+            <>
+              <ChevronUp className="w-4 h-4" />
+              Mostrar menos
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4" />
+              Mostrar mais ({channels.length - INITIAL_VISIBLE})
+            </>
+          )}
+        </button>
+      )}
     </div>
   );
 };
