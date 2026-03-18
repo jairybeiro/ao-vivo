@@ -157,7 +157,7 @@ const Index = () => {
         {/* Player Area */}
         <div className="flex-1 min-h-0 flex flex-col gap-3">
           {selectedChannel && (
-            <div className="flex-shrink-0">
+            <div className="flex-shrink-0 lg:sticky lg:top-2 lg:z-10">
               <PlayerContainer channel={selectedChannel} />
             </div>
           )}
