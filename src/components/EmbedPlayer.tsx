@@ -6,6 +6,7 @@
 import { useState, useCallback, useRef, forwardRef } from "react";
 import { Play, Loader2, Shield } from "lucide-react";
 import { PreRollAd, type PreRollAdData } from "./ads";
+import { toProxyEmbedUrl } from "@/lib/streamProxy";
 
 interface EmbedPlayerProps {
   embedUrl: string;
