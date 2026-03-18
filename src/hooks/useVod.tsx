@@ -75,7 +75,6 @@ export const useVodMovies = (categoryFilter?: string, showAdult = false) => {
     }
 
     if (!error && data) {
-    if (!error && data) {
       const mapped = data.map((m: any) => ({
         id: m.id,
         name: m.name,
