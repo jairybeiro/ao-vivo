@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download } from "lucide-react";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard } from "lucide-react";
 import VodImport from "@/components/admin/VodImport";
 import XtreamImport from "@/components/admin/XtreamImport";
 import { ChannelForm } from "@/components/admin/ChannelForm";
@@ -15,6 +15,8 @@ import { ChannelList } from "@/components/admin/ChannelList";
 import { AdForm } from "@/components/admin/AdForm";
 import { AdList } from "@/components/admin/AdList";
 import PremiumContentList from "@/components/admin/PremiumContentList";
+import { VodMovieList } from "@/components/admin/VodMovieList";
+import { VodSeriesList } from "@/components/admin/VodSeriesList";
 import { toProxyAssetUrl } from "@/lib/streamProxy";
 
 interface Channel {
