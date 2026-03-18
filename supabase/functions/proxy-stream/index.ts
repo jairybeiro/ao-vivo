@@ -114,7 +114,14 @@ function cleanHtml(html: string, targetUrl: string): string {
     html = INJECTED_CSS + html;
   }
 
-  // 3. Rewrite relative resource URLs to be absolute (so CSS/JS/images load)
+  // 3. Inject MutationObserver script before </body>
+  if (html.includes('</body>')) {
+    html = html.replace('</body>', INJECTED_SCRIPT + '</body>');
+  } else {
+    html += INJECTED_SCRIPT;
+  }
+
+  // 4. Rewrite relative resource URLs to be absolute (so CSS/JS/images load)
   const baseUrl = new URL(targetUrl);
   const origin = baseUrl.origin;
 
