@@ -27,9 +27,10 @@ const VodBrowse = () => {
   const [movieCategory, setMovieCategory] = useState("Todos");
   const [seriesCategory, setSeriesCategory] = useState("Todos");
   const [searchTerm, setSearchTerm] = useState("");
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const { movies, categories: movieCategories, loading: moviesLoading } = useVodMovies(movieCategory, showAdult);
-  const { series, categories: seriesCategories, loading: seriesLoading } = useVodSeries(seriesCategory, showAdult);
+  const { movies, categories: movieCategories, loading: moviesLoading, refetch: refetchMovies } = useVodMovies(movieCategory, showAdult);
+  const { series, categories: seriesCategories, loading: seriesLoading, refetch: refetchSeries } = useVodSeries(seriesCategory, showAdult);
   const { items: continueWatching, loading: cwLoading } = useContinueWatching(showAdult);
 
   // Auto-focus for immediate scroll
@@ -37,13 +38,19 @@ const VodBrowse = () => {
     mainRef.current?.focus();
   }, []);
 
-  const filteredMovies = searchTerm
-    ? movies.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : movies;
-
-  const filteredSeries = searchTerm
-    ? series.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-    : series;
+  // Debounced server-side search across all categories
+  useEffect(() => {
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      const term = searchTerm.trim() || undefined;
+      if (activeTab === "movies") {
+        refetchMovies(term);
+      } else {
+        refetchSeries(term);
+      }
+    }, 300);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [searchTerm, activeTab]);
 
   const handleContinueClick = (item: WatchProgress) => {
     if (item.content_type === "movie") {
