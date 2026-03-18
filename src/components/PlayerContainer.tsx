@@ -1,34 +1,32 @@
-import StreamPlayerComponent from "./StreamPlayer";
+import LivePlayer from "./LivePlayer";
 import EmbedPlayer from "./EmbedPlayer";
 import { DBChannel } from "@/hooks/useChannels";
 import { findHlsUrl } from "@/lib/hlsUtils";
-import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 interface PlayerContainerProps {
   channel: DBChannel;
 }
 
 /**
- * PlayerContainer - Simple player that plays what's saved in the database.
+ * PlayerContainer - Routes to the correct player based on channel source.
  *
  * Priority:
- * 1. If channel has an HLS streamUrl (.m3u8/.m3u/.txt) → use StreamPlayer SDK
- * 2. If channel has embedUrl → use EmbedPlayer (iframe fallback)
- * 3. Fallback → try first streamUrl with StreamPlayer SDK
+ * 1. HLS stream (.m3u8/.m3u/.txt) → LivePlayer (custom controls, AO VIVO indicator)
+ * 2. embedUrl → EmbedPlayer (iframe)
+ * 3. Fallback → try first streamUrl with LivePlayer
  */
 const PlayerContainer = ({ channel }: PlayerContainerProps) => {
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
-  const playableStreamUrls = channel.streamUrls
-    .filter((url) => url && url !== "placeholder")
-    .map((url) => toProxyStreamUrl(url));
+  const firstPlayableUrl = channel.streamUrls.find(
+    (url) => url && url !== "placeholder"
+  );
 
   if (hlsStreamUrl) {
     return (
-      <StreamPlayerComponent
-        source={toProxyStreamUrl(hlsStreamUrl)}
-        sources={playableStreamUrls.length > 1 ? playableStreamUrls : undefined}
+      <LivePlayer
+        src={hlsStreamUrl}
         title={channel.name}
-        fallbackEmbedUrl={channel.embedUrl || undefined}
+        subtitle={channel.category}
       />
     );
   }
@@ -45,11 +43,12 @@ const PlayerContainer = ({ channel }: PlayerContainerProps) => {
   }
 
   // Last resort: try first stream URL
-  if (playableStreamUrls[0]) {
+  if (firstPlayableUrl) {
     return (
-      <StreamPlayerComponent
-        source={playableStreamUrls[0]}
+      <LivePlayer
+        src={firstPlayableUrl}
         title={channel.name}
+        subtitle={channel.category}
       />
     );
   }
