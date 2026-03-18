@@ -239,6 +239,16 @@ const Admin = () => {
               />
             </TabsContent>
 
+            {/* Tab de Filmes */}
+            <TabsContent value="movies" className="space-y-6">
+              <VodMovieList />
+            </TabsContent>
+
+            {/* Tab de Séries */}
+            <TabsContent value="series" className="space-y-6">
+              <VodSeriesList />
+            </TabsContent>
+
             {/* Tab de Importação Xtream */}
             <TabsContent value="import" className="space-y-6">
               <XtreamImport onImportComplete={fetchChannels} />
