@@ -69,6 +69,8 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const doSave = useCallback(() => {
     const v = videoRef.current;
     if (!v || !contentType || !contentId) return;
+    // Don't save while resume prompt is showing (would overwrite with time ~0)
+    if (!resumedRef.current && v.currentTime < 5) return;
     saveProgress({
       contentType,
       contentId,
