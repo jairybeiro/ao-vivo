@@ -135,8 +135,7 @@ export const useVodSeries = (categoryFilter?: string, showAdult = false) => {
       error = res.error;
     }
 
-    const { data: resultData, error: resultError } = { data, error };
-    if (!resultError && resultData) {
+    if (!error && data) {
       const mapped = data.map((s: any) => ({
         id: s.id,
         name: s.name,
