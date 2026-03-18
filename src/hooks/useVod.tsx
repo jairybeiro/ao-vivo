@@ -101,7 +101,7 @@ export const useVodSeries = (categoryFilter?: string, showAdult = false) => {
     }
   }, [showAdult]);
 
-  const fetchSeries = useCallback(async () => {
+  const fetchSeries = useCallback(async (search?: string) => {
     setLoading(true);
     let query = supabase
       .from("vod_series")
@@ -109,8 +109,13 @@ export const useVodSeries = (categoryFilter?: string, showAdult = false) => {
       .eq("is_active", true)
       .order("name");
 
-    if (categoryFilter && categoryFilter !== "Todos") {
+    // When searching, ignore category filter to search across all categories
+    if (!search && categoryFilter && categoryFilter !== "Todos") {
       query = query.eq("category", categoryFilter);
+    }
+
+    if (search) {
+      query = query.ilike("name", `%${search}%`);
     }
 
     const { data, error } = await query;
