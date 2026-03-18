@@ -50,22 +50,30 @@ export const useVodMovies = (categoryFilter?: string, showAdult = false) => {
 
   const fetchMovies = useCallback(async (search?: string) => {
     setLoading(true);
-    let query = supabase
-      .from("vod_movies")
-      .select("*")
-      .eq("is_active", true)
-      .order("name");
-
-    // When searching, ignore category filter to search across all categories
-    if (!search && categoryFilter && categoryFilter !== "Todos") {
-      query = query.eq("category", categoryFilter);
-    }
+    let data: any[] | null = null;
+    let error: any = null;
 
     if (search) {
-      query = query.ilike("name", `%${search}%`);
+      // Use accent-insensitive search; when searching ignore category filter
+      const res = await supabase.rpc("search_vod_movies_public", { search_term: search });
+      data = res.data;
+      error = res.error;
+    } else {
+      let query = supabase
+        .from("vod_movies")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+
+      if (categoryFilter && categoryFilter !== "Todos") {
+        query = query.eq("category", categoryFilter);
+      }
+
+      const res = await query;
+      data = res.data;
+      error = res.error;
     }
 
-    const { data, error } = await query;
     if (!error && data) {
       const mapped = data.map((m: any) => ({
         id: m.id,
@@ -103,22 +111,29 @@ export const useVodSeries = (categoryFilter?: string, showAdult = false) => {
 
   const fetchSeries = useCallback(async (search?: string) => {
     setLoading(true);
-    let query = supabase
-      .from("vod_series")
-      .select("*")
-      .eq("is_active", true)
-      .order("name");
-
-    // When searching, ignore category filter to search across all categories
-    if (!search && categoryFilter && categoryFilter !== "Todos") {
-      query = query.eq("category", categoryFilter);
-    }
+    let data: any[] | null = null;
+    let error: any = null;
 
     if (search) {
-      query = query.ilike("name", `%${search}%`);
+      const res = await supabase.rpc("search_vod_series_public", { search_term: search });
+      data = res.data;
+      error = res.error;
+    } else {
+      let query = supabase
+        .from("vod_series")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+
+      if (categoryFilter && categoryFilter !== "Todos") {
+        query = query.eq("category", categoryFilter);
+      }
+
+      const res = await query;
+      data = res.data;
+      error = res.error;
     }
 
-    const { data, error } = await query;
     if (!error && data) {
       const mapped = data.map((s: any) => ({
         id: s.id,

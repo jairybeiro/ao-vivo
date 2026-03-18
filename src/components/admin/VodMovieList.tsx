@@ -27,11 +27,17 @@ export const VodMovieList = () => {
 
   const fetchMovies = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from("vod_movies").select("id, name, category, stream_url, cover_url, rating").order("created_at", { ascending: false }).limit(100);
+    let data: Movie[] | null = null;
+    let error: any = null;
     if (search.trim()) {
-      query = query.ilike("name", `%${search.trim()}%`);
+      const res = await supabase.rpc("search_vod_movies", { search_term: search.trim() });
+      data = res.data as Movie[] | null;
+      error = res.error;
+    } else {
+      const res = await supabase.from("vod_movies").select("id, name, category, stream_url, cover_url, rating").order("created_at", { ascending: false }).limit(100);
+      data = res.data;
+      error = res.error;
     }
-    const { data, error } = await query;
     if (error) {
       console.error(error);
       setMovies([]);

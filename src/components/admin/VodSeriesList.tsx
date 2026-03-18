@@ -44,9 +44,17 @@ export const VodSeriesList = () => {
 
   const fetchSeries = useCallback(async () => {
     setLoading(true);
-    let query = supabase.from("vod_series").select("id, name, category, cover_url, plot, rating").order("created_at", { ascending: false }).limit(100);
-    if (search.trim()) query = query.ilike("name", `%${search.trim()}%`);
-    const { data, error } = await query;
+    let data: Series[] | null = null;
+    let error: any = null;
+    if (search.trim()) {
+      const res = await supabase.rpc("search_vod_series", { search_term: search.trim() });
+      data = res.data as Series[] | null;
+      error = res.error;
+    } else {
+      const res = await supabase.from("vod_series").select("id, name, category, cover_url, plot, rating").order("created_at", { ascending: false }).limit(100);
+      data = res.data;
+      error = res.error;
+    }
     if (error) { console.error(error); setSeriesList([]); }
     else setSeriesList(data || []);
     setLoading(false);
