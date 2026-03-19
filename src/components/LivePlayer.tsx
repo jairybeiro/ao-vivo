@@ -222,6 +222,7 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
         ref={videoRef}
         className="w-full h-full object-contain"
         playsInline
+        muted
       />
 
       {/* Loading spinner */}
