@@ -14,12 +14,12 @@ function parseChannels(html: string) {
     category: string;
   }> = [];
 
-  // Build category index from h2 headers
+  // Build category index from h2 headers (text content)
   const catHeaders: Array<{ pos: number; cat: string }> = [];
-  const catRe = /data-category-title="([^"]+)"/g;
+  const catRe = /<h2[^>]*>([^<]+)<\/h2>/g;
   let cm;
   while ((cm = catRe.exec(html)) !== null) {
-    catHeaders.push({ pos: cm.index, cat: cm[1] });
+    catHeaders.push({ pos: cm.index, cat: cm[1].trim() });
   }
 
   function getCategoryAt(pos: number): string {
