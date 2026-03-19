@@ -6,13 +6,52 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function parseChannels(html: string) {
+  const channels: Array<{
+    name: string;
+    logo: string;
+    embedUrl: string;
+    category: string;
+  }> = [];
+
+  // Build category index from h2 headers (text content)
+  const catHeaders: Array<{ pos: number; cat: string }> = [];
+  const catRe = /<h2[^>]*>([^<]+)<\/h2>/g;
+  let cm;
+  while ((cm = catRe.exec(html)) !== null) {
+    catHeaders.push({ pos: cm.index, cat: cm[1].trim() });
+  }
+
+  function getCategoryAt(pos: number): string {
+    let cat = "Variedades";
+    for (const h of catHeaders) {
+      if (h.pos < pos) cat = h.cat;
+      else break;
+    }
+    return cat;
+  }
+
+  // Match each card block: starts with <div class="card"> ends with </div> before next card or h2
+  const cardRe = /<div class="card">\s*<a aria-label="([^"]+)"[^>]*href="([^"]*)"[^>]*>\s*<img[^>]*src="([^"]*)"[^>]*\/?\s*>\s*<\/a>\s*<div class="title">[\s\S]*?<\/div>\s*<div class="embedrow"><input[^>]*value='[^']*src="([^"]*)"[^']*'[^>]*\/?\s*><\/div>\s*<\/div>/g;
+
+  let m;
+  while ((m = cardRe.exec(html)) !== null) {
+    const name = m[1];
+    const logo = m[3];
+    const embedUrl = m[4];
+    const category = getCategoryAt(m.index);
+    channels.push({ name, logo, embedUrl, category });
+  }
+
+  return channels;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -27,22 +66,18 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const userId = claimsData.claims.sub;
-
-    // Check admin role
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle();
 
@@ -53,10 +88,9 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch HTML from source
     const sourceUrl = "https://embedcanaisonline.com/";
     const response = await fetch(sourceUrl, {
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; bot)" },
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
     });
 
     if (!response.ok) {
@@ -64,73 +98,9 @@ Deno.serve(async (req) => {
     }
 
     const html = await response.text();
+    const channels = parseChannels(html);
 
-    // Parse channels from HTML
-    const channels: Array<{
-      name: string;
-      logo: string;
-      embedUrl: string;
-      category: string;
-    }> = [];
-
-    // Track current category from h2 headers
-    let currentCategory = "Variedades";
-
-    // Split by cards and category headers
-    const parts = html.split(/(<h2[^>]*data-category-title[^>]*>|<div class="card")/);
-
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-
-      // Check for category header
-      if (part.includes("data-category-title")) {
-        const catMatch = parts[i + 1]?.match(/data-category-title="([^"]+)"/);
-        if (!catMatch) {
-          // Try in current part
-          const catMatch2 = part.match(/data-category-title="([^"]+)"/);
-          if (catMatch2) currentCategory = catMatch2[1];
-        } else {
-          currentCategory = catMatch[1];
-        }
-        continue;
-      }
-
-      if (!part.includes('class="card"')) continue;
-
-      // Get the card content (next part)
-      const cardHtml = parts[i + 1] || "";
-
-      // Extract category from data-category attribute  
-      const dataCatMatch = cardHtml.match(/data-category="([^"]+)"/);
-      if (dataCatMatch) {
-        currentCategory = dataCatMatch[1];
-      }
-
-      // Extract name from aria-label
-      const nameMatch = cardHtml.match(/aria-label="([^"]+)"/);
-      if (!nameMatch) continue;
-      const name = nameMatch[1];
-
-      // Extract logo from img src
-      const logoMatch = cardHtml.match(/src="(https:\/\/embedcanaisonline\.com\/images\/[^"]+)"/);
-      const logo = logoMatch ? logoMatch[1] : "";
-
-      // Extract embed URL from iframe src inside input value
-      const iframeMatch = cardHtml.match(/src=&quot;(https:\/\/embedcanaisonline\.com\/[^&]+)&quot;/);
-      if (!iframeMatch) continue;
-      const embedUrl = iframeMatch[1];
-
-      // Get display name from .title span or div
-      const titleMatch = cardHtml.match(/<div class="title">(?:<span[^>]*>)?([^<]+)/);
-      const displayName = titleMatch ? titleMatch[1].trim() : name;
-
-      channels.push({
-        name: displayName || name,
-        logo,
-        embedUrl,
-        category: currentCategory,
-      });
-    }
+    console.log(`Scraped ${channels.length} channels from source`);
 
     if (channels.length === 0) {
       return new Response(
@@ -139,16 +109,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use service role for upserts
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get existing channels
     const { data: existingChannels } = await adminClient
       .from("channels")
-      .select("id, name, embed_url");
+      .select("id, name, embed_url, logo");
 
     const existingMap = new Map(
       (existingChannels || []).map((ch) => [ch.name.toLowerCase().trim(), ch])
@@ -162,21 +130,18 @@ Deno.serve(async (req) => {
       const existing = existingMap.get(key);
 
       if (existing) {
-        // Update embed_url and logo if changed
         if (existing.embed_url !== ch.embedUrl) {
           const { error } = await adminClient
             .from("channels")
             .update({
               embed_url: ch.embedUrl,
-              logo: ch.logo || existing.embed_url,
+              logo: ch.logo || existing.logo,
               updated_at: new Date().toISOString(),
             })
             .eq("id", existing.id);
-
           if (!error) updated++;
         }
       } else {
-        // Create new channel
         const { error } = await adminClient.from("channels").insert({
           name: ch.name,
           category: ch.category,
@@ -185,18 +150,12 @@ Deno.serve(async (req) => {
           stream_urls: [],
           is_live: true,
         });
-
         if (!error) created++;
       }
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        total: channels.length,
-        updated,
-        created,
-      }),
+      JSON.stringify({ success: true, total: channels.length, updated, created }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
