@@ -142,23 +142,6 @@ const Index = () => {
                     <h2 className="text-lg font-bold">StreamPlayer</h2>
                   </div>
                 </div>
-                <div className="p-2 overflow-y-auto max-h-[60vh]">
-                  <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-semibold">Categorias</p>
-                  {CATEGORIES.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => handleCategoryChange(category)}
-                      className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-2 ${
-                        selectedCategory === category
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted"
-                      }`}
-                    >
-                      {category === "Favoritos" && <Star className="w-4 h-4" />}
-                      {category}
-                    </button>
-                  ))}
-                </div>
                 <div className="p-2 border-t mt-auto space-y-1">
                   <button
                     onClick={() => { setMenuOpen(false); navigate("/vod"); }}
@@ -166,13 +149,6 @@ const Index = () => {
                   >
                     <Film className="w-4 h-4" />
                     Filmes & Séries
-                  </button>
-                  <button
-                    onClick={() => { setMenuOpen(false); navigate("/premium"); }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <Lock className="w-4 h-4" />
-                    Área Premium
                   </button>
                 </div>
               </SheetContent>
