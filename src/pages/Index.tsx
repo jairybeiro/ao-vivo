@@ -77,6 +77,11 @@ const Index = () => {
     setMenuOpen(false);
   };
 
+  const handleMobileCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setMobileShowList(true);
+  };
+
   const handleSelectChannel = useCallback((channel: DBChannel) => {
     setSelectedChannel(channel);
     try {
