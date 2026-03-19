@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Film, X } from "lucide-react";
+import { Tv, Lock, Search, Star, Film, X, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const BASE_CATEGORIES = ["Todos", "Favoritos"];
