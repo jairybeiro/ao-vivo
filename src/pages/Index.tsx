@@ -35,6 +35,13 @@ const Index = () => {
     return [...BASE_CATEGORIES, ...dbCategories];
   }, [dbCategories]);
 
+  const MOBILE_CATS = useMemo(() => {
+    return [...MOBILE_CATEGORIES, ...dbCategories];
+  }, [dbCategories]);
+
+  // Mobile: track if user picked a category to show list
+  const [mobileShowList, setMobileShowList] = useState(false);
+
   // Restore last channel once channels load
   useEffect(() => {
     if (selectedChannel || channels.length === 0) return;
