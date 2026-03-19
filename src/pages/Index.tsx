@@ -7,10 +7,11 @@ import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Film } from "lucide-react";
+import { Tv, Lock, Search, Star, Film, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const BASE_CATEGORIES = ["Todos", "Favoritos"];
+const MOBILE_CATEGORIES = ["Todos"];
 const LAST_CHANNEL_KEY = "streamplayer_last_channel";
 
 const Index = () => {
@@ -33,6 +34,13 @@ const Index = () => {
   const CATEGORIES = useMemo(() => {
     return [...BASE_CATEGORIES, ...dbCategories];
   }, [dbCategories]);
+
+  const MOBILE_CATS = useMemo(() => {
+    return [...MOBILE_CATEGORIES, ...dbCategories];
+  }, [dbCategories]);
+
+  // Mobile: track if user picked a category to show list
+  const [mobileShowList, setMobileShowList] = useState(false);
 
   // Restore last channel once channels load
   useEffect(() => {
@@ -67,6 +75,11 @@ const Index = () => {
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
     setMenuOpen(false);
+  };
+
+  const handleMobileCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setMobileShowList(true);
   };
 
   const handleSelectChannel = useCallback((channel: DBChannel) => {
@@ -129,23 +142,6 @@ const Index = () => {
                     <h2 className="text-lg font-bold">StreamPlayer</h2>
                   </div>
                 </div>
-                <div className="p-2 overflow-y-auto max-h-[60vh]">
-                  <p className="px-3 py-2 text-xs text-muted-foreground uppercase font-semibold">Categorias</p>
-                  {CATEGORIES.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => handleCategoryChange(category)}
-                      className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors flex items-center gap-2 ${
-                        selectedCategory === category
-                          ? "bg-primary text-primary-foreground"
-                          : "hover:bg-muted"
-                      }`}
-                    >
-                      {category === "Favoritos" && <Star className="w-4 h-4" />}
-                      {category}
-                    </button>
-                  ))}
-                </div>
                 <div className="p-2 border-t mt-auto space-y-1">
                   <button
                     onClick={() => { setMenuOpen(false); navigate("/vod"); }}
@@ -153,13 +149,6 @@ const Index = () => {
                   >
                     <Film className="w-4 h-4" />
                     Filmes & Séries
-                  </button>
-                  <button
-                    onClick={() => { setMenuOpen(false); navigate("/premium"); }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <Lock className="w-4 h-4" />
-                    Área Premium
                   </button>
                 </div>
               </SheetContent>
@@ -181,29 +170,65 @@ const Index = () => {
           {/* Mobile: Search + Channel List below player - scrollable */}
           {isMobile && (
             <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-y-auto">
+              {/* Search */}
               <div className="flex-shrink-0">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     placeholder="Buscar canal..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      if (e.target.value.trim()) setMobileShowList(true);
+                    }}
                     className="pl-9 bg-card border-border"
                   />
                 </div>
               </div>
-              {loading ? (
-                <div className="text-center py-12 text-muted-foreground">Carregando canais...</div>
-              ) : filteredChannels.length === 0 ? (
-                emptyState
-              ) : (
-                <VirtualChannelList
-                  channels={filteredChannels}
-                  selectedChannelId={selectedChannel?.id}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={toggleFavorite}
-                  onSelect={handleSelectChannel}
-                />
+              {/* Category chips */}
+              <div className="flex-shrink-0 flex flex-wrap gap-1.5">
+                {MOBILE_CATS.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => handleMobileCategoryChange(cat)}
+                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                      selectedCategory === cat && mobileShowList
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {cat === "Favoritos" && "⭐ "}{cat}
+                  </button>
+                ))}
+              </div>
+              {/* Channel list - only when category selected */}
+              {mobileShowList && (
+                <div className="flex-1 min-h-0 flex flex-col gap-1">
+                  <div className="flex items-center justify-between px-1">
+                    <p className="text-xs text-muted-foreground">
+                      {selectedCategory} • {filteredChannels.length} canais
+                    </p>
+                    <button
+                      onClick={() => { setMobileShowList(false); setSelectedCategory("Todos"); setSearchQuery(""); }}
+                      className="p-1 rounded-full hover:bg-muted"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                  {loading ? (
+                    <div className="text-center py-8 text-muted-foreground">Carregando canais...</div>
+                  ) : filteredChannels.length === 0 ? (
+                    emptyState
+                  ) : (
+                    <VirtualChannelList
+                      channels={filteredChannels}
+                      selectedChannelId={selectedChannel?.id}
+                      isFavorite={isFavorite}
+                      onToggleFavorite={toggleFavorite}
+                      onSelect={(ch) => { handleSelectChannel(ch); setMobileShowList(false); }}
+                    />
+                  )}
+                </div>
               )}
             </div>
           )}
