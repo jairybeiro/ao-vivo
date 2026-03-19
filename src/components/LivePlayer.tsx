@@ -25,7 +25,7 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(true);
   const [volume, setVolume] = useState(1);
   const [showControls, setShowControls] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -222,6 +222,7 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
         ref={videoRef}
         className="w-full h-full object-contain"
         playsInline
+        muted
       />
 
       {/* Loading spinner */}
