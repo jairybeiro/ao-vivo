@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.tmdb-lookup]
 verify_jwt = false
+
+[functions.scrape-channels]
+verify_jwt = false
