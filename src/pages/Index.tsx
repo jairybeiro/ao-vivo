@@ -101,7 +101,7 @@ const Index = () => {
   return (
     <div ref={mainRef} tabIndex={-1} className="h-screen flex flex-col overflow-hidden" style={{ outline: "none" }}>
       {/* Fixed Header */}
-      <div className="flex-shrink-0 px-3 md:px-4 py-2 md:py-4 border-b border-border bg-card/50 backdrop-blur-sm z-20">
+      <div className="flex-shrink-0 px-3 md:px-4 py-2 md:py-4 border-b border-border bg-card/50 backdrop-blur-sm z-20" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 8px)` }}>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">

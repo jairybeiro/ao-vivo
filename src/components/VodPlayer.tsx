@@ -442,7 +442,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         }`}
       >
         {/* Top gradient + info */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 pt-3 pointer-events-auto">
+        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 pointer-events-auto" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 12px)` }}>
           <div className="flex items-center gap-3">
             <button
               onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
