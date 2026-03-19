@@ -9,6 +9,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
+import Login from "./pages/Login";
 import Install from "./pages/Install";
 import Premium from "./pages/Premium";
 import PremiumLogin from "./pages/PremiumLogin";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
             
             {/* Rotas públicas */}
+            <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/install" element={<Install />} />
             <Route path="/premium/login" element={<PremiumLogin />} />
