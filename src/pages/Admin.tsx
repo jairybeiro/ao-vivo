@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard } from "lucide-react";
 import VodImport from "@/components/admin/VodImport";
-import XtreamImport from "@/components/admin/XtreamImport";
+
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
 import { AdForm } from "@/components/admin/AdForm";
@@ -251,7 +251,6 @@ const Admin = () => {
 
             {/* Tab de Importação Xtream */}
             <TabsContent value="import" className="space-y-6">
-              <XtreamImport onImportComplete={fetchChannels} />
               <VodImport />
             </TabsContent>
 
