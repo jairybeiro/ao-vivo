@@ -251,7 +251,6 @@ const Admin = () => {
 
             {/* Tab de Importação Xtream */}
             <TabsContent value="import" className="space-y-6">
-              <XtreamImport onImportComplete={fetchChannels} />
               <VodImport />
             </TabsContent>
 
