@@ -4,6 +4,7 @@ import VirtualChannelList from "@/components/VirtualChannelList";
 import PlayerContainer from "@/components/PlayerContainer";
 import { useChannels, DBChannel } from "@/hooks/useChannels";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
