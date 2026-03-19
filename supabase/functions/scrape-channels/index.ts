@@ -6,13 +6,52 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function parseChannels(html: string) {
+  const channels: Array<{
+    name: string;
+    logo: string;
+    embedUrl: string;
+    category: string;
+  }> = [];
+
+  // Build category index from h2 headers
+  const catHeaders: Array<{ pos: number; cat: string }> = [];
+  const catRe = /data-category-title="([^"]+)"/g;
+  let cm;
+  while ((cm = catRe.exec(html)) !== null) {
+    catHeaders.push({ pos: cm.index, cat: cm[1] });
+  }
+
+  function getCategoryAt(pos: number): string {
+    let cat = "Variedades";
+    for (const h of catHeaders) {
+      if (h.pos < pos) cat = h.cat;
+      else break;
+    }
+    return cat;
+  }
+
+  // Match each card block: starts with <div class="card"> ends with </div> before next card or h2
+  const cardRe = /<div class="card">\s*<a aria-label="([^"]+)"[^>]*href="([^"]*)"[^>]*>\s*<img[^>]*src="([^"]*)"[^>]*\/?\s*>\s*<\/a>\s*<div class="title">[\s\S]*?<\/div>\s*<div class="embedrow"><input[^>]*value='[^']*src="([^"]*)"[^']*'[^>]*\/?\s*><\/div>\s*<\/div>/g;
+
+  let m;
+  while ((m = cardRe.exec(html)) !== null) {
+    const name = m[1];
+    const logo = m[3];
+    const embedUrl = m[4];
+    const category = getCategoryAt(m.index);
+    channels.push({ name, logo, embedUrl, category });
+  }
+
+  return channels;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Verify admin
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -35,7 +74,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check admin role
     const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
@@ -50,7 +88,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch HTML from source
     const sourceUrl = "https://embedcanaisonline.com/";
     const response = await fetch(sourceUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
@@ -61,46 +98,7 @@ Deno.serve(async (req) => {
     }
 
     const html = await response.text();
-
-    // Parse channels from HTML using card-by-card regex
-    const channels: Array<{
-      name: string;
-      logo: string;
-      embedUrl: string;
-      category: string;
-    }> = [];
-
-    // Extract category headers positions
-    const categoryHeaders: Array<{ index: number; category: string }> = [];
-    const catRegex = /data-category-title="([^"]+)"/g;
-    let catMatch;
-    while ((catMatch = catRegex.exec(html)) !== null) {
-      categoryHeaders.push({ index: catMatch.index, category: catMatch[1] });
-    }
-
-    // Extract each card
-    const cardRegex = /<div class="card" data-category="([^"]+)">([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
-    let cardMatch;
-    while ((cardMatch = cardRegex.exec(html)) !== null) {
-      const category = cardMatch[1];
-      const cardHtml = cardMatch[2];
-
-      // Extract name from aria-label
-      const nameMatch = cardHtml.match(/aria-label="([^"]+)"/);
-      if (!nameMatch) continue;
-      const name = nameMatch[1];
-
-      // Extract logo
-      const logoMatch = cardHtml.match(/src="(https:\/\/embedcanaisonline\.com\/images\/[^"]+)"/);
-      const logo = logoMatch ? logoMatch[1] : "";
-
-      // Extract embed URL from input value
-      const embedMatch = cardHtml.match(/src=&quot;(https:\/\/embedcanaisonline\.com\/[^&]+)&quot;/);
-      if (!embedMatch) continue;
-      const embedUrl = embedMatch[1];
-
-      channels.push({ name, logo, embedUrl, category });
-    }
+    const channels = parseChannels(html);
 
     console.log(`Scraped ${channels.length} channels from source`);
 
@@ -111,13 +109,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Use service role for upserts
     const adminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get existing channels
     const { data: existingChannels } = await adminClient
       .from("channels")
       .select("id, name, embed_url, logo");
