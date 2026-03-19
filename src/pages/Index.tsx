@@ -11,6 +11,7 @@ import { Tv, Lock, Search, Star, Film, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const BASE_CATEGORIES = ["Todos", "Favoritos"];
+const MOBILE_CATEGORIES = ["Todos"];
 const LAST_CHANNEL_KEY = "streamplayer_last_channel";
 
 const Index = () => {
