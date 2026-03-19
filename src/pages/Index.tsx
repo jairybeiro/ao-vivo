@@ -4,10 +4,11 @@ import VirtualChannelList from "@/components/VirtualChannelList";
 import PlayerContainer from "@/components/PlayerContainer";
 import { useChannels, DBChannel } from "@/hooks/useChannels";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Film, X } from "lucide-react";
+import { Tv, Lock, Search, Star, Film, X, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const BASE_CATEGORIES = ["Todos", "Favoritos"];
@@ -30,6 +31,7 @@ const Index = () => {
 
   const { channels, categories: dbCategories, loading } = useChannels(selectedCategory);
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { signOut, user } = useAuth();
 
   const CATEGORIES = useMemo(() => {
     return [...BASE_CATEGORIES, ...dbCategories];
@@ -150,6 +152,15 @@ const Index = () => {
                     <Film className="w-4 h-4" />
                     Filmes & Séries
                   </button>
+                  {user && (
+                    <button
+                      onClick={async () => { setMenuOpen(false); await signOut(); navigate("/login"); }}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-destructive/10 transition-colors text-destructive"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sair
+                    </button>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
