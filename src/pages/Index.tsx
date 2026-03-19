@@ -31,6 +31,7 @@ const Index = () => {
 
   const { channels, categories: dbCategories, loading } = useChannels(selectedCategory);
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { signOut, user } = useAuth();
 
   const CATEGORIES = useMemo(() => {
     return [...BASE_CATEGORIES, ...dbCategories];
