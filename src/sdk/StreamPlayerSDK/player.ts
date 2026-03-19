@@ -93,6 +93,7 @@ export class StreamPlayer {
     this.videoEl.controls = true;
     this.videoEl.playsInline = true;
     this.videoEl.autoplay = this.config.autoplay ?? true;
+    this.videoEl.muted = true;
     this.videoEl.style.cssText = "width:100%;height:100%;object-fit:contain;background:#000;";
     this.containerEl.innerHTML = "";
     this.containerEl.appendChild(this.videoEl);
