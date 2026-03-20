@@ -13,128 +13,202 @@ interface HeroBannerProps {
   activeTab: "movies" | "series";
 }
 
-const PREVIEW_DURATION = 15; // seconds before zoom/pause
+interface LastWatched {
+  content_id: string;
+  content_type: "movie" | "episode";
+  content_name: string;
+  content_cover_url: string | null;
+  current_time_secs: number;
+  duration_secs: number;
+}
+
+interface ContentDetails {
+  id: string;
+  name: string;
+  category: string;
+  cover_url: string | null;
+  stream_url: string;
+  rating: number | null;
+  plot: string | null;
+  type: "movie" | "series";
+  series_id?: string;
+}
 
 const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
-  const playStartRef = useRef(0);
   const mountedRef = useRef(true);
 
   const [isPreviewing, setIsPreviewing] = useState(true);
   const [videoReady, setVideoReady] = useState(false);
   const [muted, setMuted] = useState(true);
-  const [featured, setFeatured] = useState<{
-    id: string;
-    name: string;
-    cover_url: string | null;
-    stream_url?: string;
-    plot?: string | null;
-    category: string;
-    rating: number | null;
-    type: "movie" | "series";
-  } | null>(null);
+  const [content, setContent] = useState<ContentDetails | null>(null);
+  const [lastWatched, setLastWatched] = useState<LastWatched | null>(null);
+  const [tmdbBackdrop, setTmdbBackdrop] = useState<string | null>(null);
+  const [tmdbPlot, setTmdbPlot] = useState<string | null>(null);
+  const [showBackdrop, setShowBackdrop] = useState(false);
 
-  // Pick a random featured item with a cover
+  // 1. Fetch last watched content
   useEffect(() => {
-    const candidates = activeTab === "movies"
-      ? movies.filter(m => m.cover_url).map(m => ({ ...m, type: "movie" as const, plot: null }))
-      : series.filter(s => s.cover_url).map(s => ({ ...s, type: "series" as const, stream_url: undefined }));
+    const fetchLastWatched = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        // Fallback: pick random from current tab
+        pickRandom();
+        return;
+      }
 
-    if (candidates.length === 0) {
-      setFeatured(null);
-      return;
-    }
+      const { data } = await supabase
+        .from("user_watch_progress")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .eq("finished", false)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-    const pick = candidates[Math.floor(Math.random() * Math.min(candidates.length, 10))];
-    setFeatured(pick);
-    setIsPreviewing(true);
-    setVideoReady(false);
+      if (data && data.current_time_secs > 10) {
+        setLastWatched(data as unknown as LastWatched);
+      } else {
+        pickRandom();
+      }
+    };
+
+    const pickRandom = () => {
+      const candidates = activeTab === "movies"
+        ? movies.filter(m => m.cover_url)
+        : series.filter(s => s.cover_url);
+      if (candidates.length === 0) return;
+      const pick = candidates[Math.floor(Math.random() * Math.min(candidates.length, 10))];
+      const isMovie = activeTab === "movies";
+      setContent({
+        id: pick.id,
+        name: pick.name,
+        category: pick.category,
+        cover_url: pick.cover_url,
+        stream_url: isMovie ? (pick as VodMovie).stream_url : "",
+        rating: pick.rating,
+        plot: "plot" in pick ? (pick as VodSeries).plot : null,
+        type: isMovie ? "movie" : "series",
+      });
+      setLastWatched(null);
+    };
+
+    fetchLastWatched();
   }, [activeTab, movies.length, series.length]);
 
-  // For series, fetch first episode stream_url
-  const [streamUrl, setStreamUrl] = useState<string | null>(null);
-
+  // 2. Resolve content details from last watched
   useEffect(() => {
-    if (!featured) { setStreamUrl(null); return; }
+    if (!lastWatched) return;
 
-    if (featured.type === "movie" && featured.stream_url) {
-      setStreamUrl(featured.stream_url);
-    } else if (featured.type === "series") {
-      supabase
-        .from("vod_episodes")
-        .select("stream_url")
-        .eq("series_id", featured.id)
-        .order("season")
-        .order("episode_num")
-        .limit(1)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (mountedRef.current) setStreamUrl(data?.stream_url || null);
+    const resolve = async () => {
+      if (lastWatched.content_type === "movie") {
+        const { data: movie } = await supabase
+          .from("vod_movies")
+          .select("*")
+          .eq("id", lastWatched.content_id)
+          .maybeSingle();
+        if (movie && mountedRef.current) {
+          setContent({
+            id: movie.id,
+            name: movie.name,
+            category: movie.category,
+            cover_url: movie.cover_url,
+            stream_url: movie.stream_url,
+            rating: movie.rating,
+            plot: null,
+            type: "movie",
+          });
+        }
+      } else {
+        // Episode → find series
+        const { data: episode } = await supabase
+          .from("vod_episodes")
+          .select("*, vod_series(*)")
+          .eq("id", lastWatched.content_id)
+          .maybeSingle();
+        if (episode && mountedRef.current) {
+          const s = (episode as any).vod_series;
+          setContent({
+            id: episode.id,
+            name: s?.name || episode.title,
+            category: s?.category || "Séries",
+            cover_url: s?.cover_url || episode.cover_url,
+            stream_url: episode.stream_url,
+            rating: s?.rating || null,
+            plot: s?.plot || null,
+            type: "series",
+            series_id: episode.series_id,
+          });
+        }
+      }
+    };
+    resolve();
+  }, [lastWatched?.content_id]);
+
+  // 3. Fetch TMDB backdrop
+  useEffect(() => {
+    if (!content) return;
+    setTmdbBackdrop(null);
+    setTmdbPlot(null);
+
+    const fetchBackdrop = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("tmdb-lookup", {
+          body: {
+            search_name: content.name,
+            type: content.type === "series" ? "series" : "movie",
+          },
         });
-    }
-  }, [featured?.id]);
+        if (!error && data && mountedRef.current) {
+          setTmdbBackdrop(data.backdrop_url || null);
+          if (data.plot && !content.plot) setTmdbPlot(data.plot);
+        }
+      } catch { /* silent */ }
+    };
+    fetchBackdrop();
+  }, [content?.id]);
 
-  // Fetch saved watch progress
-  const [savedTime, setSavedTime] = useState(0);
-
+  // 4. Attach video & play from 30s before saved position
   useEffect(() => {
-    if (!featured) return;
-    const contentType = featured.type === "movie" ? "movie" : "episode";
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session?.user) return;
-      supabase
-        .from("user_watch_progress")
-        .select("current_time_secs, finished")
-        .eq("user_id", session.user.id)
-        .eq("content_type", contentType)
-        .eq("content_id", featured.id)
-        .maybeSingle()
-        .then(({ data }) => {
-          if (mountedRef.current && data && !data.finished) {
-            setSavedTime(data.current_time_secs || 0);
-          } else {
-            setSavedTime(0);
-          }
-        });
-    });
-  }, [featured?.id]);
-
-  // Attach video
-  useEffect(() => {
-    if (!streamUrl || !videoRef.current) return;
+    if (!content?.stream_url || !videoRef.current) return;
 
     const video = videoRef.current;
-    const proxied = toProxyStreamUrl(streamUrl);
+    const proxied = toProxyStreamUrl(content.stream_url);
+    const startTime = lastWatched ? Math.max(0, lastWatched.current_time_secs - 30) : 0;
+    const stopTime = lastWatched ? lastWatched.current_time_secs : 30;
 
-    // Reset state
     setIsPreviewing(true);
     setVideoReady(false);
-    clearTimeout(timerRef.current);
+    setShowBackdrop(false);
 
     const onCanPlay = () => {
       if (!mountedRef.current) return;
-      if (savedTime > 0) video.currentTime = savedTime;
+      video.currentTime = startTime;
       video.play().catch(() => {});
       setVideoReady(true);
-      playStartRef.current = Date.now();
+    };
 
-      // Start 15s timer
-      timerRef.current = setTimeout(() => {
-        if (mountedRef.current) {
-          setIsPreviewing(false);
-          video.pause();
-        }
-      }, PREVIEW_DURATION * 1000);
+    const onTimeUpdate = () => {
+      if (!mountedRef.current) return;
+      if (video.currentTime >= stopTime) {
+        video.removeEventListener("timeupdate", onTimeUpdate);
+        setIsPreviewing(false);
+        video.pause();
+        // Show TMDB backdrop after a short delay for smooth transition
+        setTimeout(() => {
+          if (mountedRef.current) setShowBackdrop(true);
+        }, 800);
+      }
     };
 
     video.addEventListener("canplay", onCanPlay, { once: true });
+    video.addEventListener("timeupdate", onTimeUpdate);
 
     if (isHlsUrl(proxied) && Hls.isSupported()) {
       hlsRef.current?.destroy();
-      const hls = new Hls({ maxBufferLength: 10, maxMaxBufferLength: 20 });
+      const hls = new Hls({ maxBufferLength: 10, maxMaxBufferLength: 30 });
       hls.loadSource(proxied);
       hls.attachMedia(video);
       hlsRef.current = hls;
@@ -144,12 +218,12 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
     }
 
     return () => {
-      clearTimeout(timerRef.current);
       video.removeEventListener("canplay", onCanPlay);
+      video.removeEventListener("timeupdate", onTimeUpdate);
       hlsRef.current?.destroy();
       hlsRef.current = null;
     };
-  }, [streamUrl, savedTime]);
+  }, [content?.stream_url, lastWatched?.content_id]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -157,35 +231,49 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
   }, []);
 
   const handlePlay = useCallback(() => {
-    if (!featured) return;
-    if (featured.type === "movie") {
-      navigate(`/vod/movie/${featured.id}`);
+    if (!content) return;
+    if (content.type === "movie") {
+      navigate(`/vod/movie/${content.id}`);
     } else {
-      navigate(`/vod/series/${featured.id}`);
+      navigate(`/vod/series/${content.series_id || content.id}`);
     }
-  }, [featured, navigate]);
+  }, [content, navigate]);
 
-  if (!featured) return null;
+  if (!content) return null;
+
+  const displayPlot = content.plot || tmdbPlot;
 
   return (
     <div className="relative w-full overflow-hidden" style={{ height: "65vh", minHeight: 320 }}>
-      {/* Background: video or poster fallback */}
+      {/* Background layers */}
       <div className="absolute inset-0">
-        {streamUrl ? (
+        {/* TMDB backdrop - fades in after video stops */}
+        {tmdbBackdrop && (
+          <img
+            src={tmdbBackdrop}
+            alt={content.name}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-out ${
+              showBackdrop ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        )}
+
+        {/* Video */}
+        {content.stream_url ? (
           <video
             ref={videoRef}
             muted={muted}
             playsInline
-            className={`w-full h-full object-cover transition-transform duration-[2000ms] ease-out ${
+            className={`w-full h-full object-cover transition-all duration-[2000ms] ease-out ${
               !isPreviewing ? "scale-110" : "scale-100"
-            }`}
-            poster={featured.cover_url || undefined}
+            } ${showBackdrop ? "opacity-0" : "opacity-100"}`}
+            poster={content.cover_url || undefined}
           />
         ) : (
-          featured.cover_url && (
+          content.cover_url && (
             <img
-              src={featured.cover_url}
-              alt={featured.name}
+              src={content.cover_url}
+              alt={content.name}
               className="w-full h-full object-cover"
             />
           )
@@ -207,27 +295,29 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
         >
           {/* Category badge */}
           <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary mb-2">
-            {featured.category}
+            {content.category}
           </span>
 
           {/* Title */}
           <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-2 md:mb-3 drop-shadow-lg">
-            {featured.name}
+            {content.name}
           </h2>
 
           {/* Rating */}
-          {featured.rating && featured.rating > 0 && (
+          {content.rating && content.rating > 0 && (
             <div className="flex items-center gap-2 mb-2">
               <span className="text-green-400 font-bold text-sm">
-                {Math.round(featured.rating * 10)}% relevante
+                {Math.round(content.rating * 10)}% relevante
               </span>
             </div>
           )}
 
-          {/* Plot / description */}
-          {featured.plot && (
-            <p className="text-sm md:text-base text-gray-200 line-clamp-3 mb-4 max-w-lg drop-shadow">
-              {featured.plot}
+          {/* Plot */}
+          {displayPlot && (
+            <p className={`text-sm md:text-base text-gray-200 mb-4 max-w-lg drop-shadow transition-all duration-[2000ms] ${
+              showBackdrop ? "line-clamp-5" : "line-clamp-3"
+            }`}>
+              {displayPlot}
             </p>
           )}
 
@@ -238,7 +328,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
               className="flex items-center gap-2 bg-white text-black font-bold px-5 py-2.5 md:px-7 md:py-3 rounded-md hover:bg-white/80 transition-colors text-sm md:text-base"
             >
               <Play className="w-5 h-5 fill-black" />
-              Assistir
+              {lastWatched ? "Continuar" : "Assistir"}
             </button>
             <button
               onClick={handlePlay}
@@ -251,8 +341,8 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
         </div>
       </div>
 
-      {/* Mute toggle - bottom right */}
-      {streamUrl && videoReady && (
+      {/* Mute toggle */}
+      {content.stream_url && videoReady && !showBackdrop && (
         <button
           onClick={() => setMuted(!muted)}
           className="absolute bottom-8 right-6 md:bottom-12 md:right-12 z-20 w-10 h-10 rounded-full border border-white/40 bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 transition-colors"

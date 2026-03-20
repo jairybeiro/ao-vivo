@@ -12,7 +12,32 @@ serve(async (req) => {
     const TMDB_API_KEY = Deno.env.get("TMDB_API_KEY");
     if (!TMDB_API_KEY) throw new Error("TMDB_API_KEY não configurada");
 
-    const { tmdb_id, type, season_number } = await req.json();
+    const body = await req.json();
+    const { tmdb_id, type, season_number, search_name } = body;
+
+    // Search mode: find by name and return backdrop
+    if (search_name) {
+      const mediaType = type === "series" ? "tv" : "movie";
+      const searchUrl = `https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(search_name)}`;
+      const searchResp = await fetch(searchUrl);
+      if (!searchResp.ok) throw new Error(`TMDB search failed: ${searchResp.status}`);
+      const searchData = await searchResp.json();
+      const first = searchData.results?.[0];
+      if (!first) {
+        return new Response(JSON.stringify({ backdrop_url: null, plot: null }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      return new Response(JSON.stringify({
+        backdrop_url: first.backdrop_path ? `https://image.tmdb.org/t/p/w1280${first.backdrop_path}` : null,
+        plot: first.overview || null,
+        name: mediaType === "tv" ? first.name : first.title,
+        rating: first.vote_average ? Math.round(first.vote_average * 10) / 10 : null,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!tmdb_id) throw new Error("tmdb_id é obrigatório");
 
     const mediaType = type === "series" ? "tv" : "movie";
