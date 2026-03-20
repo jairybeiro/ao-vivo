@@ -248,7 +248,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
             src={tmdbBackdrop}
             alt={content.name}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-out ${
-              showBackdrop ? "opacity-100" : "opacity-0"
+              videoReady && isPreviewing ? "opacity-0" : "opacity-100"
             }`}
           />
         )}
