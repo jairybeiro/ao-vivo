@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Film, Clapperboard, Search, Star, PlayCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import HeroBanner from "@/components/vod/HeroBanner";
 
 const formatTime = (s: number) => {
   if (!isFinite(s) || s < 0) return "0:00";
@@ -85,6 +86,15 @@ const VodBrowse = () => {
           </div>
         </div>
       </header>
+
+      {/* Hero Banner */}
+      {!moviesLoading && !seriesLoading && (
+        <HeroBanner
+          movies={movies}
+          series={series}
+          activeTab={activeTab as "movies" | "series"}
+        />
+      )}
 
       <main className="container mx-auto px-4 py-4 space-y-4">
         {/* Continue Watching */}
