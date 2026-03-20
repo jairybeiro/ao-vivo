@@ -7,6 +7,7 @@ export interface VodMovie {
   category: string;
   stream_url: string;
   cover_url: string | null;
+  backdrop_url: string | null;
   rating: number | null;
 }
 
