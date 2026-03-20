@@ -64,10 +64,10 @@ const DesktopEpisodesPanel = ({
 
       {/* Panel — Netflix style: top-right, ~60% height */}
       <div
-        className={`absolute top-0 right-0 w-[480px] max-w-[40vw] bg-[#181818] z-40 flex flex-col shadow-2xl transition-transform duration-300 ease-out rounded-bl-lg ${
+        className={`absolute bottom-12 right-0 w-[480px] max-w-[40vw] bg-[#181818] z-40 flex flex-col shadow-2xl transition-transform duration-300 ease-out rounded-tl-lg rounded-bl-lg ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
-        style={{ height: "65vh", minHeight: 400, maxHeight: "80vh" }}
+        style={{ height: "60vh", minHeight: 360, maxHeight: "75vh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ══════ SEASONS VIEW ══════ */}
