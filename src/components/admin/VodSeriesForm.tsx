@@ -14,6 +14,7 @@ interface VodSeriesFormProps {
     category: string;
     cover_url: string | null;
     backdrop_url: string | null;
+    trailer_url: string | null;
     plot: string | null;
     rating: number | null;
   } | null;
@@ -26,6 +27,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
   const [category, setCategory] = useState("Séries");
   const [coverUrl, setCoverUrl] = useState("");
   const [backdropUrl, setBackdropUrl] = useState("");
+  const [trailerUrl, setTrailerUrl] = useState("");
   const [plot, setPlot] = useState("");
   const [rating, setRating] = useState("");
   const [tmdbId, setTmdbId] = useState("");
@@ -38,9 +40,10 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
     if (editingSeries) {
       setName(editingSeries.name); setCategory(editingSeries.category);
       setCoverUrl(editingSeries.cover_url || ""); setBackdropUrl(editingSeries.backdrop_url || "");
+      setTrailerUrl(editingSeries.trailer_url || "");
       setPlot(editingSeries.plot || ""); setRating(editingSeries.rating?.toString() || ""); setTmdbId("");
     } else {
-      setName(""); setCategory("Séries"); setCoverUrl(""); setBackdropUrl(""); setPlot(""); setRating(""); setTmdbId("");
+      setName(""); setCategory("Séries"); setCoverUrl(""); setBackdropUrl(""); setTrailerUrl(""); setPlot(""); setRating(""); setTmdbId("");
     }
   }, [editingSeries]);
 
@@ -56,6 +59,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
       if (data.name) setName(data.name);
       if (data.cover_url) setCoverUrl(data.cover_url);
       if (data.backdrop_url) setBackdropUrl(data.backdrop_url);
+      if (data.trailer_url) setTrailerUrl(data.trailer_url);
       if (data.rating) setRating(data.rating.toString());
       if (data.category) setCategory(data.category);
       if (data.plot) setPlot(data.plot);
@@ -76,6 +80,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
       category: category.trim() || "Séries",
       cover_url: coverUrl.trim() || null,
       backdrop_url: backdropUrl.trim() || null,
+      trailer_url: trailerUrl.trim() || null,
       plot: plot.trim() || null,
       rating: rating ? parseFloat(rating) : null,
     };
@@ -145,6 +150,12 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
           <img src={backdropUrl} alt="Backdrop" className="w-full h-24 object-cover rounded border border-border" />
         )}
       </div>
+
+      <div className="space-y-2">
+        <Label>URL do Trailer - YouTube (opcional)</Label>
+        <Input placeholder="https://www.youtube.com/watch?v=..." value={trailerUrl} onChange={(e) => setTrailerUrl(e.target.value)} />
+      </div>
+
       <div className="space-y-2">
         <Label>Sinopse (opcional)</Label>
         <Textarea placeholder="Descrição da série..." value={plot} onChange={(e) => setPlot(e.target.value)} rows={3} />
