@@ -323,6 +323,18 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     setShowSettings(false);
   };
 
+  // Close volume panel on click outside
+  useEffect(() => {
+    if (!volumeOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (volumePanelRef.current && !volumePanelRef.current.contains(e.target as Node)) {
+        setVolumeOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [volumeOpen]);
+
   const toggleFullscreen = async () => {
     const container = containerRef.current;
     const video = videoRef.current;
