@@ -195,10 +195,6 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
         video.removeEventListener("timeupdate", onTimeUpdate);
         setIsPreviewing(false);
         video.pause();
-        // Show TMDB backdrop after a short delay for smooth transition
-        setTimeout(() => {
-          if (mountedRef.current) setShowBackdrop(true);
-        }, 800);
       }
     };
 
