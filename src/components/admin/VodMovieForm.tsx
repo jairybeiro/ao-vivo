@@ -39,6 +39,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       setCategory(editingMovie.category);
       setStreamUrl(editingMovie.stream_url);
       setCoverUrl(editingMovie.cover_url || "");
+      setBackdropUrl(editingMovie.backdrop_url || "");
       setRating(editingMovie.rating?.toString() || "");
       setTmdbId("");
     } else {
@@ -47,7 +48,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
   }, [editingMovie]);
 
   const resetForm = () => {
-    setName(""); setCategory("Filmes"); setStreamUrl(""); setCoverUrl(""); setRating(""); setTmdbId("");
+    setName(""); setCategory("Filmes"); setStreamUrl(""); setCoverUrl(""); setBackdropUrl(""); setRating(""); setTmdbId("");
   };
 
   const fetchTmdb = async () => {
