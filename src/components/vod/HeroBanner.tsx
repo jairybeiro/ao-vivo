@@ -27,6 +27,7 @@ interface ContentDetails {
   name: string;
   category: string;
   cover_url: string | null;
+  backdrop_url: string | null;
   stream_url: string;
   rating: number | null;
   plot: string | null;
