@@ -247,11 +247,18 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     return () => clearTimeout(hideTimer.current);
   }, [playing]);
 
-  // Fullscreen listener
+  // Fullscreen listener (standard + webkit)
   useEffect(() => {
-    const onFsChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const onFsChange = () => {
+      const isFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      setIsFullscreen(isFs);
+    };
     document.addEventListener("fullscreenchange", onFsChange);
-    return () => document.removeEventListener("fullscreenchange", onFsChange);
+    document.addEventListener("webkitfullscreenchange", onFsChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onFsChange);
+      document.removeEventListener("webkitfullscreenchange", onFsChange);
+    };
   }, []);
 
   // Countdown for auto-play next
