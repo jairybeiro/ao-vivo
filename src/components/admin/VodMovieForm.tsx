@@ -25,6 +25,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
   const [category, setCategory] = useState("Filmes");
   const [streamUrl, setStreamUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
+  const [backdropUrl, setBackdropUrl] = useState("");
   const [rating, setRating] = useState("");
   const [tmdbId, setTmdbId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
