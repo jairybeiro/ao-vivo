@@ -6,8 +6,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 import { ListVideo } from "lucide-react";
 import VodPlayer from "@/components/VodPlayer";
-import EpisodesSheet from "@/components/vod/EpisodesSheet";
 import DesktopEpisodesPanel from "@/components/vod/DesktopEpisodesPanel";
+import MobileEpisodesPanel from "@/components/vod/MobileEpisodesPanel";
 import type { VodSeries, VodEpisode } from "@/hooks/useVod";
 
 const VodSeriesPlayer = () => {
@@ -86,115 +86,76 @@ const VodSeriesPlayer = () => {
     );
   }
 
-  // ─── MOBILE: fullscreen player + episodes in sheet ───
-  if (isMobile) {
-    return (
-      <div className="h-screen bg-black flex flex-col">
-        <div className="flex-1 min-h-0 relative">
-          {currentEpisode ? (
-            <VodPlayer
-              key={currentEpisode.id}
-              src={currentEpisode.stream_url}
-              title={series.name}
-              subtitle={`T${currentEpisode.season}:E${currentEpisode.episode_num} "${currentEpisode.title}"`}
-              poster={currentEpisode.cover_url || series.cover_url || undefined}
-              contentType="episode"
-              contentId={currentEpisode.id}
-              contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
-              contentCoverUrl={currentEpisode.cover_url || series.cover_url}
-              centerLabel={`${series.name}  E${currentEpisode.episode_num}  ${currentEpisode.title}`}
-              onBack={() => navigate("/vod")}
-              nextEpisode={
-                nextEp
-                  ? {
-                      title: `T${nextEp.season}:E${nextEp.episode_num} "${nextEp.title}"`,
-                      onPlay: () => playEpisode(nextEp),
-                    }
-                  : null
-              }
-              extraControls={
-                !epsLoading && seasonNumbers.length > 0 ? (
-                  <EpisodesSheet
-                    series={series}
-                    seasons={seasons}
-                    seasonNumbers={seasonNumbers}
-                    currentEpisode={currentEpisode}
-                    onPlayEpisode={playEpisode}
-                    trigger={
-                      <button className="text-white hover:text-primary transition p-1.5 flex items-center gap-1 text-xs">
-                        <ListVideo className="w-4 h-4" />
-                        <span>Episódios</span>
-                      </button>
-                    }
-                  />
-                ) : undefined
-              }
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <p className="text-muted-foreground text-sm">Selecione um episódio</p>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
+  const hasEpisodes = !epsLoading && seasonNumbers.length > 0;
 
-  // ─── DESKTOP: fullscreen player + slide-in episodes panel ───
+  const episodesButton = hasEpisodes ? (
+    <button
+      onClick={() => setShowEpisodesPanel(true)}
+      className="text-white hover:text-white/80 transition p-1.5 flex items-center gap-1 text-xs sm:text-sm"
+    >
+      <ListVideo className="w-4 h-4 sm:w-5 sm:h-5" />
+      <span>Episódios</span>
+    </button>
+  ) : undefined;
+
+  // Overlay content: episodes panel rendered INSIDE the player's fullscreen container
+  const panelOverlay = hasEpisodes && series ? (
+    isMobile ? (
+      <MobileEpisodesPanel
+        series={series}
+        seasons={seasons}
+        seasonNumbers={seasonNumbers}
+        currentEpisode={currentEpisode}
+        onPlayEpisode={playEpisode}
+        open={showEpisodesPanel}
+        onClose={() => setShowEpisodesPanel(false)}
+      />
+    ) : (
+      <DesktopEpisodesPanel
+        series={series}
+        seasons={seasons}
+        seasonNumbers={seasonNumbers}
+        currentEpisode={currentEpisode}
+        onPlayEpisode={playEpisode}
+        open={showEpisodesPanel}
+        onClose={() => setShowEpisodesPanel(false)}
+      />
+    )
+  ) : undefined;
+
   return (
-    <div className="h-screen bg-black relative">
-      <div className="w-full h-full">
-        {currentEpisode ? (
-          <VodPlayer
-            key={currentEpisode.id}
-            src={currentEpisode.stream_url}
-            title={series.name}
-            subtitle={`S${currentEpisode.season}E${currentEpisode.episode_num} - ${currentEpisode.title}`}
-            poster={currentEpisode.cover_url || series.cover_url || undefined}
-            contentType="episode"
-            contentId={currentEpisode.id}
-            contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
-            contentCoverUrl={currentEpisode.cover_url || series.cover_url}
-            centerLabel={`${series.name}  E${currentEpisode.episode_num}  ${currentEpisode.title}`}
-            onBack={() => navigate("/vod")}
-            nextEpisode={
-              nextEp
-                ? {
-                    title: `S${nextEp.season}E${nextEp.episode_num} - ${nextEp.title}`,
-                    onPlay: () => playEpisode(nextEp),
-                  }
-                : null
-            }
-            extraControls={
-              !epsLoading && seasonNumbers.length > 0 ? (
-                <button
-                  onClick={() => setShowEpisodesPanel(true)}
-                  className="text-white hover:text-white/80 transition p-1.5 flex items-center gap-1.5 text-sm"
-                >
-                  <ListVideo className="w-5 h-5" />
-                  <span>Episódios</span>
-                </button>
-              ) : undefined
-            }
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <p className="text-muted-foreground text-sm">Selecione um episódio</p>
-          </div>
-        )}
-      </div>
-
-      {/* Episodes slide-in panel */}
-      {!epsLoading && seasonNumbers.length > 0 && (
-        <DesktopEpisodesPanel
-          series={series}
-          seasons={seasons}
-          seasonNumbers={seasonNumbers}
-          currentEpisode={currentEpisode}
-          onPlayEpisode={playEpisode}
-          open={showEpisodesPanel}
-          onClose={() => setShowEpisodesPanel(false)}
+    <div className="h-screen bg-black">
+      {currentEpisode ? (
+        <VodPlayer
+          key={currentEpisode.id}
+          src={currentEpisode.stream_url}
+          title={series.name}
+          subtitle={isMobile
+            ? `T${currentEpisode.season}:E${currentEpisode.episode_num} "${currentEpisode.title}"`
+            : `S${currentEpisode.season}E${currentEpisode.episode_num} - ${currentEpisode.title}`
+          }
+          poster={currentEpisode.cover_url || series.cover_url || undefined}
+          contentType="episode"
+          contentId={currentEpisode.id}
+          contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
+          contentCoverUrl={currentEpisode.cover_url || series.cover_url}
+          centerLabel={`${series.name}  E${currentEpisode.episode_num}  ${currentEpisode.title}`}
+          onBack={() => navigate("/vod")}
+          nextEpisode={
+            nextEp
+              ? {
+                  title: `${isMobile ? "T" : "S"}${nextEp.season}${isMobile ? ":" : ""}E${nextEp.episode_num} ${isMobile ? '"' : "- "}${nextEp.title}${isMobile ? '"' : ""}`,
+                  onPlay: () => playEpisode(nextEp),
+                }
+              : null
+          }
+          extraControls={episodesButton}
+          overlayContent={panelOverlay}
         />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <p className="text-muted-foreground text-sm">Selecione um episódio</p>
+        </div>
       )}
     </div>
   );
