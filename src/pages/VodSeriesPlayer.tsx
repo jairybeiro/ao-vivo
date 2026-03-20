@@ -138,10 +138,10 @@ const VodSeriesPlayer = () => {
     );
   }
 
-  // ─── DESKTOP: player + sidebar ───
+  // ─── DESKTOP: fullscreen player + slide-in episodes panel ───
   return (
-    <div className="h-screen bg-black flex flex-col lg:flex-row">
-      <div className="flex-1 min-h-0 overflow-hidden">
+    <div className="h-screen bg-black relative">
+      <div className="w-full h-full">
         {currentEpisode ? (
           <VodPlayer
             key={currentEpisode.id}
@@ -162,6 +162,17 @@ const VodSeriesPlayer = () => {
                   }
                 : null
             }
+            extraControls={
+              !epsLoading && seasonNumbers.length > 0 ? (
+                <button
+                  onClick={() => setShowEpisodesPanel(true)}
+                  className="text-white hover:text-primary transition p-1.5 flex items-center gap-1.5 text-sm"
+                >
+                  <ListVideo className="w-5 h-5" />
+                  <span>Episódios</span>
+                </button>
+              ) : undefined
+            }
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -170,73 +181,18 @@ const VodSeriesPlayer = () => {
         )}
       </div>
 
-      {/* Episode sidebar - desktop only */}
-      <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-white/10 bg-black/95 flex flex-col max-h-[35vh] lg:max-h-none overflow-hidden">
-        <div className="p-3 border-b border-white/10 shrink-0">
-          <h2 className="text-white font-semibold text-sm truncate">{series.name}</h2>
-          {series.plot && (
-            <p className="text-white/50 text-xs mt-1 line-clamp-2">{series.plot}</p>
-          )}
-        </div>
-
-        {epsLoading ? (
-          <div className="p-4 text-white/50 text-sm">Carregando episódios...</div>
-        ) : seasonNumbers.length === 0 ? (
-          <div className="p-4 text-white/50 text-sm">Nenhum episódio encontrado</div>
-        ) : (
-          <Tabs value={activeSeason} onValueChange={setActiveSeason} className="flex-1 flex flex-col min-h-0">
-            <div className="px-2 pt-2 shrink-0">
-              <TabsList className="w-full flex-wrap h-auto gap-1 bg-white/5">
-                {seasonNumbers.map(s => (
-                  <TabsTrigger
-                    key={s}
-                    value={String(s)}
-                    className="text-xs data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-                  >
-                    T{s}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
-            {seasonNumbers.map(s => (
-              <TabsContent key={s} value={String(s)} className="m-0 flex-1 min-h-0 overflow-y-auto">
-                <div className="space-y-0.5 p-2">
-                  {(seasons.get(s) || []).map(ep => {
-                    const isCurrent = currentEpisode?.id === ep.id;
-                    return (
-                      <button
-                        key={ep.id}
-                        onClick={() => playEpisode(ep)}
-                        className={`w-full text-left p-2.5 rounded-md text-sm flex items-center gap-2 transition-all ${
-                          isCurrent
-                            ? "bg-primary/20 text-primary ring-1 ring-primary/30"
-                            : "hover:bg-white/5 text-white/80 hover:text-white"
-                        }`}
-                      >
-                        {isCurrent ? (
-                          <ChevronRight className="w-4 h-4 shrink-0 text-primary" />
-                        ) : (
-                          <Play className="w-3 h-3 shrink-0 text-white/40" />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <span className="truncate block text-xs font-medium">
-                            E{ep.episode_num} - {ep.title}
-                          </span>
-                          {ep.duration_secs && (
-                            <span className="text-[10px] text-white/40">
-                              {Math.round(ep.duration_secs / 60)} min
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        )}
-      </div>
+      {/* Episodes slide-in panel */}
+      {!epsLoading && seasonNumbers.length > 0 && (
+        <DesktopEpisodesPanel
+          series={series}
+          seasons={seasons}
+          seasonNumbers={seasonNumbers}
+          currentEpisode={currentEpisode}
+          onPlayEpisode={playEpisode}
+          open={showEpisodesPanel}
+          onClose={() => setShowEpisodesPanel(false)}
+        />
+      )}
     </div>
   );
 };
