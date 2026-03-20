@@ -35,7 +35,7 @@ export const VodMovieList = () => {
       data = res.data as Movie[] | null;
       error = res.error;
     } else {
-      const res = await supabase.from("vod_movies").select("id, name, category, stream_url, cover_url, rating").order("created_at", { ascending: false }).limit(100);
+      const res = await supabase.from("vod_movies").select("id, name, category, stream_url, cover_url, backdrop_url, rating").order("created_at", { ascending: false }).limit(100);
       data = res.data;
       error = res.error;
     }
