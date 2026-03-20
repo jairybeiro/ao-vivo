@@ -14,6 +14,7 @@ interface Series {
   name: string;
   category: string;
   cover_url: string | null;
+  backdrop_url: string | null;
   plot: string | null;
   rating: number | null;
 }
