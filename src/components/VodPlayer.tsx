@@ -34,7 +34,7 @@ interface VodPlayerProps {
   centerLabel?: string;
 }
 
-const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded, extraControls }: VodPlayerProps) => {
+const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded, extraControls, centerLabel }: VodPlayerProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
