@@ -32,6 +32,8 @@ interface VodPlayerProps {
   extraControls?: React.ReactNode;
   /** Episode label shown center-bottom, e.g. "House of Cards E3  Capítulo 3" */
   centerLabel?: string;
+  /** Content rendered inside the fullscreen container (e.g. episode panels) */
+  overlayContent?: React.ReactNode;
 }
 
 const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded, extraControls, centerLabel }: VodPlayerProps) => {
