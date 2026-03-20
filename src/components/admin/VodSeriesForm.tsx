@@ -37,10 +37,10 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
   useEffect(() => {
     if (editingSeries) {
       setName(editingSeries.name); setCategory(editingSeries.category);
-      setCoverUrl(editingSeries.cover_url || ""); setPlot(editingSeries.plot || "");
-      setRating(editingSeries.rating?.toString() || ""); setTmdbId("");
+      setCoverUrl(editingSeries.cover_url || ""); setBackdropUrl(editingSeries.backdrop_url || "");
+      setPlot(editingSeries.plot || ""); setRating(editingSeries.rating?.toString() || ""); setTmdbId("");
     } else {
-      setName(""); setCategory("Séries"); setCoverUrl(""); setPlot(""); setRating(""); setTmdbId("");
+      setName(""); setCategory("Séries"); setCoverUrl(""); setBackdropUrl(""); setPlot(""); setRating(""); setTmdbId("");
     }
   }, [editingSeries]);
 
