@@ -627,6 +627,9 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
           </div>
         </div>
       </div>
+
+      {/* Overlay content rendered inside fullscreen container */}
+      {overlayContent}
     </div>
   );
 };
