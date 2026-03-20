@@ -47,7 +47,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
   const [lastWatched, setLastWatched] = useState<LastWatched | null>(null);
   const [tmdbBackdrop, setTmdbBackdrop] = useState<string | null>(null);
   const [tmdbPlot, setTmdbPlot] = useState<string | null>(null);
-  const [showBackdrop, setShowBackdrop] = useState(false);
+  
 
   // 1. Fetch last watched content
   useEffect(() => {
@@ -181,7 +181,6 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
 
     setIsPreviewing(true);
     setVideoReady(false);
-    setShowBackdrop(false);
 
     const onCanPlay = () => {
       if (!mountedRef.current) return;
@@ -196,10 +195,6 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
         video.removeEventListener("timeupdate", onTimeUpdate);
         setIsPreviewing(false);
         video.pause();
-        // Show TMDB backdrop after a short delay for smooth transition
-        setTimeout(() => {
-          if (mountedRef.current) setShowBackdrop(true);
-        }, 800);
       }
     };
 
@@ -253,7 +248,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
             src={tmdbBackdrop}
             alt={content.name}
             className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[2000ms] ease-out ${
-              showBackdrop ? "opacity-100" : "opacity-0"
+              videoReady && isPreviewing ? "opacity-0" : "opacity-100"
             }`}
           />
         )}
@@ -265,8 +260,8 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
             muted={muted}
             playsInline
             className={`w-full h-full object-cover transition-all duration-[2000ms] ease-out ${
-              !isPreviewing ? "scale-110" : "scale-100"
-            } ${showBackdrop ? "opacity-0" : "opacity-100"}`}
+              !isPreviewing ? "scale-110 opacity-0" : "scale-100 opacity-100"
+            }`}
             poster={content.cover_url || undefined}
           />
         ) : (
@@ -293,10 +288,6 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
               : "opacity-100 translate-y-0 scale-[1.05] md:scale-110"
           }`}
         >
-          {/* Category badge */}
-          <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary mb-2">
-            {content.category}
-          </span>
 
           {/* Title */}
           <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-2 md:mb-3 drop-shadow-lg">
@@ -314,9 +305,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
 
           {/* Plot */}
           {displayPlot && (
-            <p className={`text-sm md:text-base text-gray-200 mb-4 max-w-lg drop-shadow transition-all duration-[2000ms] ${
-              showBackdrop ? "line-clamp-5" : "line-clamp-3"
-            }`}>
+            <p className="text-sm md:text-base text-gray-200 mb-4 max-w-lg drop-shadow transition-all duration-[2000ms] line-clamp-5">
               {displayPlot}
             </p>
           )}
@@ -342,7 +331,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
       </div>
 
       {/* Mute toggle */}
-      {content.stream_url && videoReady && !showBackdrop && (
+      {content.stream_url && videoReady && isPreviewing && (
         <button
           onClick={() => setMuted(!muted)}
           className="absolute bottom-8 right-6 md:bottom-12 md:right-12 z-20 w-10 h-10 rounded-full border border-white/40 bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 transition-colors"
