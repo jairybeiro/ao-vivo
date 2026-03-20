@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useVodEpisodes } from "@/hooks/useVod";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Play, ChevronRight, ListVideo, SkipForward } from "lucide-react";
+import { ListVideo } from "lucide-react";
 import VodPlayer from "@/components/VodPlayer";
 import EpisodesSheet from "@/components/vod/EpisodesSheet";
+import DesktopEpisodesPanel from "@/components/vod/DesktopEpisodesPanel";
 import type { VodSeries, VodEpisode } from "@/hooks/useVod";
 
 const VodSeriesPlayer = () => {
