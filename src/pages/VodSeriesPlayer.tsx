@@ -36,6 +36,7 @@ const VodSeriesPlayer = () => {
           name: data.name,
           category: data.category,
           cover_url: data.cover_url,
+          backdrop_url: (data as any).backdrop_url || null,
           plot: data.plot,
           rating: data.rating,
         });
