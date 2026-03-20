@@ -79,6 +79,7 @@ serve(async (req) => {
     const result: any = {
       name: mediaType === "tv" ? data.name : data.title,
       cover_url: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : null,
+      backdrop_url: data.backdrop_path ? `https://image.tmdb.org/t/p/w1280${data.backdrop_path}` : null,
       rating: data.vote_average ? Math.round(data.vote_average * 10) / 10 : null,
       plot: data.overview || null,
       category: data.genres?.[0]?.name || (mediaType === "tv" ? "Séries" : "Filmes"),
