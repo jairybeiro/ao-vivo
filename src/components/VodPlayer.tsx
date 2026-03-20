@@ -538,13 +538,11 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-white/80 transition p-1.5">
                 <SkipForward className="w-5 h-5" />
               </button>
-              {/* Volume with vertical red slider */}
-              <div className="relative flex items-center group/vol">
+              {/* Volume with vertical red slider — click-toggled */}
               <div className="relative flex items-center" ref={volumePanelRef}>
                 <button onClick={(e) => { e.stopPropagation(); setVolumeOpen(v => !v); }} className="text-white hover:text-white/80 transition p-1.5">
                   {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                 </button>
-                {/* Vertical volume slider — click-toggled */}
                 <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-opacity duration-200 ${volumeOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
                   <div className="bg-black/90 rounded-md p-2 flex flex-col items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <input
@@ -564,7 +562,6 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               <span className="text-white/80 text-xs ml-1 tabular-nums hidden sm:block">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
-            </div>
 
             {/* Center label - Netflix style episode name */}
             {centerLabel && (
