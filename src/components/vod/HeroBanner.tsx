@@ -138,6 +138,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
             name: s?.name || episode.title,
             category: s?.category || "Séries",
             cover_url: s?.cover_url || episode.cover_url,
+            backdrop_url: s?.backdrop_url || null,
             stream_url: episode.stream_url,
             rating: s?.rating || null,
             plot: s?.plot || null,
