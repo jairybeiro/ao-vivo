@@ -181,7 +181,6 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
 
     setIsPreviewing(true);
     setVideoReady(false);
-    setShowBackdrop(false);
 
     const onCanPlay = () => {
       if (!mountedRef.current) return;
