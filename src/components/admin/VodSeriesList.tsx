@@ -8,6 +8,7 @@ import { Plus, Pencil, Trash2, Search, Clapperboard, Loader2, ChevronRight, Arro
 import { toast } from "sonner";
 import { VodSeriesForm } from "./VodSeriesForm";
 import { VodEpisodeForm } from "./VodEpisodeForm";
+import { BulkUpdateTmdbButton } from "./BulkUpdateTmdbButton";
 
 interface Series {
   id: string;
