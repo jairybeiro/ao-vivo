@@ -18,6 +18,7 @@ const VodSeriesPlayer = () => {
   const [loading, setLoading] = useState(true);
   const [currentEpisode, setCurrentEpisode] = useState<VodEpisode | null>(null);
   const [activeSeason, setActiveSeason] = useState("1");
+  const [showEpisodesPanel, setShowEpisodesPanel] = useState(false);
 
   const { episodes, seasons, loading: epsLoading } = useVodEpisodes(id);
 
