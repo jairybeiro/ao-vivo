@@ -25,6 +25,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Séries");
   const [coverUrl, setCoverUrl] = useState("");
+  const [backdropUrl, setBackdropUrl] = useState("");
   const [plot, setPlot] = useState("");
   const [rating, setRating] = useState("");
   const [tmdbId, setTmdbId] = useState("");
