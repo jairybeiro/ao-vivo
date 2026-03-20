@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Pencil, Trash2, Search, Film, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { VodMovieForm } from "./VodMovieForm";
+import { BulkUpdateTmdbButton } from "./BulkUpdateTmdbButton";
 
 interface Movie {
   id: string;
