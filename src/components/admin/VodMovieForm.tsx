@@ -13,6 +13,7 @@ interface VodMovieFormProps {
     category: string;
     stream_url: string;
     cover_url: string | null;
+    backdrop_url: string | null;
     rating: number | null;
   } | null;
   onSuccess: () => void;
@@ -24,6 +25,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
   const [category, setCategory] = useState("Filmes");
   const [streamUrl, setStreamUrl] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
+  const [backdropUrl, setBackdropUrl] = useState("");
   const [rating, setRating] = useState("");
   const [tmdbId, setTmdbId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,6 +39,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       setCategory(editingMovie.category);
       setStreamUrl(editingMovie.stream_url);
       setCoverUrl(editingMovie.cover_url || "");
+      setBackdropUrl(editingMovie.backdrop_url || "");
       setRating(editingMovie.rating?.toString() || "");
       setTmdbId("");
     } else {
@@ -45,7 +48,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
   }, [editingMovie]);
 
   const resetForm = () => {
-    setName(""); setCategory("Filmes"); setStreamUrl(""); setCoverUrl(""); setRating(""); setTmdbId("");
+    setName(""); setCategory("Filmes"); setStreamUrl(""); setCoverUrl(""); setBackdropUrl(""); setRating(""); setTmdbId("");
   };
 
   const fetchTmdb = async () => {
@@ -59,6 +62,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       if (data?.error) throw new Error(data.error);
       if (data.name) setName(data.name);
       if (data.cover_url) setCoverUrl(data.cover_url);
+      if (data.backdrop_url) setBackdropUrl(data.backdrop_url);
       if (data.rating) setRating(data.rating.toString());
       if (data.category) setCategory(data.category);
       toast.success("Dados do TMDB carregados!");
@@ -78,6 +82,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       category: category.trim() || "Filmes",
       stream_url: streamUrl.trim(),
       cover_url: coverUrl.trim() || null,
+      backdrop_url: backdropUrl.trim() || null,
       rating: rating ? parseFloat(rating) : null,
     };
 
@@ -143,6 +148,14 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
           <Label>Nota (opcional)</Label>
           <Input type="number" step="0.1" min="0" max="10" placeholder="7.5" value={rating} onChange={(e) => setRating(e.target.value)} />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>URL do Backdrop / Imagem de Fundo (opcional)</Label>
+        <Input placeholder="https://..." value={backdropUrl} onChange={(e) => setBackdropUrl(e.target.value)} />
+        {backdropUrl && (
+          <img src={backdropUrl} alt="Backdrop" className="w-full h-24 object-cover rounded border border-border" />
+        )}
       </div>
 
       <div className="flex gap-2">

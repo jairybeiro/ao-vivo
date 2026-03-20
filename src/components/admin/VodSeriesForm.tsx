@@ -13,6 +13,7 @@ interface VodSeriesFormProps {
     name: string;
     category: string;
     cover_url: string | null;
+    backdrop_url: string | null;
     plot: string | null;
     rating: number | null;
   } | null;
@@ -24,6 +25,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Séries");
   const [coverUrl, setCoverUrl] = useState("");
+  const [backdropUrl, setBackdropUrl] = useState("");
   const [plot, setPlot] = useState("");
   const [rating, setRating] = useState("");
   const [tmdbId, setTmdbId] = useState("");
@@ -35,10 +37,10 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
   useEffect(() => {
     if (editingSeries) {
       setName(editingSeries.name); setCategory(editingSeries.category);
-      setCoverUrl(editingSeries.cover_url || ""); setPlot(editingSeries.plot || "");
-      setRating(editingSeries.rating?.toString() || ""); setTmdbId("");
+      setCoverUrl(editingSeries.cover_url || ""); setBackdropUrl(editingSeries.backdrop_url || "");
+      setPlot(editingSeries.plot || ""); setRating(editingSeries.rating?.toString() || ""); setTmdbId("");
     } else {
-      setName(""); setCategory("Séries"); setCoverUrl(""); setPlot(""); setRating(""); setTmdbId("");
+      setName(""); setCategory("Séries"); setCoverUrl(""); setBackdropUrl(""); setPlot(""); setRating(""); setTmdbId("");
     }
   }, [editingSeries]);
 
@@ -53,6 +55,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
       if (data?.error) throw new Error(data.error);
       if (data.name) setName(data.name);
       if (data.cover_url) setCoverUrl(data.cover_url);
+      if (data.backdrop_url) setBackdropUrl(data.backdrop_url);
       if (data.rating) setRating(data.rating.toString());
       if (data.category) setCategory(data.category);
       if (data.plot) setPlot(data.plot);
@@ -72,6 +75,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
       name: name.trim(),
       category: category.trim() || "Séries",
       cover_url: coverUrl.trim() || null,
+      backdrop_url: backdropUrl.trim() || null,
       plot: plot.trim() || null,
       rating: rating ? parseFloat(rating) : null,
     };
@@ -132,6 +136,14 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
           <Label>Nota (opcional)</Label>
           <Input type="number" step="0.1" min="0" max="10" placeholder="8.5" value={rating} onChange={(e) => setRating(e.target.value)} />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label>URL do Backdrop / Imagem de Fundo (opcional)</Label>
+        <Input placeholder="https://..." value={backdropUrl} onChange={(e) => setBackdropUrl(e.target.value)} />
+        {backdropUrl && (
+          <img src={backdropUrl} alt="Backdrop" className="w-full h-24 object-cover rounded border border-border" />
+        )}
       </div>
       <div className="space-y-2">
         <Label>Sinopse (opcional)</Label>

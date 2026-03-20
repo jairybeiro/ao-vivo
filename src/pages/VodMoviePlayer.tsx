@@ -27,6 +27,7 @@ const VodMoviePlayer = () => {
           category: data.category,
           stream_url: data.stream_url,
           cover_url: data.cover_url,
+          backdrop_url: (data as any).backdrop_url || null,
           rating: data.rating,
         });
       } else {

@@ -27,6 +27,7 @@ interface ContentDetails {
   name: string;
   category: string;
   cover_url: string | null;
+  backdrop_url: string | null;
   stream_url: string;
   rating: number | null;
   plot: string | null;
@@ -87,6 +88,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
         name: pick.name,
         category: pick.category,
         cover_url: pick.cover_url,
+        backdrop_url: (pick as any).backdrop_url || null,
         stream_url: isMovie ? (pick as VodMovie).stream_url : "",
         rating: pick.rating,
         plot: "plot" in pick ? (pick as VodSeries).plot : null,
@@ -115,6 +117,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
             name: movie.name,
             category: movie.category,
             cover_url: movie.cover_url,
+            backdrop_url: (movie as any).backdrop_url || null,
             stream_url: movie.stream_url,
             rating: movie.rating,
             plot: null,
@@ -135,6 +138,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
             name: s?.name || episode.title,
             category: s?.category || "Séries",
             cover_url: s?.cover_url || episode.cover_url,
+            backdrop_url: s?.backdrop_url || null,
             stream_url: episode.stream_url,
             rating: s?.rating || null,
             plot: s?.plot || null,
@@ -147,9 +151,17 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
     resolve();
   }, [lastWatched?.content_id]);
 
-  // 3. Fetch TMDB backdrop
+  // 3. Fetch TMDB backdrop (only if no stored backdrop_url)
   useEffect(() => {
     if (!content) return;
+
+    // If content already has a stored backdrop, use it directly
+    if (content.backdrop_url) {
+      setTmdbBackdrop(content.backdrop_url);
+      setTmdbPlot(null);
+      return;
+    }
+
     setTmdbBackdrop(null);
     setTmdbPlot(null);
 

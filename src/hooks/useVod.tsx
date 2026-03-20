@@ -7,6 +7,7 @@ export interface VodMovie {
   category: string;
   stream_url: string;
   cover_url: string | null;
+  backdrop_url: string | null;
   rating: number | null;
 }
 
@@ -15,6 +16,7 @@ export interface VodSeries {
   name: string;
   category: string;
   cover_url: string | null;
+  backdrop_url: string | null;
   plot: string | null;
   rating: number | null;
 }
@@ -81,6 +83,7 @@ export const useVodMovies = (categoryFilter?: string, showAdult = false) => {
         category: m.category,
         stream_url: m.stream_url,
         cover_url: m.cover_url,
+        backdrop_url: m.backdrop_url || null,
         rating: m.rating,
       }));
       setMovies(
@@ -140,6 +143,7 @@ export const useVodSeries = (categoryFilter?: string, showAdult = false) => {
         name: s.name,
         category: s.category,
         cover_url: s.cover_url,
+        backdrop_url: s.backdrop_url || null,
         plot: s.plot,
         rating: s.rating,
       }));
