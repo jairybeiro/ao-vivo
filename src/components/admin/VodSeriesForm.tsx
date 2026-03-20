@@ -75,6 +75,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
       name: name.trim(),
       category: category.trim() || "Séries",
       cover_url: coverUrl.trim() || null,
+      backdrop_url: backdropUrl.trim() || null,
       plot: plot.trim() || null,
       rating: rating ? parseFloat(rating) : null,
     };
