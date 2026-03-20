@@ -45,6 +45,8 @@ serve(async (req) => {
         .trim();
     }
 
+    let updated = 0;
+
     for (const item of items) {
       try {
         const cleanedName = cleanName(item.name);
