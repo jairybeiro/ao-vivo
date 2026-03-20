@@ -101,6 +101,7 @@ const VodSeriesPlayer = () => {
               contentId={currentEpisode.id}
               contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
               contentCoverUrl={currentEpisode.cover_url || series.cover_url}
+              centerLabel={`${series.name}  E${currentEpisode.episode_num}  ${currentEpisode.title}`}
               onBack={() => navigate("/vod")}
               nextEpisode={
                 nextEp
