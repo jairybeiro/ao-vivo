@@ -153,6 +153,7 @@ const VodSeriesPlayer = () => {
             contentId={currentEpisode.id}
             contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
             contentCoverUrl={currentEpisode.cover_url || series.cover_url}
+            centerLabel={`${series.name}  E${currentEpisode.episode_num}  ${currentEpisode.title}`}
             onBack={() => navigate("/vod")}
             nextEpisode={
               nextEp
@@ -166,7 +167,7 @@ const VodSeriesPlayer = () => {
               !epsLoading && seasonNumbers.length > 0 ? (
                 <button
                   onClick={() => setShowEpisodesPanel(true)}
-                  className="text-white hover:text-primary transition p-1.5 flex items-center gap-1.5 text-sm"
+                  className="text-white hover:text-white/80 transition p-1.5 flex items-center gap-1.5 text-sm"
                 >
                   <ListVideo className="w-5 h-5" />
                   <span>Episódios</span>
