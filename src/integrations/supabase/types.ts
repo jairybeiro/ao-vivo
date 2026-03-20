@@ -417,6 +417,7 @@ export type Database = {
           name: string
           rating: number | null
           stream_url: string
+          trailer_url: string | null
           updated_at: string
           xtream_id: number
         }
@@ -430,6 +431,7 @@ export type Database = {
           name: string
           rating?: number | null
           stream_url: string
+          trailer_url?: string | null
           updated_at?: string
           xtream_id: number
         }
@@ -443,6 +445,7 @@ export type Database = {
           name?: string
           rating?: number | null
           stream_url?: string
+          trailer_url?: string | null
           updated_at?: string
           xtream_id?: number
         }
@@ -459,6 +462,7 @@ export type Database = {
           name: string
           plot: string | null
           rating: number | null
+          trailer_url: string | null
           updated_at: string
           xtream_id: number
         }
@@ -472,6 +476,7 @@ export type Database = {
           name: string
           plot?: string | null
           rating?: number | null
+          trailer_url?: string | null
           updated_at?: string
           xtream_id: number
         }
@@ -485,6 +490,7 @@ export type Database = {
           name?: string
           plot?: string | null
           rating?: number | null
+          trailer_url?: string | null
           updated_at?: string
           xtream_id?: number
         }
@@ -514,6 +520,7 @@ export type Database = {
           name: string
           rating: number | null
           stream_url: string
+          trailer_url: string | null
           updated_at: string
           xtream_id: number
         }[]
@@ -536,6 +543,7 @@ export type Database = {
           name: string
           rating: number | null
           stream_url: string
+          trailer_url: string | null
           updated_at: string
           xtream_id: number
         }[]
@@ -558,6 +566,7 @@ export type Database = {
           name: string
           plot: string | null
           rating: number | null
+          trailer_url: string | null
           updated_at: string
           xtream_id: number
         }[]
@@ -580,6 +589,7 @@ export type Database = {
           name: string
           plot: string | null
           rating: number | null
+          trailer_url: string | null
           updated_at: string
           xtream_id: number
         }[]

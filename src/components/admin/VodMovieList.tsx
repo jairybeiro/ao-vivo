@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Plus, Pencil, Trash2, Search, Film, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { VodMovieForm } from "./VodMovieForm";
+import { BulkUpdateTmdbButton } from "./BulkUpdateTmdbButton";
 
 interface Movie {
   id: string;
@@ -16,6 +17,7 @@ interface Movie {
   stream_url: string;
   cover_url: string | null;
   backdrop_url: string | null;
+  trailer_url: string | null;
   rating: number | null;
 }
 
@@ -35,7 +37,7 @@ export const VodMovieList = () => {
       data = res.data as Movie[] | null;
       error = res.error;
     } else {
-      const res = await supabase.from("vod_movies").select("id, name, category, stream_url, cover_url, backdrop_url, rating").order("created_at", { ascending: false }).limit(100);
+      const res = await supabase.from("vod_movies").select("id, name, category, stream_url, cover_url, backdrop_url, trailer_url, rating").order("created_at", { ascending: false }).limit(100);
       data = res.data;
       error = res.error;
     }
@@ -80,11 +82,12 @@ export const VodMovieList = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar filme..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <BulkUpdateTmdbButton type="movies" onComplete={fetchMovies} />
         <Button onClick={() => { setEditingMovie(null); setIsModalOpen(true); }}>
           <Plus className="w-4 h-4 mr-2" /> Adicionar Filme
         </Button>

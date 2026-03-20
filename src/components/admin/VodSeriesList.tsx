@@ -8,6 +8,7 @@ import { Plus, Pencil, Trash2, Search, Clapperboard, Loader2, ChevronRight, Arro
 import { toast } from "sonner";
 import { VodSeriesForm } from "./VodSeriesForm";
 import { VodEpisodeForm } from "./VodEpisodeForm";
+import { BulkUpdateTmdbButton } from "./BulkUpdateTmdbButton";
 
 interface Series {
   id: string;
@@ -15,6 +16,7 @@ interface Series {
   category: string;
   cover_url: string | null;
   backdrop_url: string | null;
+  trailer_url: string | null;
   plot: string | null;
   rating: number | null;
 }
@@ -52,7 +54,7 @@ export const VodSeriesList = () => {
       data = res.data as Series[] | null;
       error = res.error;
     } else {
-      const res = await supabase.from("vod_series").select("id, name, category, cover_url, backdrop_url, plot, rating").order("created_at", { ascending: false }).limit(100);
+      const res = await supabase.from("vod_series").select("id, name, category, cover_url, backdrop_url, trailer_url, plot, rating").order("created_at", { ascending: false }).limit(100);
       data = res.data;
       error = res.error;
     }
@@ -193,11 +195,12 @@ export const VodSeriesList = () => {
   // Series list view
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar série..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <BulkUpdateTmdbButton type="series" onComplete={fetchSeries} />
         <Button onClick={() => { setEditingSeries(null); setIsSeriesModalOpen(true); }}>
           <Plus className="w-4 h-4 mr-2" /> Adicionar Série
         </Button>
