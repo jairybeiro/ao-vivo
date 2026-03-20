@@ -408,6 +408,7 @@ export type Database = {
       }
       vod_movies: {
         Row: {
+          backdrop_url: string | null
           category: string
           cover_url: string | null
           created_at: string
@@ -420,6 +421,7 @@ export type Database = {
           xtream_id: number
         }
         Insert: {
+          backdrop_url?: string | null
           category?: string
           cover_url?: string | null
           created_at?: string
@@ -432,6 +434,7 @@ export type Database = {
           xtream_id: number
         }
         Update: {
+          backdrop_url?: string | null
           category?: string
           cover_url?: string | null
           created_at?: string
@@ -447,6 +450,7 @@ export type Database = {
       }
       vod_series: {
         Row: {
+          backdrop_url: string | null
           category: string
           cover_url: string | null
           created_at: string
@@ -459,6 +463,7 @@ export type Database = {
           xtream_id: number
         }
         Insert: {
+          backdrop_url?: string | null
           category?: string
           cover_url?: string | null
           created_at?: string
@@ -471,6 +476,7 @@ export type Database = {
           xtream_id: number
         }
         Update: {
+          backdrop_url?: string | null
           category?: string
           cover_url?: string | null
           created_at?: string
@@ -499,6 +505,7 @@ export type Database = {
       search_vod_movies: {
         Args: { search_term: string }
         Returns: {
+          backdrop_url: string | null
           category: string
           cover_url: string | null
           created_at: string
@@ -520,6 +527,7 @@ export type Database = {
       search_vod_movies_public: {
         Args: { cat?: string; search_term: string }
         Returns: {
+          backdrop_url: string | null
           category: string
           cover_url: string | null
           created_at: string
@@ -541,6 +549,7 @@ export type Database = {
       search_vod_series: {
         Args: { search_term: string }
         Returns: {
+          backdrop_url: string | null
           category: string
           cover_url: string | null
           created_at: string
@@ -562,6 +571,7 @@ export type Database = {
       search_vod_series_public: {
         Args: { cat?: string; search_term: string }
         Returns: {
+          backdrop_url: string | null
           category: string
           cover_url: string | null
           created_at: string
