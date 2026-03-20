@@ -305,9 +305,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
 
           {/* Plot */}
           {displayPlot && (
-            <p className={`text-sm md:text-base text-gray-200 mb-4 max-w-lg drop-shadow transition-all duration-[2000ms] ${
-              showBackdrop ? "line-clamp-5" : "line-clamp-3"
-            }`}>
+            <p className="text-sm md:text-base text-gray-200 mb-4 max-w-lg drop-shadow transition-all duration-[2000ms] line-clamp-5">
               {displayPlot}
             </p>
           )}
