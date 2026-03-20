@@ -82,6 +82,7 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       category: category.trim() || "Filmes",
       stream_url: streamUrl.trim(),
       cover_url: coverUrl.trim() || null,
+      backdrop_url: backdropUrl.trim() || null,
       rating: rating ? parseFloat(rating) : null,
     };
 
