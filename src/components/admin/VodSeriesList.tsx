@@ -53,7 +53,7 @@ export const VodSeriesList = () => {
       data = res.data as Series[] | null;
       error = res.error;
     } else {
-      const res = await supabase.from("vod_series").select("id, name, category, cover_url, backdrop_url, plot, rating").order("created_at", { ascending: false }).limit(100);
+      const res = await supabase.from("vod_series").select("id, name, category, cover_url, backdrop_url, trailer_url, plot, rating").order("created_at", { ascending: false }).limit(100);
       data = res.data;
       error = res.error;
     }
