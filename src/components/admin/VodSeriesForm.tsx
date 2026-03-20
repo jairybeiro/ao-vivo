@@ -55,6 +55,7 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
       if (data?.error) throw new Error(data.error);
       if (data.name) setName(data.name);
       if (data.cover_url) setCoverUrl(data.cover_url);
+      if (data.backdrop_url) setBackdropUrl(data.backdrop_url);
       if (data.rating) setRating(data.rating.toString());
       if (data.category) setCategory(data.category);
       if (data.plot) setPlot(data.plot);
