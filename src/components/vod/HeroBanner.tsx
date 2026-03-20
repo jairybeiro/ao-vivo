@@ -288,10 +288,6 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
               : "opacity-100 translate-y-0 scale-[1.05] md:scale-110"
           }`}
         >
-          {/* Category badge */}
-          <span className="inline-block text-xs font-semibold uppercase tracking-wider text-primary mb-2">
-            {content.category}
-          </span>
 
           {/* Title */}
           <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight mb-2 md:mb-3 drop-shadow-lg">
