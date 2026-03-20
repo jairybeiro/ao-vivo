@@ -517,6 +517,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
             </div>
 
             <div className="flex items-center gap-1 md:gap-2">
+              {extraControls}
               {nextEpisode && (
                 <button
                   onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }}
