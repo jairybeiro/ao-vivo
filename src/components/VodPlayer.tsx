@@ -562,6 +562,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               <span className="text-white/80 text-xs ml-1 tabular-nums hidden sm:block">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
+            </div>
 
             {/* Center label - Netflix style episode name */}
             {centerLabel && (
