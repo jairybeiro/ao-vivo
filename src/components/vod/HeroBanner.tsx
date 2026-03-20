@@ -331,7 +331,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
       </div>
 
       {/* Mute toggle */}
-      {content.stream_url && videoReady && !showBackdrop && (
+      {content.stream_url && videoReady && isPreviewing && (
         <button
           onClick={() => setMuted(!muted)}
           className="absolute bottom-8 right-6 md:bottom-12 md:right-12 z-20 w-10 h-10 rounded-full border border-white/40 bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 transition-colors"
