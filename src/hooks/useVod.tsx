@@ -143,6 +143,7 @@ export const useVodSeries = (categoryFilter?: string, showAdult = false) => {
         name: s.name,
         category: s.category,
         cover_url: s.cover_url,
+        backdrop_url: s.backdrop_url || null,
         plot: s.plot,
         rating: s.rating,
       }));
