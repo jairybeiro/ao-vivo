@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Film, Clapperboard, Search, Star, PlayCircle } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
+import HeroBanner from "@/components/vod/HeroBanner";
 
 const formatTime = (s: number) => {
   if (!isFinite(s) || s < 0) return "0:00";
