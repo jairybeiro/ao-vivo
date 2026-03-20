@@ -151,9 +151,17 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
     resolve();
   }, [lastWatched?.content_id]);
 
-  // 3. Fetch TMDB backdrop
+  // 3. Fetch TMDB backdrop (only if no stored backdrop_url)
   useEffect(() => {
     if (!content) return;
+
+    // If content already has a stored backdrop, use it directly
+    if (content.backdrop_url) {
+      setTmdbBackdrop(content.backdrop_url);
+      setTmdbPlot(null);
+      return;
+    }
+
     setTmdbBackdrop(null);
     setTmdbPlot(null);
 
