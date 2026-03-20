@@ -36,17 +36,30 @@ serve(async (req) => {
       });
     }
 
-    let updated = 0;
+    // Clean name for better TMDB matching: remove year patterns like "2019 (2019)" or "(2019)"
+    function cleanName(name: string): string {
+      return name
+        .replace(/\s*\d{4}\s*\(\d{4}\)\s*$/, '')  // "Name 2019 (2019)" → "Name"
+        .replace(/\s*\(\d{4}\)\s*$/, '')            // "Name (2019)" → "Name"
+        .replace(/\s*\d{4}\s*$/, '')                // "Name 2019" → "Name"
+        .trim();
+    }
 
     for (const item of items) {
       try {
-        // Search TMDB by name
-        const searchUrl = `https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(item.name)}`;
+        const cleanedName = cleanName(item.name);
+        console.log(`[TMDB] Searching: "${cleanedName}" (original: "${item.name}")`);
+        
+        // Search TMDB by cleaned name
+        const searchUrl = `https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(cleanedName)}`;
         const searchResp = await fetch(searchUrl);
         if (!searchResp.ok) continue;
         const searchData = await searchResp.json();
         const first = searchData.results?.[0];
-        if (!first) continue;
+        if (!first) {
+          console.log(`[TMDB] No results for: "${cleanedName}"`);
+          continue;
+        }
 
         const updatePayload: Record<string, string | null> = {};
 
