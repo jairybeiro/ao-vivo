@@ -83,6 +83,7 @@ export const useVodMovies = (categoryFilter?: string, showAdult = false) => {
         category: m.category,
         stream_url: m.stream_url,
         cover_url: m.cover_url,
+        backdrop_url: m.backdrop_url || null,
         rating: m.rating,
       }));
       setMovies(
