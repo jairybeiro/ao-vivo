@@ -21,9 +21,9 @@ interface CheckResult {
 }
 
 const VodImport = () => {
-  const [dns, setDns] = useState("http://ipsmart.icu");
-  const [username, setUsername] = useState("5541996151706");
-  const [password, setPassword] = useState("5541996151706");
+  const [dns, setDns] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
   const [importType, setImportType] = useState<"movies" | "series" | "both">("both");
