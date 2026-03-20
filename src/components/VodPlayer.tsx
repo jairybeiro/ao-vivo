@@ -29,9 +29,10 @@ interface VodPlayerProps {
   nextEpisode?: { title: string; onPlay: () => void } | null;
   onBack?: () => void;
   onEnded?: () => void;
+  extraControls?: React.ReactNode;
 }
 
-const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded }: VodPlayerProps) => {
+const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded, extraControls }: VodPlayerProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -516,6 +517,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
             </div>
 
             <div className="flex items-center gap-1 md:gap-2">
+              {extraControls}
               {nextEpisode && (
                 <button
                   onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }}

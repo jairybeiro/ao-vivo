@@ -2,15 +2,18 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useVodEpisodes } from "@/hooks/useVod";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Play, ChevronRight } from "lucide-react";
+import { Play, ChevronRight, ListVideo, SkipForward } from "lucide-react";
 import VodPlayer from "@/components/VodPlayer";
+import EpisodesSheet from "@/components/vod/EpisodesSheet";
 import type { VodSeries, VodEpisode } from "@/hooks/useVod";
 
 const VodSeriesPlayer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [series, setSeries] = useState<VodSeries | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentEpisode, setCurrentEpisode] = useState<VodEpisode | null>(null);
@@ -63,6 +66,7 @@ const VodSeriesPlayer = () => {
   }, []);
 
   const nextEp = getNextEpisode();
+  const seasonNumbers = [...seasons.keys()].sort((a, b) => a - b);
 
   if (loading) {
     return (
@@ -80,11 +84,62 @@ const VodSeriesPlayer = () => {
     );
   }
 
-  const seasonNumbers = [...seasons.keys()].sort((a, b) => a - b);
+  // ─── MOBILE: fullscreen player + episodes in sheet ───
+  if (isMobile) {
+    return (
+      <div className="h-screen bg-black flex flex-col">
+        <div className="flex-1 min-h-0 relative">
+          {currentEpisode ? (
+            <VodPlayer
+              key={currentEpisode.id}
+              src={currentEpisode.stream_url}
+              title={series.name}
+              subtitle={`T${currentEpisode.season}:E${currentEpisode.episode_num} "${currentEpisode.title}"`}
+              poster={currentEpisode.cover_url || series.cover_url || undefined}
+              contentType="episode"
+              contentId={currentEpisode.id}
+              contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
+              contentCoverUrl={currentEpisode.cover_url || series.cover_url}
+              onBack={() => navigate("/vod")}
+              nextEpisode={
+                nextEp
+                  ? {
+                      title: `T${nextEp.season}:E${nextEp.episode_num} "${nextEp.title}"`,
+                      onPlay: () => playEpisode(nextEp),
+                    }
+                  : null
+              }
+              extraControls={
+                !epsLoading && seasonNumbers.length > 0 ? (
+                  <EpisodesSheet
+                    series={series}
+                    seasons={seasons}
+                    seasonNumbers={seasonNumbers}
+                    currentEpisode={currentEpisode}
+                    onPlayEpisode={playEpisode}
+                    trigger={
+                      <button className="text-white hover:text-primary transition p-1.5 flex items-center gap-1 text-xs">
+                        <ListVideo className="w-4 h-4" />
+                        <span>Episódios</span>
+                      </button>
+                    }
+                  />
+                ) : undefined
+              }
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <p className="text-muted-foreground text-sm">Selecione um episódio</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
+  // ─── DESKTOP: player + sidebar ───
   return (
     <div className="h-screen bg-black flex flex-col lg:flex-row">
-      {/* Player area */}
       <div className="flex-1 min-h-0 overflow-hidden">
         {currentEpisode ? (
           <VodPlayer
@@ -114,7 +169,7 @@ const VodSeriesPlayer = () => {
         )}
       </div>
 
-      {/* Episode sidebar */}
+      {/* Episode sidebar - desktop only */}
       <div className="w-full lg:w-80 xl:w-96 border-t lg:border-t-0 lg:border-l border-white/10 bg-black/95 flex flex-col max-h-[35vh] lg:max-h-none overflow-hidden">
         <div className="p-3 border-b border-white/10 shrink-0">
           <h2 className="text-white font-semibold text-sm truncate">{series.name}</h2>
@@ -144,38 +199,38 @@ const VodSeriesPlayer = () => {
             </div>
             {seasonNumbers.map(s => (
               <TabsContent key={s} value={String(s)} className="m-0 flex-1 min-h-0 overflow-y-auto">
-                  <div className="space-y-0.5 p-2">
-                    {(seasons.get(s) || []).map(ep => {
-                      const isCurrent = currentEpisode?.id === ep.id;
-                      return (
-                        <button
-                          key={ep.id}
-                          onClick={() => playEpisode(ep)}
-                          className={`w-full text-left p-2.5 rounded-md text-sm flex items-center gap-2 transition-all ${
-                            isCurrent
-                              ? "bg-primary/20 text-primary ring-1 ring-primary/30"
-                              : "hover:bg-white/5 text-white/80 hover:text-white"
-                          }`}
-                        >
-                          {isCurrent ? (
-                            <ChevronRight className="w-4 h-4 shrink-0 text-primary" />
-                          ) : (
-                            <Play className="w-3 h-3 shrink-0 text-white/40" />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <span className="truncate block text-xs font-medium">
-                              E{ep.episode_num} - {ep.title}
+                <div className="space-y-0.5 p-2">
+                  {(seasons.get(s) || []).map(ep => {
+                    const isCurrent = currentEpisode?.id === ep.id;
+                    return (
+                      <button
+                        key={ep.id}
+                        onClick={() => playEpisode(ep)}
+                        className={`w-full text-left p-2.5 rounded-md text-sm flex items-center gap-2 transition-all ${
+                          isCurrent
+                            ? "bg-primary/20 text-primary ring-1 ring-primary/30"
+                            : "hover:bg-white/5 text-white/80 hover:text-white"
+                        }`}
+                      >
+                        {isCurrent ? (
+                          <ChevronRight className="w-4 h-4 shrink-0 text-primary" />
+                        ) : (
+                          <Play className="w-3 h-3 shrink-0 text-white/40" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <span className="truncate block text-xs font-medium">
+                            E{ep.episode_num} - {ep.title}
+                          </span>
+                          {ep.duration_secs && (
+                            <span className="text-[10px] text-white/40">
+                              {Math.round(ep.duration_secs / 60)} min
                             </span>
-                            {ep.duration_secs && (
-                              <span className="text-[10px] text-white/40">
-                                {Math.round(ep.duration_secs / 60)} min
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </TabsContent>
             ))}
           </Tabs>
