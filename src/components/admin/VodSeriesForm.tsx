@@ -137,6 +137,14 @@ export const VodSeriesForm = ({ editingSeries, onSuccess, onCancel }: VodSeriesF
           <Input type="number" step="0.1" min="0" max="10" placeholder="8.5" value={rating} onChange={(e) => setRating(e.target.value)} />
         </div>
       </div>
+
+      <div className="space-y-2">
+        <Label>URL do Backdrop / Imagem de Fundo (opcional)</Label>
+        <Input placeholder="https://..." value={backdropUrl} onChange={(e) => setBackdropUrl(e.target.value)} />
+        {backdropUrl && (
+          <img src={backdropUrl} alt="Backdrop" className="w-full h-24 object-cover rounded border border-border" />
+        )}
+      </div>
       <div className="space-y-2">
         <Label>Sinopse (opcional)</Label>
         <Textarea placeholder="Descrição da série..." value={plot} onChange={(e) => setPlot(e.target.value)} rows={3} />

@@ -150,6 +150,14 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label>URL do Backdrop / Imagem de Fundo (opcional)</Label>
+        <Input placeholder="https://..." value={backdropUrl} onChange={(e) => setBackdropUrl(e.target.value)} />
+        {backdropUrl && (
+          <img src={backdropUrl} alt="Backdrop" className="w-full h-24 object-cover rounded border border-border" />
+        )}
+      </div>
+
       <div className="flex gap-2">
         <Button type="submit" className="flex-1" disabled={isSubmitting}>
           {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
