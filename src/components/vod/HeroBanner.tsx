@@ -88,6 +88,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
         name: pick.name,
         category: pick.category,
         cover_url: pick.cover_url,
+        backdrop_url: (pick as any).backdrop_url || null,
         stream_url: isMovie ? (pick as VodMovie).stream_url : "",
         rating: pick.rating,
         plot: "plot" in pick ? (pick as VodSeries).plot : null,
