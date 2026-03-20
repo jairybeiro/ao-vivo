@@ -4,10 +4,23 @@ import { DEFAULT_HLS_CONFIG } from "./types";
 import { log, warn, error as logError } from "./utils";
 
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const PROXY_STREAM_PATH = "/functions/v1/proxy-stream";
+
+const KEEP_ALIVE_INTERVAL_MS = 25_000; // 25 seconds
 
 const isProxyStreamRequest = (url: string): boolean => {
   return url.includes(PROXY_STREAM_PATH);
+};
+
+/** Extract the original upstream URL from a proxied URL */
+const extractUpstreamUrl = (proxyUrl: string): string | null => {
+  try {
+    const parsed = new URL(proxyUrl);
+    return parsed.searchParams.get("url");
+  } catch {
+    return null;
+  }
 };
 
 export class HlsEngine {
@@ -21,6 +34,8 @@ export class HlsEngine {
   private networkRetryCount = 0;
   private mediaRetryCount = 0;
   private maxRetries = 2;
+  private keepAliveTimer: ReturnType<typeof setInterval> | null = null;
+  private sessionId: string | null = null;
 
   constructor(config?: Partial<HlsEngineConfig>) {
     this.config = { ...DEFAULT_HLS_CONFIG, ...config };
@@ -89,6 +104,10 @@ export class HlsEngine {
         if (SUPABASE_KEY && isProxyStreamRequest(requestUrl)) {
           xhr.setRequestHeader("apikey", SUPABASE_KEY);
           xhr.setRequestHeader("Authorization", `Bearer ${SUPABASE_KEY}`);
+          // Send session ID so proxy can reuse cookies
+          if (this.sessionId) {
+            xhr.setRequestHeader("X-Session-Id", this.sessionId);
+          }
         }
       },
     });
@@ -102,29 +121,53 @@ export class HlsEngine {
       this.mediaRetryCount = 0;
       video.play().catch(() => {});
       this.onPlayCallback?.();
+      // Start keep-alive after successful manifest load
+      this.startKeepAlive();
     });
 
     hls.on(Hls.Events.FRAG_BUFFERED, () => {
       this.onBufferCallback?.();
     });
 
+    // Capture session ID from proxy responses
+    hls.on(Hls.Events.FRAG_LOADED, (_event, data) => {
+      this.captureSessionFromResponse(data);
+    });
+
+    hls.on(Hls.Events.LEVEL_LOADED, (_event, data) => {
+      this.captureSessionFromResponse(data);
+    });
+
     hls.on(Hls.Events.ERROR, (_, data) => {
       log("HLS error:", data.type, data.details);
       if (data.fatal) {
+        const isAuthError = data.response?.code === 403 || data.response?.code === 401;
         const err: StreamPlayerError = {
-          type: data.type === "networkError" ? "network" : data.response?.code === 403 ? "auth" : "media",
+          type: data.type === "networkError" ? "network" : isAuthError ? "auth" : "media",
           fatal: true,
           details: `${data.type} - ${data.details}`,
           originalError: data,
         };
 
-        if (data.type === "networkError") {
+        if (isAuthError) {
+          // Session expired – clear and try fresh reload
+          warn("[SESSION] Auth error detected, clearing session and reloading...");
+          this.sessionId = null;
+          this.stopKeepAlive();
+          this.networkRetryCount++;
+          if (this.networkRetryCount <= this.maxRetries) {
+            hls.startLoad();
+          } else {
+            this.onErrorCallback?.(err);
+          }
+        } else if (data.type === "networkError") {
           this.networkRetryCount++;
           if (this.networkRetryCount <= this.maxRetries) {
             warn(`Fatal network error, retry ${this.networkRetryCount}/${this.maxRetries}...`);
             hls.startLoad();
           } else {
             warn("Network retries exhausted, escalating to failover");
+            this.stopKeepAlive();
             this.onErrorCallback?.(err);
           }
         } else if (data.type === "mediaError") {
@@ -134,9 +177,11 @@ export class HlsEngine {
             hls.recoverMediaError();
           } else {
             warn("Media retries exhausted, escalating to failover");
+            this.stopKeepAlive();
             this.onErrorCallback?.(err);
           }
         } else {
+          this.stopKeepAlive();
           this.onErrorCallback?.(err);
         }
       }
@@ -144,6 +189,79 @@ export class HlsEngine {
 
     this.hls = hls;
     return true;
+  }
+
+  /** Try to capture session ID from HLS.js response data */
+  private captureSessionFromResponse(data: any): void {
+    try {
+      // HLS.js stores response headers in networkDetails (XMLHttpRequest)
+      const xhr = data?.networkDetails;
+      if (xhr && typeof xhr.getResponseHeader === "function") {
+        const sid = xhr.getResponseHeader("X-Session-Id");
+        if (sid && sid !== this.sessionId) {
+          this.sessionId = sid;
+          log("[SESSION] captured session:", sid);
+        }
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  /** Start keep-alive pings to prevent session expiration */
+  private startKeepAlive(): void {
+    this.stopKeepAlive();
+
+    if (!this.currentUrl || !isProxyStreamRequest(this.currentUrl)) return;
+
+    log("[SESSION] Starting keep-alive engine");
+
+    this.keepAliveTimer = setInterval(async () => {
+      if (!this.currentUrl) {
+        this.stopKeepAlive();
+        return;
+      }
+
+      try {
+        const headers: Record<string, string> = {};
+        if (SUPABASE_KEY) {
+          headers["apikey"] = SUPABASE_KEY;
+          headers["Authorization"] = `Bearer ${SUPABASE_KEY}`;
+        }
+        if (this.sessionId) {
+          headers["X-Session-Id"] = this.sessionId;
+        }
+
+        const resp = await fetch(this.currentUrl, {
+          method: "HEAD",
+          headers,
+        });
+
+        // Capture updated session ID
+        const newSid = resp.headers.get("X-Session-Id");
+        if (newSid) this.sessionId = newSid;
+
+        if (resp.ok) {
+          log("[SESSION] refreshed ✓");
+        } else if (resp.status === 403 || resp.status === 401) {
+          warn("[SESSION] expired → reloading stream");
+          this.sessionId = null;
+          this.stopKeepAlive();
+          this.reload();
+        }
+      } catch (err) {
+        warn("[SESSION] keep-alive ping failed:", err);
+      }
+    }, KEEP_ALIVE_INTERVAL_MS);
+  }
+
+  /** Stop keep-alive timer */
+  private stopKeepAlive(): void {
+    if (this.keepAliveTimer) {
+      clearInterval(this.keepAliveTimer);
+      this.keepAliveTimer = null;
+      log("[SESSION] Keep-alive stopped");
+    }
   }
 
   private attachNative(video: HTMLVideoElement, url: string): boolean {
@@ -175,6 +293,7 @@ export class HlsEngine {
   }
 
   destroy() {
+    this.stopKeepAlive();
     if (this.hls) {
       log("HLS Engine: destroying instance");
       this.hls.destroy();
@@ -186,6 +305,7 @@ export class HlsEngine {
     }
     this.video = null;
     this.currentUrl = "";
+    this.sessionId = null;
   }
 
   getCurrentUrl(): string {
