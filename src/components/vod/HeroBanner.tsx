@@ -47,7 +47,7 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
   const [lastWatched, setLastWatched] = useState<LastWatched | null>(null);
   const [tmdbBackdrop, setTmdbBackdrop] = useState<string | null>(null);
   const [tmdbPlot, setTmdbPlot] = useState<string | null>(null);
-  const [showBackdrop, setShowBackdrop] = useState(false);
+  
 
   // 1. Fetch last watched content
   useEffect(() => {
