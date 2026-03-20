@@ -29,6 +29,7 @@ interface VodPlayerProps {
   nextEpisode?: { title: string; onPlay: () => void } | null;
   onBack?: () => void;
   onEnded?: () => void;
+  extraControls?: React.ReactNode;
 }
 
 const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded }: VodPlayerProps) => {
