@@ -320,12 +320,38 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   };
 
   const toggleFullscreen = async () => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
-    } else {
-      await el.requestFullscreen();
+    const container = containerRef.current;
+    const video = videoRef.current;
+    if (!container && !video) return;
+
+    try {
+      const isCurrentlyFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+
+      if (isCurrentlyFs) {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        }
+      } else {
+        // Try container first, then video (iOS Safari native)
+        const el = container || video;
+        if (el?.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if ((el as any)?.webkitRequestFullscreen) {
+          await (el as any).webkitRequestFullscreen();
+        } else if ((video as any)?.webkitEnterFullscreen) {
+          await (video as any).webkitEnterFullscreen();
+        }
+        // Try landscape lock
+        try {
+          await (screen.orientation as any).lock?.("landscape");
+        } catch {
+          // Not supported on iOS
+        }
+      }
+    } catch (err) {
+      console.log("Fullscreen error:", err);
     }
   };
 
