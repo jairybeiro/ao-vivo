@@ -195,11 +195,12 @@ export const VodSeriesList = () => {
   // Series list view
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input placeholder="Buscar série..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <BulkUpdateTmdbButton type="series" onComplete={fetchSeries} />
         <Button onClick={() => { setEditingSeries(null); setIsSeriesModalOpen(true); }}>
           <Plus className="w-4 h-4 mr-2" /> Adicionar Série
         </Button>
