@@ -260,8 +260,8 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
             muted={muted}
             playsInline
             className={`w-full h-full object-cover transition-all duration-[2000ms] ease-out ${
-              !isPreviewing ? "scale-110" : "scale-100"
-            } ${showBackdrop ? "opacity-0" : "opacity-100"}`}
+              !isPreviewing ? "scale-110 opacity-0" : "scale-100 opacity-100"
+            }`}
             poster={content.cover_url || undefined}
           />
         ) : (
