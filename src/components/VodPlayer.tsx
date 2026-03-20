@@ -540,12 +540,13 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               </button>
               {/* Volume with vertical red slider */}
               <div className="relative flex items-center group/vol">
-                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:text-white/80 transition p-1.5">
+              <div className="relative flex items-center" ref={volumePanelRef}>
+                <button onClick={(e) => { e.stopPropagation(); setVolumeOpen(v => !v); }} className="text-white hover:text-white/80 transition p-1.5">
                   {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                 </button>
-                {/* Vertical volume slider (Netflix-style) */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover/vol:opacity-100 pointer-events-none group-hover/vol:pointer-events-auto transition-opacity duration-200">
-                  <div className="bg-black/90 rounded-md p-2 flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+                {/* Vertical volume slider — click-toggled */}
+                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-opacity duration-200 ${volumeOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
+                  <div className="bg-black/90 rounded-md p-2 flex flex-col items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="range"
                       min="0" max="1" step="0.05"
@@ -554,6 +555,9 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                       onClick={(e) => e.stopPropagation()}
                       className="h-20 w-1 cursor-pointer appearance-none bg-white/30 rounded-full [writing-mode:vertical-lr] [direction:rtl] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:border-0"
                     />
+                    <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white/70 hover:text-white transition">
+                      {muted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    </button>
                   </div>
                 </div>
               </div>
