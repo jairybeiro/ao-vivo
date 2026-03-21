@@ -8,11 +8,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Star, Film, X, LogOut } from "lucide-react";
+import { Tv, Lock, Search, Film, X, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-const BASE_CATEGORIES = ["Todos", "Favoritos"];
-const MOBILE_CATEGORIES = ["Todos"];
 const LAST_CHANNEL_KEY = "streamplayer_last_channel";
 
 const Index = () => {
@@ -29,17 +27,9 @@ const Index = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
 
-  const { channels, categories: dbCategories, loading } = useChannels(selectedCategory);
+  const { channels, loading } = useChannels();
   const { toggleFavorite, isFavorite } = useFavorites();
   const { signOut, user } = useAuth();
-
-  const CATEGORIES = useMemo(() => {
-    return [...BASE_CATEGORIES, ...dbCategories];
-  }, [dbCategories]);
-
-  const MOBILE_CATS = useMemo(() => {
-    return [...MOBILE_CATEGORIES, ...dbCategories];
-  }, [dbCategories]);
 
   // Mobile: track if user picked a category to show list
   const [mobileShowList, setMobileShowList] = useState(false);
@@ -64,25 +54,12 @@ const Index = () => {
 
   const filteredChannels = useMemo(() => {
     let result = channels;
-    if (selectedCategory === "Favoritos") {
-      result = result.filter((ch) => isFavorite(ch.id));
-    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter((ch) => ch.name.toLowerCase().includes(q));
     }
     return result;
   }, [channels, selectedCategory, searchQuery, isFavorite]);
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setMenuOpen(false);
-  };
-
-  const handleMobileCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    setMobileShowList(true);
-  };
 
   const handleSelectChannel = useCallback((channel: DBChannel) => {
     setSelectedChannel(channel);
@@ -95,7 +72,7 @@ const Index = () => {
     <div className="flex-1 flex items-center justify-center text-muted-foreground">
       <div className="text-center py-12">
         <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p>{selectedCategory === "Favoritos" ? "Nenhum canal favorito ainda" : "Nenhum canal encontrado"}</p>
+        <p>Nenhum canal encontrado</p>
       </div>
     </div>
   );
@@ -196,31 +173,15 @@ const Index = () => {
                   />
                 </div>
               </div>
-              {/* Category chips */}
-              <div className="flex-shrink-0 flex flex-wrap gap-1.5">
-                {MOBILE_CATS.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => handleMobileCategoryChange(cat)}
-                    className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                      selectedCategory === cat && mobileShowList
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    }`}
-                  >
-                    {cat === "Favoritos" && "⭐ "}{cat}
-                  </button>
-                ))}
-              </div>
               {/* Channel list - only when category selected */}
-              {mobileShowList && (
+              {(mobileShowList || searchQuery.trim().length > 0 || filteredChannels.length > 0) && (
                 <div className="flex-1 min-h-0 flex flex-col gap-1">
                   <div className="flex items-center justify-between px-1">
                     <p className="text-xs text-muted-foreground">
-                      {selectedCategory} • {filteredChannels.length} canais
+                      {filteredChannels.length} canais
                     </p>
                     <button
-                      onClick={() => { setMobileShowList(false); setSelectedCategory("Todos"); setSearchQuery(""); }}
+                      onClick={() => { setMobileShowList(false); setSearchQuery(""); }}
                       className="p-1 rounded-full hover:bg-muted"
                     >
                       <X className="w-4 h-4 text-muted-foreground" />
@@ -258,22 +219,6 @@ const Index = () => {
                   className="pl-9 bg-card border-border"
                 />
               </div>
-            </div>
-            {/* Category filter chips */}
-            <div className="flex-shrink-0 flex flex-wrap gap-1.5">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => handleCategoryChange(cat)}
-                  className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                    selectedCategory === cat
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:bg-muted/80"
-                  }`}
-                >
-                  {cat === "Favoritos" && "⭐ "}{cat}
-                </button>
-              ))}
             </div>
             {/* Channel list with independent scroll */}
             <div className="flex-1 min-h-0 overflow-y-auto rounded-lg">
