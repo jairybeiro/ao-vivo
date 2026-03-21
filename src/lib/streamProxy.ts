@@ -1,6 +1,6 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-const FORCE_PROXY_DOMAINS = ["ipsmart.icu", "embedtv", "embedtvonline", "cdn2embedtv"];
+const FORCE_PROXY_DOMAINS = ["embedtv", "embedtvonline", "cdn2embedtv"];
 const PROXY_PATH = "/functions/v1/proxy-stream";
 
 const isProxyUrl = (url: string): boolean => {
