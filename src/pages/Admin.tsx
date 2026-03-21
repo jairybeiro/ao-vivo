@@ -225,7 +225,8 @@ const Admin = () => {
 
             {/* Tab de Canais */}
             <TabsContent value="channels" className="space-y-6">
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <SyncChannelsButton onSuccess={fetchChannels} />
                 <Button onClick={handleOpenAddChannelModal}>
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Canal
