@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard } from "lucide-react";
 import VodImport from "@/components/admin/VodImport";
-import { SyncChannelsButton } from "@/components/admin/SyncChannelsButton";
 
 import { ChannelForm } from "@/components/admin/ChannelForm";
 import { ChannelList } from "@/components/admin/ChannelList";
@@ -225,8 +224,7 @@ const Admin = () => {
 
             {/* Tab de Canais */}
             <TabsContent value="channels" className="space-y-6">
-              <div className="flex justify-end gap-2">
-                <SyncChannelsButton onComplete={fetchChannels} />
+              <div className="flex justify-end">
                 <Button onClick={handleOpenAddChannelModal}>
                   <Plus className="w-4 h-4 mr-2" />
                   Adicionar Canal

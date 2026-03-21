@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { defaultChannels } from "@/data/channels";
 import { toProxyAssetUrl, toProxyStreamUrl } from "@/lib/streamProxy";
 
 export interface DBChannel {
@@ -46,17 +45,8 @@ export const useChannels = (categoryFilter?: string) => {
 
     if (error) {
       console.error("Error fetching channels:", error);
-      setChannels(
-        defaultChannels.map((ch) => ({
-          id: ch.id,
-          name: ch.name,
-          category: "Notícias",
-          logo: toProxyAssetUrl(ch.logo),
-          streamUrls: ch.streamUrls.map((url) => toProxyStreamUrl(url)),
-          embedUrl: null,
-          isLive: true,
-        }))
-      );
+      setChannels([]);
+      setTotalCount(0);
     } else if (data && data.length > 0) {
       setChannels(
         data.map((ch) => ({
@@ -71,17 +61,8 @@ export const useChannels = (categoryFilter?: string) => {
       );
       setTotalCount(count ?? data.length);
     } else {
-      setChannels(
-        defaultChannels.map((ch) => ({
-          id: ch.id,
-          name: ch.name,
-          category: "Notícias",
-          logo: toProxyAssetUrl(ch.logo),
-          streamUrls: ch.streamUrls.map((url) => toProxyStreamUrl(url)),
-          embedUrl: null,
-          isLive: true,
-        }))
-      );
+      setChannels([]);
+      setTotalCount(0);
     }
     setLoading(false);
   }, [categoryFilter]);
