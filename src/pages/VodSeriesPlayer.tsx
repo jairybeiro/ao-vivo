@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useVodEpisodes } from "@/hooks/useVod";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { ListVideo } from "lucide-react";
+import { SkipForward } from "lucide-react";
 import VodPlayer from "@/components/VodPlayer";
 import DesktopEpisodesPanel from "@/components/vod/DesktopEpisodesPanel";
 import MobileEpisodesPanel from "@/components/vod/MobileEpisodesPanel";
@@ -88,13 +88,22 @@ const VodSeriesPlayer = () => {
 
   const hasEpisodes = !epsLoading && seasonNumbers.length > 0;
 
+  const EpisodesIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="2" width="16" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+      <rect x="6" y="5" width="12" height="2" rx="0.5" fill="currentColor" opacity="0.7" />
+      <rect x="3" y="8" width="18" height="14" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <polygon points="10,12 10,18 15.5,15" fill="currentColor" />
+    </svg>
+  );
+
   const episodesButton = hasEpisodes ? (
     <button
       onClick={() => setShowEpisodesPanel(true)}
-      className="text-white hover:text-white/80 transition p-1.5"
+      className="text-white hover:text-white/80 transition p-1"
       title="Episódios"
     >
-      <ListVideo className="w-5 h-5" />
+      <EpisodesIcon />
     </button>
   ) : undefined;
 
@@ -124,7 +133,7 @@ const VodSeriesPlayer = () => {
   ) : undefined;
 
   return (
-    <div className="h-screen bg-black">
+    <div className="h-screen w-screen bg-black flex items-center justify-center">
       {currentEpisode ? (
         <VodPlayer
           key={currentEpisode.id}
