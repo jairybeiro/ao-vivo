@@ -15,6 +15,8 @@ import Premium from "./pages/Premium";
 import PremiumLogin from "./pages/PremiumLogin";
 import PremiumWatch from "./pages/PremiumWatch";
 import CourseView from "./pages/CourseView";
+import Courses from "./pages/Courses";
+import Entertainment from "./pages/Entertainment";
 import VodBrowse from "./pages/VodBrowse";
 import VodMoviePlayer from "./pages/VodMoviePlayer";
 import VodSeriesPlayer from "./pages/VodSeriesPlayer";
@@ -31,16 +33,22 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Rotas protegidas */}
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
-            <Route path="/premium/watch/:id" element={<ProtectedRoute><PremiumWatch /></ProtectedRoute>} />
+            {/* Rotas protegidas com header */}
+            <Route path="/" element={<ProtectedRoute><VodBrowse /></ProtectedRoute>} />
+            <Route path="/cursos" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
+            <Route path="/entretenimento" element={<ProtectedRoute><Entertainment /></ProtectedRoute>} />
+            <Route path="/channels" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+
+            {/* Players (sem header, fullscreen) */}
             <Route path="/course/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
-            <Route path="/vod" element={<ProtectedRoute><VodBrowse /></ProtectedRoute>} />
             <Route path="/vod/movie/:id" element={<ProtectedRoute><VodMoviePlayer /></ProtectedRoute>} />
             <Route path="/vod/series/:id" element={<ProtectedRoute><VodSeriesPlayer /></ProtectedRoute>} />
+
+            {/* Legacy/Admin */}
+            <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
+            <Route path="/premium/watch/:id" element={<ProtectedRoute><PremiumWatch /></ProtectedRoute>} />
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-            
+
             {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/admin/login" element={<AdminLogin />} />
