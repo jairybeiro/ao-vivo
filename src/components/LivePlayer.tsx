@@ -230,7 +230,13 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden select-none"
+      className="relative w-full bg-black rounded-lg overflow-hidden select-none"
+      style={{
+        aspectRatio: "16/9",
+        fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+      }}
       style={{
         fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
         WebkitFontSmoothing: "antialiased",
