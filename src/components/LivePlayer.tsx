@@ -339,7 +339,16 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
               </button>
 
               {/* Volume — vertical slider on hover (Netflix style) — desktop */}
-              <div className="hidden md:flex items-center relative group/volume">
+              <div
+                className="hidden md:flex items-center relative"
+                onMouseEnter={() => {
+                  clearTimeout(volumeHideTimer.current);
+                  setShowVolume(true);
+                }}
+                onMouseLeave={() => {
+                  volumeHideTimer.current = setTimeout(() => setShowVolume(false), 400);
+                }}
+              >
                 <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
                   {muted || volume === 0
                     ? <VolumeX className="w-7 h-7" />
@@ -349,12 +358,28 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
                   }
                 </button>
                 {/* Vertical volume popup */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover/volume:opacity-100 group-hover/volume:scale-100 transition-all duration-200 pointer-events-none group-hover/volume:pointer-events-auto">
+                <div
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200"
+                  style={{
+                    opacity: showVolume ? 1 : 0,
+                    transform: showVolume ? "scale(1)" : "scale(0.95)",
+                    pointerEvents: showVolume ? "auto" : "none",
+                  }}
+                  onMouseEnter={() => {
+                    clearTimeout(volumeHideTimer.current);
+                    setShowVolume(true);
+                  }}
+                  onMouseLeave={() => {
+                    volumeHideTimer.current = setTimeout(() => setShowVolume(false), 400);
+                  }}
+                >
                   <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
                     <input
                       type="range" min="0" max="1" step="0.02"
                       value={muted ? 0 : volume}
+                      onInput={(e) => { e.stopPropagation(); changeVolume(parseFloat((e.target as HTMLInputElement).value)); }}
                       onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
+                      onMouseDown={(e) => { e.stopPropagation(); clearTimeout(volumeHideTimer.current); }}
                       onClick={(e) => e.stopPropagation()}
                       className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
                       {...{ orient: "vertical" } as any}
