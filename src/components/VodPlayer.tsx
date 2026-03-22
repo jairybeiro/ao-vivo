@@ -48,8 +48,12 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const resumedRef = useRef(false);
 
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const [volume, setVolume] = useState(1);
+  const [muted, setMuted] = useState(() => {
+    try { return localStorage.getItem("player_muted") === "true"; } catch { return true; }
+  });
+  const [volume, setVolume] = useState(() => {
+    try { const v = localStorage.getItem("player_volume"); return v !== null ? parseFloat(v) : 0.5; } catch { return 0.5; }
+  });
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [buffered, setBuffered] = useState(0);
