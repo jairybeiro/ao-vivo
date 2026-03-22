@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useVodEpisodes } from "@/hooks/useVod";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { ListVideo } from "lucide-react";
+import { SkipForward } from "lucide-react";
 import VodPlayer from "@/components/VodPlayer";
 import DesktopEpisodesPanel from "@/components/vod/DesktopEpisodesPanel";
 import MobileEpisodesPanel from "@/components/vod/MobileEpisodesPanel";
