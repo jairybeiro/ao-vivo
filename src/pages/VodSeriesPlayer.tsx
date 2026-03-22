@@ -138,7 +138,7 @@ const VodSeriesPlayer = () => {
         <VodPlayer
           key={currentEpisode.id}
           src={currentEpisode.stream_url}
-          title={series.name}
+          title={series.name.replace(/\s*\(\d{4}\)\s*$/, '')}
           subtitle={`T${currentEpisode.season} E${currentEpisode.episode_num}`}
           poster={currentEpisode.cover_url || series.cover_url || undefined}
           contentType="episode"
