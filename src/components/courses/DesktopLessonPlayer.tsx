@@ -384,12 +384,8 @@ export const DesktopLessonPlayer = ({
         onClick={togglePlay}
       />
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-40">
-          <Loader2 className="w-12 h-12 text-primary animate-spin" />
-        </div>
-      )}
+      {/* Netflix-style preload */}
+      <NetflixLoader visible={isLoading && !error} />
 
       {/* Error */}
       {error && (
