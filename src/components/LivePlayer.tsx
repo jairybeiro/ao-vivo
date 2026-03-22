@@ -21,9 +21,10 @@ interface LivePlayerProps {
   extraControls?: React.ReactNode;
   overlayContent?: React.ReactNode;
   immersive?: boolean;
+  onBack?: () => void;
 }
 
-const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immersive }: LivePlayerProps) => {
+const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immersive, onBack }: LivePlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
