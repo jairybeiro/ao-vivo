@@ -242,7 +242,7 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
     >
       <video
         ref={videoRef}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
         playsInline
         muted
       />
