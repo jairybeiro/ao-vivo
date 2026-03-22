@@ -1,27 +1,37 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import VodPlayer from "@/components/VodPlayer";
 import { ArrowLeft, Film } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useContinueWatching } from "@/hooks/useWatchProgress";
+import MobileMovieCatalog from "@/components/vod/MobileMovieCatalog";
+import DesktopMovieCatalog from "@/components/vod/DesktopMovieCatalog";
 import type { VodMovie } from "@/hooks/useVod";
 
 const VodMoviePlayer = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [movie, setMovie] = useState<VodMovie | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [relatedMovies, setRelatedMovies] = useState<VodMovie[]>([]);
+
+  const { items: continueWatching } = useContinueWatching();
 
   useEffect(() => {
     if (!id) return;
     const fetchMovie = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from("vod_movies")
         .select("*")
         .eq("id", id)
         .single();
       if (!error && data) {
-        setMovie({
+        const m: VodMovie = {
           id: data.id,
           name: data.name,
           category: data.category,
@@ -29,16 +39,43 @@ const VodMoviePlayer = () => {
           cover_url: data.cover_url,
           backdrop_url: (data as any).backdrop_url || null,
           rating: data.rating,
-        });
+        };
+        setMovie(m);
+        setNotFound(false);
+        // Fetch related movies from same category
+        fetchRelated(data.category, data.id);
       } else {
         setNotFound(true);
-        // Clean up stale watch progress for this missing movie
         cleanupStaleProgress(id);
       }
       setLoading(false);
     };
     fetchMovie();
   }, [id]);
+
+  const fetchRelated = async (category: string, excludeId: string) => {
+    const { data } = await supabase
+      .from("vod_movies")
+      .select("*")
+      .eq("category", category)
+      .eq("is_active", true)
+      .neq("id", excludeId)
+      .order("name")
+      .limit(30);
+    if (data) {
+      setRelatedMovies(
+        data.map((m: any) => ({
+          id: m.id,
+          name: m.name,
+          category: m.category,
+          stream_url: m.stream_url,
+          cover_url: m.cover_url,
+          backdrop_url: m.backdrop_url || null,
+          rating: m.rating,
+        }))
+      );
+    }
+  };
 
   const cleanupStaleProgress = async (contentId: string) => {
     try {
@@ -54,6 +91,64 @@ const VodMoviePlayer = () => {
       // silent fail
     }
   };
+
+  const handlePlayMovie = useCallback((m: VodMovie) => {
+    setCatalogOpen(false);
+    navigate(`/vod/movie/${m.id}`, { replace: true });
+  }, [navigate]);
+
+  const handleContinue = useCallback((item: any) => {
+    setCatalogOpen(false);
+    if (item.content_type === "movie") {
+      navigate(`/vod/movie/${item.content_id}`, { replace: true });
+    }
+  }, [navigate]);
+
+  // Episodes icon reused from VodPlayer
+  const CatalogIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="2" width="16" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+      <rect x="6" y="5" width="12" height="2" rx="0.5" fill="currentColor" opacity="0.7" />
+      <rect x="3" y="8" width="18" height="14" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <polygon points="10,12 10,18 15.5,15" fill="currentColor" />
+    </svg>
+  );
+
+  const catalogButton = (
+    <button
+      onClick={(e) => { e.stopPropagation(); setCatalogOpen(prev => !prev); }}
+      className="hover:scale-110 transition active:scale-95"
+      title="Mais filmes"
+    >
+      <CatalogIcon />
+    </button>
+  );
+
+  const catalogOverlay = movie ? (
+    isMobile ? (
+      <MobileMovieCatalog
+        currentMovieId={movie.id}
+        movies={relatedMovies}
+        continueWatching={continueWatching.filter(cw => cw.content_type === "movie")}
+        onPlayMovie={handlePlayMovie}
+        onContinue={handleContinue}
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+        categoryLabel={movie.category}
+      />
+    ) : (
+      <DesktopMovieCatalog
+        currentMovieId={movie.id}
+        movies={relatedMovies}
+        continueWatching={continueWatching.filter(cw => cw.content_type === "movie")}
+        onPlayMovie={handlePlayMovie}
+        onContinue={handleContinue}
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+        categoryLabel={movie.category}
+      />
+    )
+  ) : null;
 
   if (loading) {
     return (
@@ -94,6 +189,8 @@ const VodMoviePlayer = () => {
         contentName={movie.name}
         contentCoverUrl={movie.cover_url}
         onBack={() => navigate("/vod")}
+        extraControls={catalogButton}
+        overlayContent={catalogOverlay}
       />
     </div>
   );
