@@ -302,6 +302,14 @@ const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immer
 
         {/* TOP BAR — AO VIVO indicator + info */}
         <div className="absolute top-0 left-0 right-0 flex items-center gap-3 p-4 md:p-6 pointer-events-auto">
+          {onBack && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onBack(); }}
+              className="p-1.5 rounded-full hover:bg-white/10 transition text-[hsl(var(--player-contrast))] hover:text-[hsl(var(--player-contrast)/0.8)] shrink-0"
+            >
+              <ArrowLeft className="w-6 h-6 md:w-7 md:h-7" />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); goLive(); }}
             className="flex items-center gap-1.5 bg-[hsl(var(--player-accent))] hover:bg-[hsl(var(--player-accent)/0.85)] text-[hsl(var(--player-contrast))] px-2.5 py-1 rounded text-xs font-bold transition shrink-0"
