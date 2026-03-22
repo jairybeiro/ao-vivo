@@ -10,10 +10,13 @@ import {
   Pause,
   Volume2,
   VolumeX,
+  Volume1,
   Maximize,
+  Minimize,
   SkipForward,
-  SkipBack,
   ArrowLeft,
+  RotateCcw,
+  RotateCw,
   Settings,
 } from "lucide-react";
 
