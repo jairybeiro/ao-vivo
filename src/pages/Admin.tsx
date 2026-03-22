@@ -191,7 +191,7 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="channels" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
               <TabsTrigger value="channels" className="flex items-center gap-1 text-xs md:text-sm">
                 <Tv className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Canais</span>
