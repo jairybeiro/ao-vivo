@@ -75,17 +75,7 @@ const VodBrowse = () => {
 
   return (
     <div ref={mainRef} tabIndex={-1} className="h-screen overflow-y-auto bg-background" style={{ outline: "none" }}>
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50" style={{ paddingTop: `env(safe-area-inset-top, 0px)` }}>
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Film className="w-6 h-6 text-primary" />
-              <h1 className="text-lg font-bold text-foreground">Filmes & Séries</h1>
-            </div>
-            <NavLink to="/">Canais</NavLink>
-          </div>
-        </div>
-      </header>
+      <MainHeader />
 
       {/* Hero Banner */}
       {!moviesLoading && !seriesLoading && (
