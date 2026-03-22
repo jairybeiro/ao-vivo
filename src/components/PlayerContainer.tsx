@@ -19,7 +19,7 @@ interface PlayerContainerProps {
  * 2. embedUrl → EmbedPlayer (iframe)
  * 3. Fallback → try first streamUrl with LivePlayer
  */
-const PlayerContainer = ({ channel, extraControls, overlayContent, immersive }: PlayerContainerProps) => {
+const PlayerContainer = ({ channel, extraControls, overlayContent, immersive, onBack }: PlayerContainerProps) => {
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
   const firstPlayableUrl = channel.streamUrls.find(
     (url) => url && url !== "placeholder"
