@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileChannelCatalog from "@/components/channels/MobileChannelCatalog";
 import DesktopChannelCatalog from "@/components/channels/DesktopChannelCatalog";
-import { Film, Tv } from "lucide-react";
+import { Tv } from "lucide-react";
 
 const LAST_CHANNEL_KEY = "streamplayer_last_channel";
 
