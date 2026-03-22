@@ -37,6 +37,8 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showVolume, setShowVolume] = useState(false);
+  const volumeHideTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const proxiedSrc = toProxyStreamUrl(src);
   const isHls = isHlsUrl(src);
