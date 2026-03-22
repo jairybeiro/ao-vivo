@@ -18,9 +18,12 @@ interface LivePlayerProps {
   src: string;
   title?: string;
   subtitle?: string;
+  extraControls?: React.ReactNode;
+  overlayContent?: React.ReactNode;
+  immersive?: boolean;
 }
 
-const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
+const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immersive }: LivePlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -230,9 +233,11 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full bg-black rounded-lg overflow-hidden select-none"
+      className={`relative bg-black overflow-hidden select-none ${immersive ? "flex items-center justify-center" : "w-full rounded-lg"}`}
       style={{
-        aspectRatio: "16/9",
+        ...(immersive
+          ? { width: "98vw", height: "98vh", margin: "1vh auto" }
+          : { aspectRatio: "16/9" }),
         fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
         WebkitFontSmoothing: "antialiased",
         MozOsxFontSmoothing: "grayscale",
@@ -410,6 +415,9 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
 
             {/* Right controls */}
             <div className="flex items-center gap-3 md:gap-5">
+              {/* Extra controls (channel list button etc.) */}
+              {extraControls}
+
               {/* Fullscreen */}
               <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="hover:scale-110 transition active:scale-90">
                 {isFullscreen ? <Minimize className="w-6 h-6 md:w-7 md:h-7" /> : <Maximize className="w-6 h-6 md:w-7 md:h-7" />}
@@ -418,6 +426,9 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
           </div>
         </div>
       </div>
+
+      {/* Overlay content rendered inside fullscreen container */}
+      {overlayContent}
     </div>
   );
 };
