@@ -44,6 +44,9 @@ const PlayerContainer = ({ channel, extraControls, overlayContent, immersive }: 
         embedUrl={channel.embedUrl}
         channelName={channel.name}
         enablePreRoll={false}
+        extraControls={extraControls}
+        overlayContent={overlayContent}
+        immersive={immersive}
       />
     );
   }
