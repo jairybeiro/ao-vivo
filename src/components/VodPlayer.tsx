@@ -574,7 +574,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                       onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
                       onClick={(e) => e.stopPropagation()}
                       className="h-24 appearance-none cursor-pointer bg-transparent"
-                      orient="vertical"
+                      {...{ orient: "vertical" } as any}
                       style={{
                         writingMode: "vertical-lr",
                         direction: "rtl",
