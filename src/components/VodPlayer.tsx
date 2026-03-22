@@ -513,7 +513,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         {/* CENTER PLAY BUTTON (when paused) */}
         {!playing && !loading && !error && countdown === null && !showResumePrompt && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={togglePlay}>
-            <div className="p-5 rounded-full hover:scale-110 transition-transform">
+            <div className="p-5 rounded-full bg-white/20 backdrop-blur-sm hover:scale-110 hover:bg-white/30 transition-all">
               <Play className="w-14 h-14 text-[hsl(var(--player-contrast))] fill-[hsl(var(--player-contrast))] ml-1" />
             </div>
           </div>
