@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Film, Clapperboard, Search, Loader2, Plus, Star, Trash2 } from "lucide-react";
+import { Film, Clapperboard, Search, Loader2, Plus, Star, Trash2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const CATEGORY_TAGS = [
@@ -35,10 +37,13 @@ interface CuratedItem {
   name: string;
   type: "movie" | "series";
   category_tag: string | null;
+  category: string;
   cover_url: string | null;
   backdrop_url: string | null;
   rating: number | null;
   trailer_url: string | null;
+  stream_url?: string;
+  plot?: string | null;
 }
 
 const TmdbCuratedImport = () => {
@@ -52,17 +57,25 @@ const TmdbCuratedImport = () => {
   const [curatedItems, setCuratedItems] = useState<CuratedItem[]>([]);
   const [curatedLoading, setCuratedLoading] = useState(false);
 
+  // Edit state
+  const [editItem, setEditItem] = useState<CuratedItem | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "", category: "", category_tag: "", stream_url: "",
+    cover_url: "", backdrop_url: "", trailer_url: "", rating: "", plot: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
+
   const fetchCurated = async () => {
     setCuratedLoading(true);
     const { data: movies } = await supabase
       .from("vod_movies")
-      .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag")
+      .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag, category, stream_url")
       .not("category_tag", "is", null)
       .order("name");
 
     const { data: series } = await supabase
       .from("vod_series")
-      .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag")
+      .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag, category, plot")
       .not("category_tag", "is", null)
       .order("name");
 
@@ -146,6 +159,54 @@ const TmdbCuratedImport = () => {
       toast.success("Tag removida");
       fetchCurated();
     }
+  };
+
+  const openEdit = (item: CuratedItem) => {
+    setEditItem(item);
+    setEditForm({
+      name: item.name,
+      category: item.category || "",
+      category_tag: item.category_tag || "",
+      stream_url: item.stream_url || "",
+      cover_url: item.cover_url || "",
+      backdrop_url: item.backdrop_url || "",
+      trailer_url: item.trailer_url || "",
+      rating: item.rating?.toString() || "",
+      plot: item.plot || "",
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editItem) return;
+    setEditSaving(true);
+    const table = editItem.type === "movie" ? "vod_movies" : "vod_series";
+
+    const payload: any = {
+      name: editForm.name.trim(),
+      category: editForm.category.trim() || (editItem.type === "movie" ? "Filmes" : "Séries"),
+      category_tag: editForm.category_tag || null,
+      cover_url: editForm.cover_url.trim() || null,
+      backdrop_url: editForm.backdrop_url.trim() || null,
+      trailer_url: editForm.trailer_url.trim() || null,
+      rating: editForm.rating ? parseFloat(editForm.rating) : null,
+    };
+
+    if (editItem.type === "movie") {
+      payload.stream_url = editForm.stream_url.trim() || "pending";
+    }
+    if (editItem.type === "series") {
+      payload.plot = editForm.plot.trim() || null;
+    }
+
+    const { error } = await supabase.from(table).update(payload).eq("id", editItem.id);
+    if (error) {
+      toast.error("Erro ao salvar: " + error.message);
+    } else {
+      toast.success("Atualizado com sucesso!");
+      setEditItem(null);
+      fetchCurated();
+    }
+    setEditSaving(false);
   };
 
   return (
@@ -269,11 +330,14 @@ const TmdbCuratedImport = () => {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{item.name}</p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className="text-[10px]">
                         {item.type === "movie" ? "Filme" : "Série"}
                       </Badge>
                       <Badge className="text-[10px]">{item.category_tag}</Badge>
+                      {item.type === "movie" && item.stream_url === "pending" && (
+                        <Badge variant="outline" className="text-[10px] text-yellow-600 border-yellow-600">Sem link</Badge>
+                      )}
                       {item.rating && (
                         <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
                           <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />{item.rating}
@@ -281,9 +345,14 @@ const TmdbCuratedImport = () => {
                       )}
                     </div>
                   </div>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemoveTag(item)}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}>
+                      <Pencil className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemoveTag(item)}>
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -337,6 +406,77 @@ const TmdbCuratedImport = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Modal */}
+      <Dialog open={!!editItem} onOpenChange={(open) => !open && setEditItem(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar {editItem?.type === "movie" ? "Filme" : "Série"}</DialogTitle>
+            <DialogDescription>Atualize os campos do conteúdo curado</DialogDescription>
+          </DialogHeader>
+          {editItem && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Nome</Label>
+                <Input value={editForm.name} onChange={(e) => setEditForm(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Categoria</Label>
+                  <Input value={editForm.category} onChange={(e) => setEditForm(f => ({ ...f, category: e.target.value }))} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tag de Curadoria</Label>
+                  <Select value={editForm.category_tag} onValueChange={(v) => setEditForm(f => ({ ...f, category_tag: v }))}>
+                    <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                    <SelectContent>
+                      {CATEGORY_TAGS.map((t) => (
+                        <SelectItem key={t} value={t}>{t}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {editItem.type === "movie" && (
+                <div className="space-y-2">
+                  <Label>URL do Stream</Label>
+                  <Input placeholder="https://..." value={editForm.stream_url} onChange={(e) => setEditForm(f => ({ ...f, stream_url: e.target.value }))} />
+                </div>
+              )}
+              <div className="space-y-2">
+                <Label>URL da Capa</Label>
+                <Input value={editForm.cover_url} onChange={(e) => setEditForm(f => ({ ...f, cover_url: e.target.value }))} />
+                {editForm.cover_url && <img src={editForm.cover_url} alt="Preview" className="w-16 h-24 object-cover rounded border border-border" />}
+              </div>
+              <div className="space-y-2">
+                <Label>URL do Backdrop</Label>
+                <Input value={editForm.backdrop_url} onChange={(e) => setEditForm(f => ({ ...f, backdrop_url: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>URL do Trailer (YouTube)</Label>
+                <Input value={editForm.trailer_url} onChange={(e) => setEditForm(f => ({ ...f, trailer_url: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>Nota</Label>
+                <Input type="number" step="0.1" min="0" max="10" value={editForm.rating} onChange={(e) => setEditForm(f => ({ ...f, rating: e.target.value }))} />
+              </div>
+              {editItem.type === "series" && (
+                <div className="space-y-2">
+                  <Label>Sinopse</Label>
+                  <Textarea value={editForm.plot} onChange={(e) => setEditForm(f => ({ ...f, plot: e.target.value }))} rows={3} />
+                </div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <Button className="flex-1" onClick={handleEditSave} disabled={editSaving}>
+                  {editSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Salvar
+                </Button>
+                <Button variant="outline" onClick={() => setEditItem(null)}>Cancelar</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
