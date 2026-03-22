@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Hls from "hls.js";
-import { Loader2 } from "lucide-react";
+import { NetflixLoader } from "@/components/NetflixLoader";
 import { DesktopPlayerOverlay } from "./DesktopPlayerOverlay";
 import { AutoPlayOverlay } from "./AutoPlayOverlay";
 import { CourseLesson } from "@/hooks/useCourses";
