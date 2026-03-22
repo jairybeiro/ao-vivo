@@ -118,11 +118,11 @@ export const DesktopPlayerOverlay = ({
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      {/* Top gradient */}
-      <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
+      {/* Subtle full-screen scrim */}
+      <div className="absolute inset-0 bg-black/20 pointer-events-none" />
       
-      {/* Bottom gradient */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+      {/* Light bottom gradient for controls readability */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
 
       {/* Top - Back button */}
       <div className="relative z-10 p-4">
