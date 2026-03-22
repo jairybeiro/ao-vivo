@@ -390,7 +390,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       />
 
       {/* Netflix-style preload */}
-      <NetflixLoader visible={loading && !error && !showResumePrompt} />
+      <NetflixLoader visible={loading && !error && !showResumePrompt} poster={poster} />
 
       {/* Error */}
       {error && (
