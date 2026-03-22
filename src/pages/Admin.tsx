@@ -19,6 +19,7 @@ import PremiumContentList from "@/components/admin/PremiumContentList";
 import { VodMovieList } from "@/components/admin/VodMovieList";
 import { VodSeriesList } from "@/components/admin/VodSeriesList";
 import { toProxyAssetUrl } from "@/lib/streamProxy";
+import TmdbCuratedImport from "@/components/admin/TmdbCuratedImport";
 
 interface Channel {
   id: string;
