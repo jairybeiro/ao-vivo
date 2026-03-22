@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import { Play, ChevronLeft, Check, X } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { VodEpisode, VodSeries } from "@/hooks/useVod";
 
 interface DesktopEpisodesPanelProps {
@@ -83,7 +82,7 @@ const DesktopEpisodesPanel = ({
               </button>
             </div>
 
-            <ScrollArea className="flex-1">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <div className="px-2 pb-4">
                 {seasonNumbers.map((s) => {
                   const isCurrent = s === activeSeason;
@@ -105,7 +104,7 @@ const DesktopEpisodesPanel = ({
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           </>
         )}
 
@@ -134,7 +133,7 @@ const DesktopEpisodesPanel = ({
             </div>
 
             {/* Episodes list — scrollable, ~6 visible */}
-            <ScrollArea className="flex-1">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <div className="pb-4">
                 {activeEpisodes.map((ep) => {
                   const isCurrent = currentEpisode?.id === ep.id;
@@ -213,7 +212,7 @@ const DesktopEpisodesPanel = ({
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           </>
         )}
       </div>
