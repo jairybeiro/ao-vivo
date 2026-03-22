@@ -410,6 +410,7 @@ export type Database = {
         Row: {
           backdrop_url: string | null
           category: string
+          category_tag: string | null
           cover_url: string | null
           created_at: string
           id: string
@@ -424,6 +425,7 @@ export type Database = {
         Insert: {
           backdrop_url?: string | null
           category?: string
+          category_tag?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -438,6 +440,7 @@ export type Database = {
         Update: {
           backdrop_url?: string | null
           category?: string
+          category_tag?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -455,6 +458,7 @@ export type Database = {
         Row: {
           backdrop_url: string | null
           category: string
+          category_tag: string | null
           cover_url: string | null
           created_at: string
           id: string
@@ -469,6 +473,7 @@ export type Database = {
         Insert: {
           backdrop_url?: string | null
           category?: string
+          category_tag?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -483,6 +488,7 @@ export type Database = {
         Update: {
           backdrop_url?: string | null
           category?: string
+          category_tag?: string | null
           cover_url?: string | null
           created_at?: string
           id?: string
@@ -513,6 +519,7 @@ export type Database = {
         Returns: {
           backdrop_url: string | null
           category: string
+          category_tag: string | null
           cover_url: string | null
           created_at: string
           id: string
@@ -536,6 +543,7 @@ export type Database = {
         Returns: {
           backdrop_url: string | null
           category: string
+          category_tag: string | null
           cover_url: string | null
           created_at: string
           id: string
@@ -559,6 +567,7 @@ export type Database = {
         Returns: {
           backdrop_url: string | null
           category: string
+          category_tag: string | null
           cover_url: string | null
           created_at: string
           id: string
@@ -582,6 +591,7 @@ export type Database = {
         Returns: {
           backdrop_url: string | null
           category: string
+          category_tag: string | null
           cover_url: string | null
           created_at: string
           id: string

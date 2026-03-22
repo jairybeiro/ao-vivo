@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard } from "lucide-react";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard, Sparkles } from "lucide-react";
 import VodImport from "@/components/admin/VodImport";
 import SyncChannelsButton from "@/components/admin/SyncChannelsButton";
 
@@ -19,6 +19,7 @@ import PremiumContentList from "@/components/admin/PremiumContentList";
 import { VodMovieList } from "@/components/admin/VodMovieList";
 import { VodSeriesList } from "@/components/admin/VodSeriesList";
 import { toProxyAssetUrl } from "@/lib/streamProxy";
+import TmdbCuratedImport from "@/components/admin/TmdbCuratedImport";
 
 interface Channel {
   id: string;
@@ -190,7 +191,7 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="channels" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-7">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
               <TabsTrigger value="channels" className="flex items-center gap-1 text-xs md:text-sm">
                 <Tv className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Canais</span>
@@ -220,6 +221,11 @@ const Admin = () => {
                 <Film className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Premium</span>
                 <span className="md:hidden">VIP</span>
+              </TabsTrigger>
+              <TabsTrigger value="curated" className="flex items-center gap-1 text-xs md:text-sm">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Curadoria</span>
+                <span className="md:hidden">Curar</span>
               </TabsTrigger>
             </TabsList>
 
@@ -281,6 +287,11 @@ const Admin = () => {
             {/* Tab de Conteúdo Premium */}
             <TabsContent value="premium" className="space-y-6">
               <PremiumContentList />
+            </TabsContent>
+
+            {/* Tab de Curadoria */}
+            <TabsContent value="curated" className="space-y-6">
+              <TmdbCuratedImport />
             </TabsContent>
           </Tabs>
         </div>
