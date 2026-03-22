@@ -513,7 +513,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         {/* CENTER PLAY BUTTON (when paused) */}
         {!playing && !loading && !error && countdown === null && !showResumePrompt && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={togglePlay}>
-            <div className="p-5 rounded-full hover:scale-110 transition-transform">
+            <div className="p-5 rounded-full bg-white/20 backdrop-blur-sm hover:scale-110 hover:bg-white/30 transition-all">
               <Play className="w-14 h-14 text-[hsl(var(--player-contrast))] fill-[hsl(var(--player-contrast))] ml-1" />
             </div>
           </div>
@@ -588,13 +588,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                       value={muted ? 0 : volume}
                       onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-24 appearance-none cursor-pointer bg-transparent"
+                      className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
                       {...{ orient: "vertical" } as any}
                       style={{
                         writingMode: "vertical-lr",
                         direction: "rtl",
                         WebkitAppearance: "slider-vertical",
                         width: "4px",
+                        accentColor: "#E50914",
                       }}
                     />
                   </div>
