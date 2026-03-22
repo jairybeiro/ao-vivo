@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Film, Clapperboard, Search, Star, PlayCircle } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
+import MainHeader from "@/components/MainHeader";
 import HeroBanner from "@/components/vod/HeroBanner";
 
 const formatTime = (s: number) => {
