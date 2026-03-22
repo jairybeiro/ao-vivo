@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, forwardRef } from "react";
-import { Play, Loader2, Shield } from "lucide-react";
+import { Play, Loader2, Shield, ArrowLeft } from "lucide-react";
 import { PreRollAd, type PreRollAdData } from "./ads";
 
 interface EmbedPlayerProps {
