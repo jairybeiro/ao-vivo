@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard } from "lucide-react";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard, Sparkles } from "lucide-react";
 import VodImport from "@/components/admin/VodImport";
 import SyncChannelsButton from "@/components/admin/SyncChannelsButton";
 
