@@ -143,6 +143,10 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     setCountdown(null);
     resumedRef.current = false;
 
+    // Apply persisted volume preferences
+    video.volume = volume;
+    video.muted = muted;
+
     if (hlsRef.current) {
       hlsRef.current.destroy();
       hlsRef.current = null;
