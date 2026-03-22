@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
 import { Play, ChevronLeft, Check, X } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { VodEpisode, VodSeries } from "@/hooks/useVod";
 
 interface DesktopEpisodesPanelProps {
