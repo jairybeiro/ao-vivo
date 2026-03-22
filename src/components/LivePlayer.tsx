@@ -237,11 +237,6 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
         WebkitFontSmoothing: "antialiased",
         MozOsxFontSmoothing: "grayscale",
       }}
-      style={{
-        fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
-        WebkitFontSmoothing: "antialiased",
-        MozOsxFontSmoothing: "grayscale",
-      }}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
     >
