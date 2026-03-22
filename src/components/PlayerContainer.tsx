@@ -34,6 +34,7 @@ const PlayerContainer = ({ channel, extraControls, overlayContent, immersive, on
         extraControls={extraControls}
         overlayContent={overlayContent}
         immersive={immersive}
+        onBack={onBack}
       />
     );
   }
