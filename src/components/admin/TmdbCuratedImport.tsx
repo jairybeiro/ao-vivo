@@ -74,7 +74,7 @@ const TmdbCuratedImport = () => {
     setCuratedLoading(false);
   };
 
-  useState(() => { fetchCurated(); });
+  useEffect(() => { fetchCurated(); }, []);
 
   const handleLookup = async () => {
     if (!tmdbId.trim()) return;
