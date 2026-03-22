@@ -588,13 +588,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                       value={muted ? 0 : volume}
                       onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
                       onClick={(e) => e.stopPropagation()}
-                      className="h-24 appearance-none cursor-pointer bg-transparent"
+                      className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
                       {...{ orient: "vertical" } as any}
                       style={{
                         writingMode: "vertical-lr",
                         direction: "rtl",
                         WebkitAppearance: "slider-vertical",
                         width: "4px",
+                        accentColor: "#E50914",
                       }}
                     />
                   </div>
