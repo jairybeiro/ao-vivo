@@ -283,6 +283,11 @@ const Admin = () => {
             <TabsContent value="premium" className="space-y-6">
               <PremiumContentList />
             </TabsContent>
+
+            {/* Tab de Curadoria */}
+            <TabsContent value="curated" className="space-y-6">
+              <TmdbCuratedImport />
+            </TabsContent>
           </Tabs>
         </div>
       </main>
