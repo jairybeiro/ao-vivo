@@ -1,38 +1,23 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import VirtualChannelList from "@/components/VirtualChannelList";
 import PlayerContainer from "@/components/PlayerContainer";
 import { useChannels, DBChannel } from "@/hooks/useChannels";
-import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Tv, Lock, Search, Film, X, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import MobileChannelCatalog from "@/components/channels/MobileChannelCatalog";
+import DesktopChannelCatalog from "@/components/channels/DesktopChannelCatalog";
+import { Film, Tv } from "lucide-react";
 
 const LAST_CHANNEL_KEY = "streamplayer_last_channel";
 
 const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const mainRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    mainRef.current?.focus();
-  }, []);
-
-  const [selectedCategory, setSelectedCategory] = useState("Todos");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [menuOpen, setMenuOpen] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState<DBChannel | null>(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const { channels, loading } = useChannels();
-  const { toggleFavorite, isFavorite } = useFavorites();
-  const { signOut, user } = useAuth();
-
-  // Mobile: track if user picked a category to show list
-  const [mobileShowList, setMobileShowList] = useState(false);
+  const { user } = useAuth();
 
   // Restore last channel once channels load
   useEffect(() => {
@@ -48,199 +33,106 @@ const Index = () => {
         }
       }
     } catch { /* ignore */ }
-    // Fallback: select first channel
     setSelectedChannel(channels[0]);
   }, [channels, selectedChannel]);
 
-  const filteredChannels = useMemo(() => {
-    let result = channels;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter((ch) => ch.name.toLowerCase().includes(q));
-    }
-    return result;
-  }, [channels, selectedCategory, searchQuery, isFavorite]);
-
   const handleSelectChannel = useCallback((channel: DBChannel) => {
     setSelectedChannel(channel);
+    setCatalogOpen(false);
     try {
       localStorage.setItem(LAST_CHANNEL_KEY, JSON.stringify(channel.id));
     } catch { /* ignore */ }
   }, []);
 
-  const emptyState = (
-    <div className="flex-1 flex items-center justify-center text-muted-foreground">
-      <div className="text-center py-12">
-        <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p>Nenhum canal encontrado</p>
-      </div>
-    </div>
+  // Stacked cards icon (same as series/movies)
+  const ChannelListIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="2" width="16" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+      <rect x="6" y="5" width="12" height="2" rx="0.5" fill="currentColor" opacity="0.7" />
+      <rect x="3" y="8" width="18" height="14" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <polygon points="10,12 10,18 15.5,15" fill="currentColor" />
+    </svg>
   );
 
-  return (
-    <div ref={mainRef} tabIndex={-1} className="h-screen flex flex-col overflow-hidden" style={{ outline: "none" }}>
-      {/* Fixed Header */}
-      <div className="flex-shrink-0 px-3 md:px-4 py-2 md:py-4 border-b border-border bg-card/50 backdrop-blur-sm z-20" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 8px)` }}>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
-            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary flex items-center justify-center">
-              <Tv className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
-            </div>
-            <div className="hidden lg:block">
-              <h1 className="text-base md:text-xl font-bold text-foreground">StreamPlayer</h1>
-              <p className="text-xs text-muted-foreground">TV ao vivo</p>
-            </div>
-          </div>
-          <div className="flex-1" />
-          <Button variant="outline" size="sm" onClick={() => navigate("/vod")} className="flex-shrink-0 hidden sm:flex">
-            <Film className="w-4 h-4 mr-2" />
-            Filmes
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate("/premium")} className="flex-shrink-0 hidden sm:flex">
-            <Lock className="w-4 h-4 mr-2" />
-            Premium
-          </Button>
+  const catalogButton = (
+    <button
+      onClick={(e) => { e.stopPropagation(); setCatalogOpen(prev => !prev); }}
+      className="hover:scale-110 transition active:scale-95"
+      title="Lista de canais"
+    >
+      <ChannelListIcon />
+    </button>
+  );
 
-          {isMobile && (
-            <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="flex-shrink-0 md:hidden w-10 h-10">
-                  <div className="flex flex-col gap-1.5 w-6">
-                    <span className="h-0.5 w-full bg-foreground rounded-full" />
-                    <span className="h-0.5 w-full bg-foreground rounded-full" />
-                    <span className="h-0.5 w-full bg-foreground rounded-full" />
-                  </div>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-64 p-0">
-                <div className="p-4 border-b" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 16px)` }}>
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                      <Tv className="w-5 h-5 text-primary-foreground" />
-                    </div>
-                    <h2 className="text-lg font-bold">StreamPlayer</h2>
-                  </div>
-                </div>
-                <div className="p-2 border-t mt-auto space-y-1">
-                  <button
-                    onClick={() => { setMenuOpen(false); navigate("/vod"); }}
-                    className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <Film className="w-4 h-4" />
-                    Filmes & Séries
-                  </button>
-                  {user && (
-                    <button
-                      onClick={async () => { setMenuOpen(false); await signOut(); navigate("/login"); }}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg hover:bg-destructive/10 transition-colors text-destructive"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Sair
-                    </button>
-                  )}
-                </div>
-              </SheetContent>
-            </Sheet>
-          )}
+  const vodButton = (
+    <button
+      onClick={(e) => { e.stopPropagation(); navigate("/vod"); }}
+      className="hover:scale-110 transition active:scale-95"
+      title="Filmes & Séries"
+    >
+      <Film className="w-6 h-6 md:w-7 md:h-7" />
+    </button>
+  );
+
+  const extraControls = (
+    <>
+      {vodButton}
+      {catalogButton}
+    </>
+  );
+
+  const catalogOverlay = selectedChannel ? (
+    isMobile ? (
+      <MobileChannelCatalog
+        channels={channels}
+        currentChannelId={selectedChannel.id}
+        onSelectChannel={handleSelectChannel}
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+      />
+    ) : (
+      <DesktopChannelCatalog
+        channels={channels}
+        currentChannelId={selectedChannel.id}
+        onSelectChannel={handleSelectChannel}
+        open={catalogOpen}
+        onClose={() => setCatalogOpen(false)}
+      />
+    )
+  ) : null;
+
+  if (loading) {
+    return (
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <Tv className="w-12 h-12 text-muted-foreground/50 mx-auto" />
+          <p className="text-muted-foreground text-sm">Carregando canais...</p>
         </div>
       </div>
+    );
+  }
 
-      {/* Main Content - fills remaining height */}
-      <main className="flex-1 min-h-0 flex flex-col lg:flex-row px-3 md:px-4 pb-3 md:pb-4 gap-3 md:gap-4 mt-2">
-        {/* Player Area */}
-        <div className="flex-1 min-h-0 flex flex-col gap-3">
-          {selectedChannel && (
-            <div className="flex-shrink-0">
-              <PlayerContainer channel={selectedChannel} />
-            </div>
-          )}
-
-          {/* Mobile: Search + Channel List below player - scrollable */}
-          {isMobile && (
-            <div className="flex-1 min-h-0 flex flex-col gap-2 overflow-y-auto">
-              {/* Search */}
-              <div className="flex-shrink-0">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar canal..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      if (e.target.value.trim()) setMobileShowList(true);
-                    }}
-                    className="pl-9 bg-card border-border"
-                  />
-                </div>
-              </div>
-              {/* Channel list - only when category selected */}
-              {(mobileShowList || searchQuery.trim().length > 0 || filteredChannels.length > 0) && (
-                <div className="flex-1 min-h-0 flex flex-col gap-1">
-                  <div className="flex items-center justify-between px-1">
-                    <p className="text-xs text-muted-foreground">
-                      {filteredChannels.length} canais
-                    </p>
-                    <button
-                      onClick={() => { setMobileShowList(false); setSearchQuery(""); }}
-                      className="p-1 rounded-full hover:bg-muted"
-                    >
-                      <X className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  </div>
-                  {loading ? (
-                    <div className="text-center py-8 text-muted-foreground">Carregando canais...</div>
-                  ) : filteredChannels.length === 0 ? (
-                    emptyState
-                  ) : (
-                    <VirtualChannelList
-                      channels={filteredChannels}
-                      selectedChannelId={selectedChannel?.id}
-                      isFavorite={isFavorite}
-                      onToggleFavorite={toggleFavorite}
-                      onSelect={(ch) => { handleSelectChannel(ch); setMobileShowList(false); }}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-          )}
+  if (channels.length === 0) {
+    return (
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <Tv className="w-12 h-12 text-muted-foreground/50 mx-auto" />
+          <p className="text-muted-foreground">Nenhum canal disponível</p>
         </div>
+      </div>
+    );
+  }
 
-        {/* Desktop: Sidebar with independent scroll */}
-        {!isMobile && (
-          <div className="hidden lg:flex lg:flex-none lg:w-80 flex-col gap-3 min-h-0">
-            <div className="flex-shrink-0">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar canal..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 bg-card border-border"
-                />
-              </div>
-            </div>
-            {/* Channel list with independent scroll */}
-            <div className="flex-1 min-h-0 overflow-y-auto rounded-lg">
-              {loading ? (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground py-12">
-                  Carregando canais...
-                </div>
-              ) : filteredChannels.length === 0 ? (
-                emptyState
-              ) : (
-                <VirtualChannelList
-                  channels={filteredChannels}
-                  selectedChannelId={selectedChannel?.id}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={toggleFavorite}
-                  onSelect={handleSelectChannel}
-                />
-              )}
-            </div>
-          </div>
-        )}
-      </main>
+  return (
+    <div className="h-screen w-screen bg-black flex items-center justify-center">
+      {selectedChannel && (
+        <PlayerContainer
+          channel={selectedChannel}
+          extraControls={extraControls}
+          overlayContent={catalogOverlay}
+          immersive
+        />
+      )}
     </div>
   );
 };

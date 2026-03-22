@@ -5,6 +5,9 @@ import { findHlsUrl } from "@/lib/hlsUtils";
 
 interface PlayerContainerProps {
   channel: DBChannel;
+  extraControls?: React.ReactNode;
+  overlayContent?: React.ReactNode;
+  immersive?: boolean;
 }
 
 /**
@@ -15,7 +18,7 @@ interface PlayerContainerProps {
  * 2. embedUrl → EmbedPlayer (iframe)
  * 3. Fallback → try first streamUrl with LivePlayer
  */
-const PlayerContainer = ({ channel }: PlayerContainerProps) => {
+const PlayerContainer = ({ channel, extraControls, overlayContent, immersive }: PlayerContainerProps) => {
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
   const firstPlayableUrl = channel.streamUrls.find(
     (url) => url && url !== "placeholder"
@@ -27,6 +30,9 @@ const PlayerContainer = ({ channel }: PlayerContainerProps) => {
         src={hlsStreamUrl}
         title={channel.name}
         subtitle={channel.category}
+        extraControls={extraControls}
+        overlayContent={overlayContent}
+        immersive={immersive}
       />
     );
   }
@@ -49,6 +55,9 @@ const PlayerContainer = ({ channel }: PlayerContainerProps) => {
         src={firstPlayableUrl}
         title={channel.name}
         subtitle={channel.category}
+        extraControls={extraControls}
+        overlayContent={overlayContent}
+        immersive={immersive}
       />
     );
   }
