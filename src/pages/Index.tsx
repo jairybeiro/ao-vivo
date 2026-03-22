@@ -64,19 +64,8 @@ const Index = () => {
     </button>
   );
 
-  const vodButton = (
-    <button
-      onClick={(e) => { e.stopPropagation(); navigate("/vod"); }}
-      className="hover:scale-110 transition active:scale-95"
-      title="Filmes & Séries"
-    >
-      <Film className="w-6 h-6 md:w-7 md:h-7" />
-    </button>
-  );
-
   const extraControls = (
     <>
-      {vodButton}
       {catalogButton}
     </>
   );
