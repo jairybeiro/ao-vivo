@@ -130,7 +130,7 @@ export const DesktopPlayerOverlay = ({
           onClick={onBack}
           className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
         >
-          <ArrowLeft className="w-6 h-6 text-white" />
+          <ArrowLeft className="w-7 h-7 text-white" strokeWidth={2.5} />
         </button>
       </div>
 
