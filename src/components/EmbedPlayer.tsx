@@ -21,7 +21,7 @@ interface EmbedPlayerProps {
 const REQUIRED_CLICKS = 3;
 
 const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
-  ({ embedUrl, channelName = "Canal", preRollAd, enablePreRoll = true, extraControls, overlayContent, immersive }, ref) => {
+  ({ embedUrl, channelName = "Canal", preRollAd, enablePreRoll = true, extraControls, overlayContent, immersive, onBack }, ref) => {
     const [iframeLoaded, setIframeLoaded] = useState(false);
     const [clickCount, setClickCount] = useState(0);
     const [showPreRoll, setShowPreRoll] = useState(enablePreRoll);
