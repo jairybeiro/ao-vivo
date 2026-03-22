@@ -83,7 +83,7 @@ const VodMoviePlayer = () => {
   }
 
   return (
-    <div className="h-screen bg-black">
+    <div className="h-screen w-screen bg-black flex items-center justify-center">
       <VodPlayer
         src={movie.stream_url}
         title={movie.name}
