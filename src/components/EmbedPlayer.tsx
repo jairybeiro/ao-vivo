@@ -3,30 +3,47 @@
  * Estratégia: 3 cliques para "limpar" pop-ups antes de liberar o player
  */
 
-import { useState, useCallback, useRef, forwardRef } from "react";
+import { useState, useCallback, useRef, useEffect, forwardRef } from "react";
 import { Play, Loader2, Shield } from "lucide-react";
 import { PreRollAd, type PreRollAdData } from "./ads";
+
 interface EmbedPlayerProps {
   embedUrl: string;
   channelName?: string;
   preRollAd?: PreRollAdData;
   enablePreRoll?: boolean;
+  extraControls?: React.ReactNode;
+  overlayContent?: React.ReactNode;
+  immersive?: boolean;
 }
 
 const REQUIRED_CLICKS = 3;
 
 const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
-  ({ embedUrl, channelName = "Canal", preRollAd, enablePreRoll = true }, ref) => {
+  ({ embedUrl, channelName = "Canal", preRollAd, enablePreRoll = true, extraControls, overlayContent, immersive }, ref) => {
     const [iframeLoaded, setIframeLoaded] = useState(false);
     const [clickCount, setClickCount] = useState(0);
     const [showPreRoll, setShowPreRoll] = useState(enablePreRoll);
+    const [showControls, setShowControls] = useState(true);
     const iframeRef = useRef<HTMLIFrameElement>(null);
+    const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
     const isProtectionActive = clickCount < REQUIRED_CLICKS;
+    const hasOverlayControls = !!(extraControls || overlayContent);
+
+    // Auto-hide floating controls
+    const resetHideTimer = useCallback(() => {
+      setShowControls(true);
+      clearTimeout(hideTimer.current);
+      hideTimer.current = setTimeout(() => setShowControls(false), 3500);
+    }, []);
+
+    useEffect(() => {
+      return () => clearTimeout(hideTimer.current);
+    }, []);
 
     const handleOverlayClick = useCallback(() => {
       if (!iframeLoaded) {
-        // Primeiro clique: carrega o iframe
         setIframeLoaded(true);
         setClickCount(1);
         return;
@@ -35,7 +52,6 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
       const next = clickCount + 1;
       setClickCount(next);
 
-      // Quando atinge o limite, foca no iframe
       if (next >= REQUIRED_CLICKS) {
         setTimeout(() => {
           iframeRef.current?.focus();
@@ -57,7 +73,13 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
     };
 
     return (
-      <div ref={ref} className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+      <div
+        ref={ref}
+        className={`relative bg-black overflow-hidden ${immersive ? "flex items-center justify-center" : "w-full rounded-lg"}`}
+        style={immersive ? { width: "98vw", height: "98vh", margin: "1vh auto" } : { aspectRatio: "16/9" }}
+        onMouseMove={hasOverlayControls ? resetHideTimer : undefined}
+        onTouchStart={hasOverlayControls ? resetHideTimer : undefined}
+      >
         {/* Iframe com sandbox restritivo */}
         {iframeLoaded && (
           <iframe
@@ -119,7 +141,6 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
                 <span className="text-white/90 text-xs md:text-sm font-medium">
                   {getOverlayMessage()}
                 </span>
-                {/* Indicador de progresso */}
                 <div className="flex gap-1.5 mt-1">
                   {Array.from({ length: REQUIRED_CLICKS }).map((_, i) => (
                     <div
@@ -134,6 +155,33 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
             )}
           </button>
         )}
+
+        {/* Floating navigation bar for embed channels — appears on mouse move */}
+        {hasOverlayControls && !isProtectionActive && !showPreRoll && (
+          <div
+            className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none"
+            style={{
+              opacity: showControls ? 1 : 0,
+              transition: "opacity 300ms ease",
+            }}
+          >
+            {/* Bottom gradient scrim */}
+            <div
+              className="absolute bottom-0 left-0 w-full player-scrim-bottom"
+              style={{ height: "100px" }}
+            />
+
+            {/* Controls bar */}
+            <div className="relative px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
+              <div className="flex items-center justify-end gap-3 md:gap-5 text-white">
+                {extraControls}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Overlay content (channel catalog etc.) */}
+        {overlayContent}
       </div>
     );
   }
