@@ -82,7 +82,7 @@ const DesktopEpisodesPanel = ({
               </button>
             </div>
 
-            <ScrollArea className="flex-1">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <div className="px-2 pb-4">
                 {seasonNumbers.map((s) => {
                   const isCurrent = s === activeSeason;
