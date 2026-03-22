@@ -222,6 +222,11 @@ const Admin = () => {
                 <span className="hidden md:inline">Premium</span>
                 <span className="md:hidden">VIP</span>
               </TabsTrigger>
+              <TabsTrigger value="curated" className="flex items-center gap-1 text-xs md:text-sm">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Curadoria</span>
+                <span className="md:hidden">Curar</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Tab de Canais */}
