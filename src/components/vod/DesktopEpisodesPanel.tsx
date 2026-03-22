@@ -133,7 +133,7 @@ const DesktopEpisodesPanel = ({
             </div>
 
             {/* Episodes list — scrollable, ~6 visible */}
-            <ScrollArea className="flex-1">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain">
               <div className="pb-4">
                 {activeEpisodes.map((ep) => {
                   const isCurrent = currentEpisode?.id === ep.id;
