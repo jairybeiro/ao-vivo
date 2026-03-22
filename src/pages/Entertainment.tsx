@@ -1,194 +1,194 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useVodMovies, useVodSeries } from "@/hooks/useVod";
-import { useContinueWatching, WatchProgress } from "@/hooks/useWatchProgress";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Film, Clapperboard, Search, Star, PlayCircle } from "lucide-react";
+import { Film, Clapperboard, Star, PlayCircle, ChevronRight } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
-import HeroBanner from "@/components/vod/HeroBanner";
 
-const formatTime = (s: number) => {
-  if (!isFinite(s) || s < 0) return "0:00";
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = Math.floor(s % 60);
-  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-  return `${m}:${sec.toString().padStart(2, "0")}`;
+interface CuratedItem {
+  id: string;
+  name: string;
+  type: "movie" | "series";
+  category_tag: string;
+  cover_url: string | null;
+  backdrop_url: string | null;
+  rating: number | null;
+  trailer_url: string | null;
+  plot?: string | null;
+}
+
+const TAG_EMOJIS: Record<string, string> = {
+  "Estratégia": "🎯",
+  "Mentalidade": "🧠",
+  "Liderança": "👑",
+  "Empreendedorismo": "🚀",
+  "Superação": "💪",
+  "Criatividade": "🎨",
+  "Negociação": "🤝",
+  "Motivação": "🔥",
 };
 
 const Entertainment = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const showAdult = searchParams.get("adult") === "1";
-  const [activeTab, setActiveTab] = useState("movies");
-  const [movieCategory, setMovieCategory] = useState("Todos");
-  const [seriesCategory, setSeriesCategory] = useState("Todos");
-  const [searchTerm, setSearchTerm] = useState("");
-  const searchTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [collections, setCollections] = useState<Record<string, CuratedItem[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [heroItem, setHeroItem] = useState<CuratedItem | null>(null);
 
-  const { movies, categories: movieCategories, loading: moviesLoading, refetch: refetchMovies } = useVodMovies(movieCategory, showAdult);
-  const { series, categories: seriesCategories, loading: seriesLoading, refetch: refetchSeries } = useVodSeries(seriesCategory, showAdult);
-  const { items: continueWatching, loading: cwLoading } = useContinueWatching(showAdult);
+  const fetchCurated = useCallback(async () => {
+    setLoading(true);
 
-  useEffect(() => {
-    clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => {
-      const term = searchTerm.trim() || undefined;
-      if (activeTab === "movies") refetchMovies(term);
-      else refetchSeries(term);
-    }, 300);
-    return () => clearTimeout(searchTimerRef.current);
-  }, [searchTerm, activeTab]);
+    const [{ data: movies }, { data: series }] = await Promise.all([
+      supabase
+        .from("vod_movies")
+        .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag")
+        .not("category_tag", "is", null)
+        .eq("is_active", true)
+        .order("name"),
+      supabase
+        .from("vod_series")
+        .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag, plot")
+        .not("category_tag", "is", null)
+        .eq("is_active", true)
+        .order("name"),
+    ]);
 
-  const handleContinueClick = async (item: WatchProgress) => {
-    if (item.content_type === "movie") {
-      navigate(`/vod/movie/${item.content_id}`);
-    } else {
-      const { data: episode } = await supabase
-        .from("vod_episodes")
-        .select("series_id")
-        .eq("id", item.content_id)
-        .maybeSingle();
-      if (episode?.series_id) navigate(`/vod/series/${episode.series_id}`);
+    const items: CuratedItem[] = [
+      ...(movies || []).map((m: any) => ({ ...m, type: "movie" as const })),
+      ...(series || []).map((s: any) => ({ ...s, type: "series" as const })),
+    ];
+
+    // Group by category_tag
+    const grouped: Record<string, CuratedItem[]> = {};
+    items.forEach((item) => {
+      if (!item.category_tag) return;
+      if (!grouped[item.category_tag]) grouped[item.category_tag] = [];
+      grouped[item.category_tag].push(item);
+    });
+
+    setCollections(grouped);
+
+    // Pick hero: item with backdrop
+    const withBackdrop = items.filter((i) => i.backdrop_url);
+    if (withBackdrop.length > 0) {
+      setHeroItem(withBackdrop[Math.floor(Math.random() * withBackdrop.length)]);
     }
+
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchCurated(); }, [fetchCurated]);
+
+  const handleClick = (item: CuratedItem) => {
+    if (item.type === "movie") navigate(`/vod/movie/${item.id}`);
+    else navigate(`/vod/series/${item.id}`);
   };
 
+  const tags = Object.keys(collections);
+
   return (
-    <div className="min-h-screen bg-background overflow-y-auto">
+    <div className="min-h-screen bg-background">
       <MainHeader />
 
-      {/* Hero Banner */}
-      {!moviesLoading && !seriesLoading && (
-        <HeroBanner movies={movies} series={series} activeTab={activeTab as "movies" | "series"} />
+      {/* Hero */}
+      {heroItem && heroItem.backdrop_url && (
+        <div className="relative w-full aspect-[21/9] max-h-[480px] overflow-hidden">
+          <img
+            src={heroItem.backdrop_url}
+            alt={heroItem.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+          <div className="absolute bottom-8 left-8 right-8 max-w-xl space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{TAG_EMOJIS[heroItem.category_tag] || "🎬"}</span>
+              <span className="text-xs font-semibold text-primary uppercase tracking-wider">
+                {heroItem.category_tag}
+              </span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">{heroItem.name}</h1>
+            {heroItem.rating && (
+              <div className="flex items-center gap-1 text-sm text-foreground/80">
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                {heroItem.rating}
+              </div>
+            )}
+            {heroItem.plot && (
+              <p className="text-sm text-foreground/70 line-clamp-2">{heroItem.plot}</p>
+            )}
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={() => handleClick(heroItem)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-md font-semibold text-sm hover:bg-foreground/90 transition"
+              >
+                <PlayCircle className="w-5 h-5" />
+                Assistir
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
-      <main className="container mx-auto px-4 py-4 space-y-4">
-        {/* Continue Watching */}
-        {!cwLoading && continueWatching.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <PlayCircle className="w-4 h-4 text-primary" />
-              Continuar Assistindo
-            </h2>
-            <div className="flex gap-3 overflow-x-auto pb-2">
-              {continueWatching.map(item => {
-                const pct = item.duration_secs > 0 ? (item.current_time_secs / item.duration_secs) * 100 : 0;
-                return (
-                  <div key={item.id} className="flex-shrink-0 w-40 cursor-pointer group" onClick={() => handleContinueClick(item)}>
+      {/* Collections */}
+      <main className="container mx-auto px-4 py-6 space-y-8">
+        {loading ? (
+          <div className="text-center text-muted-foreground py-16">Carregando coleções...</div>
+        ) : tags.length === 0 ? (
+          <div className="text-center text-muted-foreground py-16">
+            <Film className="w-12 h-12 mx-auto mb-3 opacity-50" />
+            <p>Nenhum conteúdo curado disponível.</p>
+            <p className="text-xs mt-1">Adicione conteúdos no painel Admin → Curadoria.</p>
+          </div>
+        ) : (
+          tags.map((tag) => (
+            <section key={tag} className="space-y-3">
+              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                <span className="text-xl">{TAG_EMOJIS[tag] || "🎬"}</span>
+                {tag}
+                <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              </h2>
+              <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide">
+                {collections[tag].map((item) => (
+                  <div
+                    key={item.id}
+                    onClick={() => handleClick(item)}
+                    className="flex-shrink-0 w-36 md:w-44 cursor-pointer group"
+                  >
                     <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative">
-                      {item.content_cover_url ? (
-                        <img src={item.content_cover_url} alt={item.content_name} className="w-full h-full object-cover" loading="lazy" />
+                      {item.cover_url ? (
+                        <img
+                          src={item.cover_url}
+                          alt={item.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          loading="lazy"
+                        />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center"><Film className="w-8 h-8 text-muted-foreground" /></div>
+                        <div className="w-full h-full flex items-center justify-center">
+                          {item.type === "movie" ? (
+                            <Film className="w-8 h-8 text-muted-foreground" />
+                          ) : (
+                            <Clapperboard className="w-8 h-8 text-muted-foreground" />
+                          )}
+                        </div>
                       )}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <PlayCircle className="w-10 h-10 text-white" />
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-muted-foreground/30">
-                        <div className="h-full bg-primary" style={{ width: `${Math.min(pct, 100)}%` }} />
-                      </div>
+                      {item.rating && item.rating > 0 && (
+                        <div className="absolute top-1.5 right-1.5 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                          <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                          {item.rating}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-xs font-medium truncate mt-1">{item.content_name}</p>
-                    <p className="text-[10px] text-muted-foreground">{formatTime(item.current_time_secs)} / {formatTime(item.duration_secs)}</p>
+                    <p className="text-xs font-medium truncate mt-1.5">{item.name}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {item.type === "movie" ? "Filme" : "Série"}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
+                ))}
+              </div>
+            </section>
+          ))
         )}
-
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input className="pl-10" placeholder="Buscar filmes ou séries..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex items-center gap-4">
-            <TabsList>
-              <TabsTrigger value="movies" className="flex items-center gap-1"><Film className="w-4 h-4" />Filmes</TabsTrigger>
-              <TabsTrigger value="series" className="flex items-center gap-1"><Clapperboard className="w-4 h-4" />Séries</TabsTrigger>
-            </TabsList>
-
-            {activeTab === "movies" && movieCategories.length > 0 && (
-              <Select value={movieCategory} onValueChange={setMovieCategory}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  {movieCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-
-            {activeTab === "series" && seriesCategories.length > 0 && (
-              <Select value={seriesCategory} onValueChange={setSeriesCategory}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  {seriesCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          <TabsContent value="movies" className="mt-4">
-            {moviesLoading ? (
-              <div className="text-center text-muted-foreground py-12">Carregando filmes...</div>
-            ) : movies.length === 0 ? (
-              <div className="text-center text-muted-foreground py-12">Nenhum filme encontrado.</div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {movies.map(movie => (
-                  <Card key={movie.id} className="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all overflow-hidden group" onClick={() => navigate(`/vod/movie/${movie.id}`)}>
-                    <div className="aspect-[2/3] bg-muted relative">
-                      {movie.cover_url ? <img src={movie.cover_url} alt={movie.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Film className="w-8 h-8 text-muted-foreground" /></div>}
-                      {movie.rating && movie.rating > 0 && (
-                        <div className="absolute top-1 right-1 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                          <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />{movie.rating}
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-2">
-                      <p className="text-xs font-medium truncate">{movie.name}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{movie.category}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="series" className="mt-4">
-            {seriesLoading ? (
-              <div className="text-center text-muted-foreground py-12">Carregando séries...</div>
-            ) : series.length === 0 ? (
-              <div className="text-center text-muted-foreground py-12">Nenhuma série encontrada.</div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {series.map(s => (
-                  <Card key={s.id} className="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all overflow-hidden group" onClick={() => navigate(`/vod/series/${s.id}`)}>
-                    <div className="aspect-[2/3] bg-muted relative">
-                      {s.cover_url ? <img src={s.cover_url} alt={s.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Clapperboard className="w-8 h-8 text-muted-foreground" /></div>}
-                      {s.rating && s.rating > 0 && (
-                        <div className="absolute top-1 right-1 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                          <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />{s.rating}
-                        </div>
-                      )}
-                    </div>
-                    <CardContent className="p-2">
-                      <p className="text-xs font-medium truncate">{s.name}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{s.category}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
       </main>
     </div>
   );
