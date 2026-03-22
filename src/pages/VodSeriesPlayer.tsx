@@ -145,7 +145,7 @@ const VodSeriesPlayer = () => {
           contentId={currentEpisode.id}
           contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
           contentCoverUrl={currentEpisode.cover_url || series.cover_url}
-          centerLabel={`${series.name} · T${currentEpisode.season} E${currentEpisode.episode_num}`}
+          centerLabel={`${series.name.replace(/\s*\(\d{4}\)\s*$/, '')} · T${currentEpisode.season} E${currentEpisode.episode_num}`}
           onBack={() => navigate("/vod")}
           nextEpisode={
             nextEp
