@@ -15,6 +15,7 @@ interface EmbedPlayerProps {
   extraControls?: React.ReactNode;
   overlayContent?: React.ReactNode;
   immersive?: boolean;
+  onBack?: () => void;
 }
 
 const REQUIRED_CLICKS = 3;
