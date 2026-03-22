@@ -80,7 +80,7 @@ const MobileEpisodesPanel = ({
         )}
 
         {/* Episodes */}
-        <ScrollArea className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' as any }}>
           <div className="px-4 pb-6 space-y-3">
             {activeEpisodes.map(ep => {
               const isCurrent = currentEpisode?.id === ep.id;
