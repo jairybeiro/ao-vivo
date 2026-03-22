@@ -40,6 +40,9 @@
     --radius: 0.75rem;
 
     --player-overlay: 220 20% 5%;
+    --player-scrim: 0 0% 0%;
+    --player-contrast: 0 0% 100%;
+    --player-accent: 357 92% 47%;
     --glass: 220 20% 15%;
     --glass-border: 220 15% 25%;
 
@@ -125,6 +128,14 @@
 @layer utilities {
   .glass {
     @apply bg-glass/80 backdrop-blur-xl border border-glass-border;
+  }
+
+  .player-scrim-top {
+    background: linear-gradient(180deg, hsl(var(--player-scrim) / 0.5) 0%, hsl(var(--player-scrim) / 0) 100%);
+  }
+
+  .player-scrim-bottom {
+    background: linear-gradient(0deg, hsl(var(--player-scrim) / 0.5) 0%, hsl(var(--player-scrim) / 0) 100%);
   }
 }
 
