@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Hls from "hls.js";
-import { Loader2 } from "lucide-react";
+import { NetflixLoader } from "@/components/NetflixLoader";
 import { DesktopPlayerOverlay } from "./DesktopPlayerOverlay";
 import { AutoPlayOverlay } from "./AutoPlayOverlay";
 import { CourseLesson } from "@/hooks/useCourses";
@@ -384,12 +384,8 @@ export const DesktopLessonPlayer = ({
         onClick={togglePlay}
       />
 
-      {/* Loading */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-40">
-          <Loader2 className="w-12 h-12 text-primary animate-spin" />
-        </div>
-      )}
+      {/* Netflix-style preload */}
+      <NetflixLoader visible={isLoading && !error} />
 
       {/* Error */}
       {error && (

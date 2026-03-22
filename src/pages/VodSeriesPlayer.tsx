@@ -91,10 +91,10 @@ const VodSeriesPlayer = () => {
   const episodesButton = hasEpisodes ? (
     <button
       onClick={() => setShowEpisodesPanel(true)}
-      className="text-white hover:text-white/80 transition p-1.5 flex items-center gap-1 text-xs sm:text-sm"
+      className="text-white hover:text-white/80 transition p-1.5"
+      title="Episódios"
     >
-      <ListVideo className="w-4 h-4 sm:w-5 sm:h-5" />
-      <span>Episódios</span>
+      <ListVideo className="w-5 h-5" />
     </button>
   ) : undefined;
 
