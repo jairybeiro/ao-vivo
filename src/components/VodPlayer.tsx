@@ -555,8 +555,8 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                 <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] md:text-[10px] font-bold mt-[1px]">10</span>
               </button>
 
-              {/* Volume — desktop horizontal slider on hover */}
-              <div className="hidden md:flex items-center gap-1 group/volume">
+              {/* Volume — vertical slider on hover (Netflix style) */}
+              <div className="hidden md:flex items-center relative group/volume">
                 <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
                   {muted || volume === 0
                     ? <VolumeX className="w-7 h-7" />
@@ -565,13 +565,25 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                       : <Volume2 className="w-7 h-7" />
                   }
                 </button>
-                <input
-                  type="range" min="0" max="1" step="0.05"
-                  value={muted ? 0 : volume}
-                  onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-300 h-[3px] bg-[hsl(var(--player-contrast)/0.3)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[hsl(var(--player-contrast))] [&::-webkit-slider-thumb]:rounded-full"
-                />
+                {/* Vertical volume popup */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover/volume:opacity-100 group-hover/volume:scale-100 transition-all duration-200 pointer-events-none group-hover/volume:pointer-events-auto">
+                  <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="range" min="0" max="1" step="0.02"
+                      value={muted ? 0 : volume}
+                      onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-24 appearance-none cursor-pointer bg-transparent"
+                      {...{ orient: "vertical" } as any}
+                      style={{
+                        writingMode: "vertical-lr",
+                        direction: "rtl",
+                        WebkitAppearance: "slider-vertical",
+                        width: "4px",
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Mobile mute */}
