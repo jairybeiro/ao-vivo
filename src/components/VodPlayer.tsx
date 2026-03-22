@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toProxyStreamUrl } from "@/lib/streamProxy";
 import { isHlsUrl } from "@/lib/hlsUtils";
 import { useSaveWatchProgress, useGetWatchProgress } from "@/hooks/useWatchProgress";
+import { NetflixLoader } from "@/components/NetflixLoader";
 import Hls from "hls.js";
 import {
   Play,
@@ -13,7 +14,6 @@ import {
   SkipForward,
   SkipBack,
   ArrowLeft,
-  Loader2,
   Settings,
 } from "lucide-react";
 
@@ -30,9 +30,7 @@ interface VodPlayerProps {
   onBack?: () => void;
   onEnded?: () => void;
   extraControls?: React.ReactNode;
-  /** Episode label shown center-bottom, e.g. "House of Cards E3  Capítulo 3" */
   centerLabel?: string;
-  /** Content rendered inside the fullscreen container (e.g. episode panels) */
   overlayContent?: React.ReactNode;
 }
 
@@ -76,7 +74,6 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const doSave = useCallback(() => {
     const v = videoRef.current;
     if (!v || !contentType || !contentId) return;
-    // Don't save while resume prompt is showing (would overwrite with time ~0)
     if (!resumedRef.current && v.currentTime < 5) return;
     saveProgress({
       contentType,
@@ -97,20 +94,16 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     }
     return () => {
       clearInterval(saveInterval.current);
-      // Save on unmount
       doSave();
     };
   }, [contentType, contentId, playing, doSave]);
 
-  // Store the resume time so it survives even if savedProgress gets overwritten
   const resumeTimeRef = useRef<number | null>(null);
 
-  // Show resume prompt when saved progress is available
   useEffect(() => {
     if (savedProgress && savedProgress.current_time_secs > 10 && !resumedRef.current) {
       resumeTimeRef.current = savedProgress.current_time_secs;
       setShowResumePrompt(true);
-      // Pause video while prompt is showing
       const v = videoRef.current;
       if (v && !v.paused) v.pause();
     }
@@ -253,7 +246,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     return () => clearTimeout(hideTimer.current);
   }, [playing]);
 
-  // Fullscreen listener (standard + webkit)
+  // Fullscreen listener
   useEffect(() => {
     const onFsChange = () => {
       const isFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
@@ -352,7 +345,6 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
           await (document as any).webkitExitFullscreen();
         }
       } else {
-        // Try container first, then video (iOS Safari native)
         const el = container || video;
         if (el?.requestFullscreen) {
           await el.requestFullscreen();
@@ -361,12 +353,9 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         } else if ((video as any)?.webkitEnterFullscreen) {
           await (video as any).webkitEnterFullscreen();
         }
-        // Try landscape lock
         try {
           await (screen.orientation as any).lock?.("landscape");
-        } catch {
-          // Not supported on iOS
-        }
+        } catch {}
       }
     } catch (err) {
       console.log("Fullscreen error:", err);
@@ -389,6 +378,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     <div
       ref={containerRef}
       className="relative w-full h-full bg-black select-none group"
+      style={{ fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif", WebkitFontSmoothing: "antialiased" }}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
     >
@@ -399,16 +389,12 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         playsInline
       />
 
-      {/* Loading spinner */}
-      {loading && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Loader2 className="w-12 h-12 text-white animate-spin" />
-        </div>
-      )}
+      {/* Netflix-style preload */}
+      <NetflixLoader visible={loading && !error && !showResumePrompt} />
 
       {/* Error */}
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 z-50">
           <p className="text-destructive text-sm">{error}</p>
           <button onClick={() => { setError(null); videoRef.current?.load(); }} className="text-white underline text-sm">
             Tentar novamente
@@ -448,7 +434,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="4" opacity="0.3" />
                 <circle
-                  cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--primary))" strokeWidth="4"
+                  cx="50" cy="50" r="45" fill="none" stroke="#E50914" strokeWidth="4"
                   strokeDasharray={`${2 * Math.PI * 45}`}
                   strokeDashoffset={`${2 * Math.PI * 45 * (1 - countdown / 10)}`}
                   strokeLinecap="round"
@@ -478,7 +464,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         </div>
       )}
 
-      {/* Click-to-play/pause overlay (covers the video area) */}
+      {/* Click-to-play/pause overlay */}
       <div
         className={`absolute inset-0 z-10 cursor-pointer transition-opacity duration-300 ${
           countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""
@@ -486,26 +472,25 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         onClick={togglePlay}
       />
 
-      {/* Netflix-style controls overlay */}
+      {/* Controls overlay — transparent with subtle scrim */}
       <div
         data-controls
         className={`absolute inset-0 z-20 transition-opacity duration-300 pointer-events-none ${
           showControls || !playing ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* Top gradient + info */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 pointer-events-auto" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 12px)` }}>
-          <div className="flex items-center gap-3">
+        {/* Subtle full-screen scrim instead of heavy gradients */}
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+
+        {/* Top — only back arrow, no title */}
+        <div className="absolute top-0 left-0 right-0 p-4 pointer-events-auto" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 12px)` }}>
+          <div className="flex items-center">
             <button
               onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
-              className="text-white hover:text-primary transition p-1"
+              className="text-white hover:text-white/80 transition p-1"
             >
-              <ArrowLeft className="w-6 h-6" />
+              <ArrowLeft className="w-7 h-7" strokeWidth={2.5} />
             </button>
-            <div className="min-w-0">
-              {title && <p className="text-white font-semibold text-sm md:text-base truncate">{title}</p>}
-              {subtitle && <p className="text-white/60 text-xs truncate">{subtitle}</p>}
-            </div>
           </div>
         </div>
 
@@ -518,8 +503,8 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
           </div>
         )}
 
-        {/* Bottom controls */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-3 pt-12 pointer-events-auto">
+        {/* Bottom controls — lighter gradient */}
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent px-4 pb-3 pt-12 pointer-events-auto">
           {/* Progress bar */}
           <div
             className="relative h-1 hover:h-1.5 transition-all bg-white/20 rounded-full mb-3 cursor-pointer group/progress"
@@ -530,9 +515,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               seek(pct * duration);
             }}
           >
-            {/* Buffered (preload) - red tint */}
             <div className="absolute h-full bg-red-600/40 rounded-full" style={{ width: `${bufferedPercent}%` }} />
-            {/* Progress */}
             <div className="absolute h-full bg-red-600 rounded-full" style={{ width: `${progressPercent}%` }} />
             <div
               className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-red-600 rounded-full opacity-0 group-hover/progress:opacity-100 transition"
@@ -552,7 +535,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-white/80 transition p-1.5">
                 <SkipForward className="w-5 h-5" />
               </button>
-              {/* Volume with vertical red slider — click-toggled */}
+              {/* Volume */}
               <div className="relative flex items-center" ref={volumePanelRef}>
                 <button onClick={(e) => { e.stopPropagation(); setVolumeOpen(v => !v); }} className="text-white hover:text-white/80 transition p-1.5">
                   {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
@@ -578,7 +561,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               </span>
             </div>
 
-            {/* Center label - Netflix style episode name */}
+            {/* Center label */}
             {centerLabel && (
               <div className="flex-1 flex items-center justify-center min-w-0 mx-4">
                 <span className="text-white text-sm font-medium truncate">{centerLabel}</span>
