@@ -475,42 +475,49 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         onClick={togglePlay}
       />
 
-      {/* Controls overlay — transparent with subtle scrim */}
+      {/* Controls overlay — Netflix Layer Cake */}
       <div
         data-controls
         className={`absolute inset-0 z-20 transition-opacity duration-300 pointer-events-none ${
           showControls || !playing ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* Subtle full-screen scrim instead of heavy gradients */}
-        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+        {/* SCRIMS - Netflix gradient layers */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute top-0 left-0 w-full h-32"
+            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}
+          />
+          <div
+            className="absolute bottom-0 left-0 w-full h-48"
+            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)' }}
+          />
+        </div>
 
-        {/* Top — only back arrow, no title */}
-        <div className="absolute top-0 left-0 right-0 p-4 pointer-events-auto" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 12px)` }}>
-          <div className="flex items-center">
-            <button
-              onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
-              className="text-white hover:text-white/80 transition p-1"
-            >
-              <ArrowLeft className="w-7 h-7" strokeWidth={2.5} />
-            </button>
-          </div>
+        {/* Top — back arrow only */}
+        <div className="absolute top-0 left-0 right-0 p-4 md:p-6 pointer-events-auto" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 12px)` }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
+            className="text-white hover:scale-110 transition active:scale-95"
+          >
+            <ArrowLeft className="w-10 h-10 md:w-12 md:h-12" />
+          </button>
         </div>
 
         {/* Center play button (when paused) */}
         {!playing && !loading && !error && countdown === null && !showResumePrompt && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={togglePlay}>
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Play className="w-8 h-8 text-white ml-1" />
+            <div className="bg-black/50 p-6 rounded-full backdrop-blur-sm hover:scale-110 transition-transform">
+              <Play className="w-12 h-12 text-white fill-white ml-1" />
             </div>
           </div>
         )}
 
-        {/* Bottom controls — lighter gradient */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent px-4 pb-3 pt-12 pointer-events-auto">
-          {/* Progress bar */}
+        {/* Bottom controls — Netflix style */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-4 md:pb-6 pointer-events-auto">
+          {/* Progress bar — thin red line with hover dot */}
           <div
-            className="relative h-1 hover:h-1.5 transition-all bg-white/20 rounded-full mb-3 cursor-pointer group/progress"
+            className="relative w-full h-[2px] cursor-pointer mb-5 group/progress rounded-full overflow-visible"
             onClick={(e) => {
               e.stopPropagation();
               const rect = e.currentTarget.getBoundingClientRect();
@@ -518,86 +525,116 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               seek(pct * duration);
             }}
           >
-            <div className="absolute h-full bg-red-600/40 rounded-full" style={{ width: `${bufferedPercent}%` }} />
-            <div className="absolute h-full bg-red-600 rounded-full" style={{ width: `${progressPercent}%` }} />
+            <div className="absolute inset-0 bg-white/30 rounded-full" />
+            <div className="absolute top-0 left-0 h-full bg-white/40 rounded-full" style={{ width: `${bufferedPercent}%` }} />
+            <div className="absolute top-0 left-0 h-full bg-[#E50914] rounded-full" style={{ width: `${progressPercent}%` }} />
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-red-600 rounded-full opacity-0 group-hover/progress:opacity-100 transition"
-              style={{ left: `${progressPercent}%`, transform: `translate(-50%, -50%)` }}
+              className="absolute top-1/2 w-3 h-3 bg-[#E50914] rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow-lg"
+              style={{ left: `${progressPercent}%`, transform: 'translate(-50%, -50%)' }}
             />
           </div>
 
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between relative text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
             {/* Left controls */}
-            <div className="flex items-center gap-1 md:gap-2">
-              <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="text-white hover:text-white/80 transition p-1.5">
-                {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+            <div className="flex items-center gap-3 md:gap-6">
+              {/* Play/Pause */}
+              <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="hover:text-white/80 transition">
+                {playing
+                  ? <Pause className="w-7 h-7 md:w-10 md:h-10 fill-white" />
+                  : <Play className="w-7 h-7 md:w-10 md:h-10 fill-white" />
+                }
               </button>
-              <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="text-white hover:text-white/80 transition p-1.5">
-                <SkipBack className="w-5 h-5" />
+
+              {/* Skip -10 */}
+              <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="hover:scale-110 transition active:scale-95 relative">
+                <RotateCcw className="w-6 h-6 md:w-8 md:h-8" />
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] md:text-[10px] font-bold mt-[1px]">10</span>
               </button>
-              <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-white/80 transition p-1.5">
-                <SkipForward className="w-5 h-5" />
+
+              {/* Skip +10 */}
+              <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="hover:scale-110 transition active:scale-95 relative">
+                <RotateCw className="w-6 h-6 md:w-8 md:h-8" />
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] md:text-[10px] font-bold mt-[1px]">10</span>
               </button>
-              {/* Volume */}
-              <div className="relative flex items-center" ref={volumePanelRef}>
-                <button onClick={(e) => { e.stopPropagation(); setVolumeOpen(v => !v); }} className="text-white hover:text-white/80 transition p-1.5">
-                  {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+
+              {/* Volume — horizontal slider on hover (desktop) */}
+              <div className="hidden md:flex items-center gap-2 group/volume">
+                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-white/80 transition">
+                  {muted || volume === 0
+                    ? <VolumeX className="w-7 h-7" />
+                    : volume < 0.5
+                      ? <Volume1 className="w-7 h-7" />
+                      : <Volume2 className="w-7 h-7" />
+                  }
                 </button>
-                <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-opacity duration-200 ${volumeOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}>
-                  <div className="bg-black/90 rounded-md p-2 flex flex-col items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="range"
-                      min="0" max="1" step="0.05"
-                      value={muted ? 0 : volume}
-                      onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="h-20 w-1 cursor-pointer appearance-none bg-white/30 rounded-full [writing-mode:vertical-lr] [direction:rtl] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:border-0"
-                    />
-                    <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white/70 hover:text-white transition">
-                      {muted || volume === 0 ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                    </button>
-                  </div>
-                </div>
+                <input
+                  type="range"
+                  min="0" max="1" step="0.05"
+                  value={muted ? 0 : volume}
+                  onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-0 overflow-hidden group-hover/volume:w-24 transition-all duration-300 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[#E50914] [&::-webkit-slider-thumb]:rounded-full"
+                />
               </div>
-              <span className="text-white/80 text-xs ml-1 tabular-nums hidden sm:block">
-                {formatTime(currentTime)} / {formatTime(duration)}
-              </span>
+
+              {/* Mobile mute button */}
+              <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="md:hidden hover:text-white/80 transition">
+                {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+              </button>
+
+              {/* Time counter */}
+              <div className="text-xs md:text-sm font-bold font-mono tracking-tighter tabular-nums opacity-90 ml-1">
+                <span>{formatTime(currentTime)}</span>
+                <span className="mx-1 opacity-50">/</span>
+                <span>{formatTime(duration)}</span>
+              </div>
             </div>
 
-            {/* Center label */}
+            {/* Center label — Netflix single-line title */}
             {centerLabel && (
-              <div className="flex-1 flex items-center justify-center min-w-0 mx-4">
-                <span className="text-white text-sm font-medium truncate">{centerLabel}</span>
+              <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] gap-3">
+                {subtitle && <span className="font-bold text-sm drop-shadow-xl whitespace-nowrap">{subtitle}</span>}
+                {subtitle && title && <span className="opacity-50">·</span>}
+                {title && <span className="opacity-70 text-sm truncate">{title}</span>}
+              </div>
+            )}
+            {!centerLabel && (title || subtitle) && (
+              <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] gap-3">
+                {subtitle && <span className="font-bold text-sm drop-shadow-xl whitespace-nowrap">{subtitle}</span>}
+                {subtitle && title && <span className="opacity-50">·</span>}
+                {title && <span className="opacity-70 text-sm truncate">{title}</span>}
               </div>
             )}
 
             {/* Right controls */}
-            <div className="flex items-center gap-1 md:gap-2">
+            <div className="flex items-center gap-3 md:gap-5">
               {extraControls}
               {nextEpisode && (
                 <button
                   onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }}
-                  className="text-white hover:text-white/80 transition p-1.5 flex items-center gap-1 text-xs"
+                  className="hover:text-white/80 transition"
+                  title="Próximo"
                 >
-                  <SkipForward className="w-4 h-4" />
-                  <span className="hidden sm:inline">Próximo</span>
+                  <SkipForward className="w-6 h-6 md:w-7 md:h-7" />
                 </button>
               )}
-              <div className="relative">
+
+              {/* Speed */}
+              <div className="relative hidden md:block">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
-                  className="text-white hover:text-white/80 transition p-1.5 text-xs"
+                  className="hover:text-white/80 font-bold text-sm md:text-base min-w-[2.5rem] tracking-tighter transition"
                 >
-                  {playbackRate !== 1 ? `${playbackRate}x` : <Settings className="w-5 h-5" />}
+                  {playbackRate}x
                 </button>
                 {showSettings && (
-                  <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg p-2 space-y-0.5 min-w-[80px]" onClick={(e) => e.stopPropagation()}>
+                  <div className="absolute bottom-full right-0 mb-4 bg-black/95 rounded-lg border border-white/10 overflow-hidden flex flex-col-reverse shadow-2xl backdrop-blur-xl min-w-[80px]" onClick={(e) => e.stopPropagation()}>
                     {[0.5, 0.75, 1, 1.25, 1.5, 2].map(r => (
                       <button
                         key={r}
                         onClick={() => changeRate(r)}
-                        className={`block w-full text-left px-3 py-1.5 text-xs rounded transition ${
-                          playbackRate === r ? "bg-red-600 text-white" : "text-white hover:bg-white/10"
+                        className={`px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition whitespace-nowrap ${
+                          playbackRate === r ? "text-[#E50914]" : "text-white"
                         }`}
                       >
                         {r}x
@@ -606,8 +643,13 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                   </div>
                 )}
               </div>
-              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white hover:text-white/80 transition p-1.5">
-                <Maximize className="w-5 h-5" />
+
+              {/* Fullscreen */}
+              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="hover:scale-110 transition active:scale-90">
+                {isFullscreen
+                  ? <Minimize className="w-6 h-6 md:w-7 md:h-7" />
+                  : <Maximize className="w-6 h-6 md:w-7 md:h-7" />
+                }
               </button>
             </div>
           </div>
