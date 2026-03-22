@@ -12,6 +12,7 @@ import {
   Minimize,
   Radio,
   Loader2,
+  ArrowLeft,
 } from "lucide-react";
 
 interface LivePlayerProps {
