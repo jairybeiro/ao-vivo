@@ -120,6 +120,7 @@ const Index = () => {
           extraControls={extraControls}
           overlayContent={catalogOverlay}
           immersive
+          onBack={() => navigate("/vod")}
         />
       )}
     </div>
