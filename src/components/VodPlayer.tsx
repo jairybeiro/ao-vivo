@@ -364,11 +364,28 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferedPercent = duration > 0 ? (buffered / duration) * 100 : 0;
 
+  // Custom Netflix episodes icon (stacked cards)
+  const EpisodesIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="2" width="16" height="2" rx="0.5" fill="currentColor" opacity="0.5" />
+      <rect x="6" y="5" width="12" height="2" rx="0.5" fill="currentColor" opacity="0.7" />
+      <rect x="3" y="8" width="18" height="14" rx="1" stroke="currentColor" strokeWidth="1.8" fill="none" />
+      <polygon points="10,12 10,18 15.5,15" fill="currentColor" />
+    </svg>
+  );
+
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full bg-black select-none group"
-      style={{ fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif", WebkitFontSmoothing: "antialiased" }}
+      className="relative bg-black select-none flex items-center justify-center"
+      style={{
+        width: "98vw",
+        height: "98vh",
+        margin: "1vh auto",
+        fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+      }}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
     >
@@ -398,16 +415,10 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
           <div className="text-center space-y-4 p-6">
             <p className="text-white text-sm">Você parou em <span className="font-bold text-primary">{formatTime(resumeTimeRef.current)}</span></p>
             <div className="flex gap-3 justify-center">
-              <button
-                onClick={handleStartOver}
-                className="px-4 py-2 rounded bg-muted text-foreground text-sm hover:bg-muted/80 transition"
-              >
+              <button onClick={handleStartOver} className="px-4 py-2 rounded bg-muted text-foreground text-sm hover:bg-muted/80 transition">
                 Começar do início
               </button>
-              <button
-                onClick={handleResume}
-                className="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 transition flex items-center gap-1"
-              >
+              <button onClick={handleResume} className="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 transition flex items-center gap-1">
                 <Play className="w-4 h-4" /> Retomar de {formatTime(resumeTimeRef.current)}
               </button>
             </div>
@@ -423,30 +434,17 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
             <div className="relative w-24 h-24 mx-auto">
               <svg className="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r="45" fill="none" stroke="hsl(var(--muted))" strokeWidth="4" opacity="0.3" />
-                <circle
-                  cx="50" cy="50" r="45" fill="none" stroke="#E50914" strokeWidth="4"
+                <circle cx="50" cy="50" r="45" fill="none" stroke="#E50914" strokeWidth="4"
                   strokeDasharray={`${2 * Math.PI * 45}`}
                   strokeDashoffset={`${2 * Math.PI * 45 * (1 - countdown / 10)}`}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000"
-                />
+                  strokeLinecap="round" className="transition-all duration-1000" />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-white text-3xl font-bold">
-                {countdown}
-              </span>
+              <span className="absolute inset-0 flex items-center justify-center text-white text-3xl font-bold">{countdown}</span>
             </div>
             <p className="text-white font-medium text-sm max-w-xs truncate">{nextEpisode.title}</p>
             <div className="flex gap-3 justify-center">
-              <button
-                onClick={cancelCountdown}
-                className="px-4 py-2 rounded bg-white/20 text-white text-sm hover:bg-white/30 transition"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => { cancelCountdown(); nextEpisode.onPlay(); }}
-                className="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 transition flex items-center gap-1"
-              >
+              <button onClick={cancelCountdown} className="px-4 py-2 rounded bg-white/20 text-white text-sm hover:bg-white/30 transition">Cancelar</button>
+              <button onClick={() => { cancelCountdown(); nextEpisode.onPlay(); }} className="px-4 py-2 rounded bg-primary text-primary-foreground text-sm hover:opacity-90 transition flex items-center gap-1">
                 <Play className="w-4 h-4" /> Reproduzir agora
               </button>
             </div>
@@ -456,96 +454,111 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
 
       {/* Click-to-play/pause overlay */}
       <div
-        className={`absolute inset-0 z-10 cursor-pointer transition-opacity duration-300 ${
-          countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""
-        }`}
+        className={`absolute inset-0 z-10 cursor-pointer ${countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""}`}
         onClick={togglePlay}
       />
 
-      {/* Controls overlay — Netflix Layer Cake */}
+      {/* === CONTROLS LAYER — Appears on hover with 300ms fade === */}
       <div
         data-controls
-        className={`absolute inset-0 z-20 transition-opacity duration-300 pointer-events-none ${
-          showControls || !playing ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute inset-0 z-20 pointer-events-none"
+        style={{
+          opacity: showControls || !playing ? 1 : 0,
+          transition: "opacity 300ms ease",
+        }}
       >
-        {/* SCRIMS - Netflix gradient layers */}
+        {/* GRADIENT SCRIMS — no solid bars, just subtle fades */}
         <div className="absolute inset-0 pointer-events-none">
+          {/* Top scrim */}
           <div
-            className="absolute top-0 left-0 w-full h-32"
-            style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)' }}
+            className="absolute top-0 left-0 w-full"
+            style={{
+              height: "120px",
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",
+            }}
           />
+          {/* Bottom scrim */}
           <div
-            className="absolute bottom-0 left-0 w-full h-48"
-            style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%)' }}
+            className="absolute bottom-0 left-0 w-full"
+            style={{
+              height: "160px",
+              background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
+            }}
           />
         </div>
 
-        {/* Top — back arrow only */}
-        <div className="absolute top-0 left-0 right-0 p-4 md:p-6 pointer-events-auto" style={{ paddingTop: `calc(env(safe-area-inset-top, 0px) + 12px)` }}>
+        {/* TOP BAR — Back arrow (left) */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 md:p-6 pointer-events-auto">
           <button
             onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
             className="text-white hover:scale-110 transition active:scale-95"
           >
-            <ArrowLeft className="w-10 h-10 md:w-12 md:h-12" />
+            <ArrowLeft className="w-8 h-8 md:w-10 md:h-10" strokeWidth={2.5} />
           </button>
         </div>
 
-        {/* Center play button (when paused) */}
+        {/* CENTER PLAY BUTTON (when paused) */}
         {!playing && !loading && !error && countdown === null && !showResumePrompt && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={togglePlay}>
-            <div className="bg-black/50 p-6 rounded-full backdrop-blur-sm hover:scale-110 transition-transform">
-              <Play className="w-12 h-12 text-white fill-white ml-1" />
+            <div className="bg-black/40 p-5 rounded-full backdrop-blur-sm hover:scale-110 transition-transform">
+              <Play className="w-14 h-14 text-white fill-white ml-1" />
             </div>
           </div>
         )}
 
-        {/* Bottom controls — Netflix style */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-4 md:pb-6 pointer-events-auto">
-          {/* Progress bar — thin red line with hover dot */}
-          <div
-            className="relative w-full h-[2px] cursor-pointer mb-5 group/progress rounded-full overflow-visible"
-            onClick={(e) => {
-              e.stopPropagation();
-              const rect = e.currentTarget.getBoundingClientRect();
-              const pct = (e.clientX - rect.left) / rect.width;
-              seek(pct * duration);
-            }}
-          >
-            <div className="absolute inset-0 bg-white/30 rounded-full" />
-            <div className="absolute top-0 left-0 h-full bg-white/40 rounded-full" style={{ width: `${bufferedPercent}%` }} />
-            <div className="absolute top-0 left-0 h-full bg-[#E50914] rounded-full" style={{ width: `${progressPercent}%` }} />
+        {/* BOTTOM CONTROLS */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
+          {/* Progress bar row — bar + time on the right */}
+          <div className="flex items-center gap-3 mb-4">
             <div
-              className="absolute top-1/2 w-3 h-3 bg-[#E50914] rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow-lg"
-              style={{ left: `${progressPercent}%`, transform: 'translate(-50%, -50%)' }}
-            />
+              className="relative flex-1 h-[3px] cursor-pointer group/progress rounded-full overflow-visible"
+              onClick={(e) => {
+                e.stopPropagation();
+                const rect = e.currentTarget.getBoundingClientRect();
+                const pct = (e.clientX - rect.left) / rect.width;
+                seek(pct * duration);
+              }}
+            >
+              <div className="absolute inset-0 bg-white/25 rounded-full" />
+              <div className="absolute top-0 left-0 h-full bg-white/40 rounded-full" style={{ width: `${bufferedPercent}%` }} />
+              <div className="absolute top-0 left-0 h-full bg-[#E50914] rounded-full" style={{ width: `${progressPercent}%` }} />
+              <div
+                className="absolute top-1/2 w-[13px] h-[13px] bg-[#E50914] rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow-lg"
+                style={{ left: `${progressPercent}%`, transform: "translate(-50%, -50%)" }}
+              />
+            </div>
+            {/* Time at right of progress bar */}
+            <span className="text-white text-xs md:text-sm font-bold font-mono tabular-nums shrink-0 drop-shadow-md">
+              {formatTime(duration - currentTime)}
+            </span>
           </div>
 
-          <div className="flex items-center justify-between relative text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+          {/* Controls row */}
+          <div className="flex items-center justify-between text-white" style={{ textRendering: "geometricPrecision" }}>
             {/* Left controls */}
-            <div className="flex items-center gap-3 md:gap-6">
+            <div className="flex items-center gap-3 md:gap-5">
               {/* Play/Pause */}
               <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="hover:text-white/80 transition">
                 {playing
-                  ? <Pause className="w-7 h-7 md:w-10 md:h-10 fill-white" />
-                  : <Play className="w-7 h-7 md:w-10 md:h-10 fill-white" />
+                  ? <Pause className="w-8 h-8 md:w-10 md:h-10" fill="white" />
+                  : <Play className="w-8 h-8 md:w-10 md:h-10" fill="white" />
                 }
               </button>
 
               {/* Skip -10 */}
               <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="hover:scale-110 transition active:scale-95 relative">
-                <RotateCcw className="w-6 h-6 md:w-8 md:h-8" />
-                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] md:text-[10px] font-bold mt-[1px]">10</span>
+                <RotateCcw className="w-7 h-7 md:w-8 md:h-8" />
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] md:text-[10px] font-bold mt-[1px]">10</span>
               </button>
 
               {/* Skip +10 */}
               <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="hover:scale-110 transition active:scale-95 relative">
-                <RotateCw className="w-6 h-6 md:w-8 md:h-8" />
-                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[8px] md:text-[10px] font-bold mt-[1px]">10</span>
+                <RotateCw className="w-7 h-7 md:w-8 md:h-8" />
+                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[9px] md:text-[10px] font-bold mt-[1px]">10</span>
               </button>
 
-              {/* Volume — horizontal slider on hover (desktop) */}
-              <div className="hidden md:flex items-center gap-2 group/volume">
+              {/* Volume — desktop horizontal slider on hover */}
+              <div className="hidden md:flex items-center gap-1 group/volume">
                 <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-white/80 transition">
                   {muted || volume === 0
                     ? <VolumeX className="w-7 h-7" />
@@ -555,77 +568,53 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                   }
                 </button>
                 <input
-                  type="range"
-                  min="0" max="1" step="0.05"
+                  type="range" min="0" max="1" step="0.05"
                   value={muted ? 0 : volume}
                   onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-0 overflow-hidden group-hover/volume:w-24 transition-all duration-300 h-1 bg-white/30 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[#E50914] [&::-webkit-slider-thumb]:rounded-full"
+                  className="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-300 h-[3px] bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
                 />
               </div>
 
-              {/* Mobile mute button */}
+              {/* Mobile mute */}
               <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="md:hidden hover:text-white/80 transition">
                 {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
               </button>
-
-              {/* Time counter */}
-              <div className="text-xs md:text-sm font-bold font-mono tracking-tighter tabular-nums opacity-90 ml-1">
-                <span>{formatTime(currentTime)}</span>
-                <span className="mx-1 opacity-50">/</span>
-                <span>{formatTime(duration)}</span>
-              </div>
             </div>
 
-            {/* Center label — Netflix single-line title */}
-            {centerLabel && (
-              <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] gap-3">
-                {subtitle && <span className="font-bold text-sm drop-shadow-xl whitespace-nowrap">{subtitle}</span>}
-                {subtitle && title && <span className="opacity-50">·</span>}
-                {title && <span className="opacity-70 text-sm truncate">{title}</span>}
-              </div>
-            )}
-            {!centerLabel && (title || subtitle) && (
-              <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] gap-3">
-                {subtitle && <span className="font-bold text-sm drop-shadow-xl whitespace-nowrap">{subtitle}</span>}
-                {subtitle && title && <span className="opacity-50">·</span>}
-                {title && <span className="opacity-70 text-sm truncate">{title}</span>}
-              </div>
-            )}
+            {/* Center label — Netflix style "SeriesName E4 Episode Title" */}
+            <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] pointer-events-none">
+              <span className="text-white font-medium text-sm drop-shadow-xl truncate">
+                {centerLabel || [subtitle, title].filter(Boolean).join("  ")}
+              </span>
+            </div>
 
             {/* Right controls */}
             <div className="flex items-center gap-3 md:gap-5">
-              {extraControls}
+              {/* Next episode */}
               {nextEpisode && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }}
-                  className="hover:text-white/80 transition"
-                  title="Próximo"
-                >
+                <button onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }} className="hover:text-white/80 transition" title="Próximo">
                   <SkipForward className="w-6 h-6 md:w-7 md:h-7" />
                 </button>
               )}
 
-              {/* Speed */}
+              {/* Extra controls (episodes button etc.) */}
+              {extraControls}
+
+              {/* Speed — desktop only */}
               <div className="relative hidden md:block">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
-                  className="hover:text-white/80 font-bold text-sm md:text-base min-w-[2.5rem] tracking-tighter transition"
+                  className="hover:text-white/80 font-bold text-sm min-w-[2.5rem] tracking-tight transition"
                 >
                   {playbackRate}x
                 </button>
                 {showSettings && (
                   <div className="absolute bottom-full right-0 mb-4 bg-black/95 rounded-lg border border-white/10 overflow-hidden flex flex-col-reverse shadow-2xl backdrop-blur-xl min-w-[80px]" onClick={(e) => e.stopPropagation()}>
                     {[0.5, 0.75, 1, 1.25, 1.5, 2].map(r => (
-                      <button
-                        key={r}
-                        onClick={() => changeRate(r)}
-                        className={`px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition whitespace-nowrap ${
-                          playbackRate === r ? "text-[#E50914]" : "text-white"
-                        }`}
-                      >
-                        {r}x
-                      </button>
+                      <button key={r} onClick={() => changeRate(r)}
+                        className={`px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition whitespace-nowrap ${playbackRate === r ? "text-[#E50914]" : "text-white"}`}
+                      >{r}x</button>
                     ))}
                   </div>
                 )}
@@ -633,10 +622,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
 
               {/* Fullscreen */}
               <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="hover:scale-110 transition active:scale-90">
-                {isFullscreen
-                  ? <Minimize className="w-6 h-6 md:w-7 md:h-7" />
-                  : <Maximize className="w-6 h-6 md:w-7 md:h-7" />
-                }
+                {isFullscreen ? <Minimize className="w-6 h-6 md:w-7 md:h-7" /> : <Maximize className="w-6 h-6 md:w-7 md:h-7" />}
               </button>
             </div>
           </div>
