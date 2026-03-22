@@ -43,7 +43,7 @@ export const NetflixLoader = ({ visible, fadeDuration = 500 }: NetflixLoaderProp
       </div>
 
       {/* Red circular spinner */}
-      <div className="relative w-12 h-12">
+      <div className="relative w-20 h-20">
         <svg
           className="animate-spin"
           viewBox="0 0 50 50"
