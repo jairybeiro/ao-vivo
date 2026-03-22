@@ -7,9 +7,11 @@ import {
   Pause,
   Volume2,
   VolumeX,
+  Volume1,
   Maximize,
-  Loader2,
+  Minimize,
   Radio,
+  Loader2,
 } from "lucide-react";
 
 interface LivePlayerProps {
@@ -25,8 +27,12 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
   const hideTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
-  const [volume, setVolume] = useState(1);
+  const [muted, setMuted] = useState(() => {
+    try { return localStorage.getItem("player_muted") === "true"; } catch { return true; }
+  });
+  const [volume, setVolume] = useState(() => {
+    try { const v = localStorage.getItem("player_volume"); return v !== null ? parseFloat(v) : 0.5; } catch { return 0.5; }
+  });
   const [showControls, setShowControls] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +48,9 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
 
     setLoading(true);
     setError(null);
+
+    video.volume = volume;
+    video.muted = muted;
 
     if (hlsRef.current) {
       hlsRef.current.destroy();
@@ -65,7 +74,6 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
       hls.on(Hls.Events.ERROR, (_e, data) => {
         if (data.fatal) {
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-            // Try to recover network errors
             hls.startLoad();
           } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
             hls.recoverMediaError();
@@ -102,7 +110,14 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
     const onWaiting = () => setLoading(true);
     const onCanPlay = () => setLoading(false);
     const onError = () => { setError("Erro ao reproduzir"); setLoading(false); };
-    const onVolumeChange = () => { setVolume(video.volume); setMuted(video.muted); };
+    const onVolumeChange = () => {
+      setVolume(video.volume);
+      setMuted(video.muted);
+      try {
+        localStorage.setItem("player_volume", String(video.volume));
+        localStorage.setItem("player_muted", String(video.muted));
+      } catch {}
+    };
 
     video.addEventListener("play", onPlay);
     video.addEventListener("pause", onPause);
@@ -175,29 +190,28 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
     const video = videoRef.current;
     if (!el) return;
 
-    // Check if already fullscreen
-    const isFs = document.fullscreenElement || (document as any).webkitFullscreenElement;
+    try {
+      const isFs = document.fullscreenElement || (document as any).webkitFullscreenElement;
 
-    if (isFs) {
-      // Exit fullscreen
-      if (document.exitFullscreen) {
-        await document.exitFullscreen();
-      } else if ((document as any).webkitExitFullscreen) {
-        (document as any).webkitExitFullscreen();
+      if (isFs) {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          (document as any).webkitExitFullscreen();
+        }
+        try { screen.orientation?.unlock(); } catch {}
+      } else {
+        if (video && (video as any).webkitEnterFullscreen) {
+          (video as any).webkitEnterFullscreen();
+        } else if (el.requestFullscreen) {
+          await el.requestFullscreen();
+        } else if ((el as any).webkitRequestFullscreen) {
+          (el as any).webkitRequestFullscreen();
+        }
+        try { await screen.orientation?.lock("landscape"); } catch {}
       }
-      // Unlock orientation
-      try { screen.orientation?.unlock(); } catch {}
-    } else {
-      // iOS Safari: use webkitEnterFullscreen on video element
-      if (video && (video as any).webkitEnterFullscreen) {
-        (video as any).webkitEnterFullscreen();
-      } else if (el.requestFullscreen) {
-        await el.requestFullscreen();
-      } else if ((el as any).webkitRequestFullscreen) {
-        (el as any).webkitRequestFullscreen();
-      }
-      // Lock to landscape on mobile
-      try { await screen.orientation?.lock("landscape"); } catch {}
+    } catch (err) {
+      console.log("Fullscreen error:", err);
     }
   };
 
@@ -214,7 +228,12 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden select-none group"
+      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden select-none"
+      style={{
+        fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
+        WebkitFontSmoothing: "antialiased",
+        MozOsxFontSmoothing: "grayscale",
+      }}
       onMouseMove={resetHideTimer}
       onTouchStart={resetHideTimer}
     >
@@ -226,19 +245,19 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
       />
 
       {/* Loading spinner */}
-      {loading && (
+      {loading && !error && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <Loader2 className="w-12 h-12 text-white animate-spin" />
+          <Loader2 className="w-12 h-12 text-[hsl(var(--player-contrast))] animate-spin" />
         </div>
       )}
 
       {/* Error */}
       {error && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 z-50">
           <p className="text-destructive text-sm">{error}</p>
           <button
             onClick={() => { setError(null); videoRef.current?.load(); }}
-            className="text-white underline text-sm"
+            className="text-[hsl(var(--player-contrast))] underline text-sm"
           >
             Tentar novamente
           </button>
@@ -247,70 +266,125 @@ const LivePlayer = ({ src, title, subtitle }: LivePlayerProps) => {
 
       {/* Click-to-play/pause overlay */}
       <div
-        className={`absolute inset-0 z-10 cursor-pointer transition-opacity duration-300 ${
-          error ? "pointer-events-none" : ""
-        }`}
+        className={`absolute inset-0 z-10 cursor-pointer ${error ? "pointer-events-none" : ""}`}
         onClick={togglePlay}
       />
 
-      {/* Controls overlay */}
+      {/* === CONTROLS LAYER === */}
       <div
-        className={`absolute inset-0 z-20 transition-opacity duration-300 pointer-events-none ${
-          showControls || !playing ? "opacity-100" : "opacity-0"
-        }`}
+        className="absolute inset-0 z-20 pointer-events-none"
+        style={{
+          opacity: showControls || !playing ? 1 : 0,
+          transition: "opacity 300ms ease",
+        }}
       >
-        {/* Top gradient + info */}
-        <div className="absolute top-0 left-0 right-0 bg-gradient-to-b from-black/80 to-transparent p-4 pt-3 pointer-events-auto">
-          <div className="flex items-center gap-3">
-            {/* Live indicator */}
-            <button
-              onClick={(e) => { e.stopPropagation(); goLive(); }}
-              className="flex items-center gap-1.5 bg-destructive/90 hover:bg-destructive text-white px-2.5 py-1 rounded text-xs font-bold transition"
-            >
-              <Radio className="w-3.5 h-3.5 animate-pulse" />
-              AO VIVO
-            </button>
-            <div className="min-w-0">
-              {title && <p className="text-white font-semibold text-sm md:text-base truncate">{title}</p>}
-              {subtitle && <p className="text-white/60 text-xs truncate">{subtitle}</p>}
-            </div>
+        {/* GRADIENT SCRIMS */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div
+            className="absolute top-0 left-0 w-full player-scrim-top"
+            style={{ height: "112px" }}
+          />
+          <div
+            className="absolute bottom-0 left-0 w-full player-scrim-bottom"
+            style={{ height: "136px" }}
+          />
+        </div>
+
+        {/* TOP BAR — AO VIVO indicator + info */}
+        <div className="absolute top-0 left-0 right-0 flex items-center gap-3 p-4 md:p-6 pointer-events-auto">
+          <button
+            onClick={(e) => { e.stopPropagation(); goLive(); }}
+            className="flex items-center gap-1.5 bg-[hsl(var(--player-accent))] hover:bg-[hsl(var(--player-accent)/0.85)] text-[hsl(var(--player-contrast))] px-2.5 py-1 rounded text-xs font-bold transition shrink-0"
+          >
+            <Radio className="w-3.5 h-3.5 animate-pulse" />
+            AO VIVO
+          </button>
+          <div className="min-w-0">
+            {title && (
+              <p className="text-[hsl(var(--player-contrast))] font-semibold text-sm md:text-base truncate drop-shadow-md">
+                {title}
+              </p>
+            )}
+            {subtitle && (
+              <p className="text-[hsl(var(--player-contrast)/0.6)] text-xs truncate drop-shadow-md">
+                {subtitle}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Center play button (when paused) */}
+        {/* CENTER PLAY BUTTON (when paused) */}
         {!playing && !loading && !error && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={togglePlay}>
-            <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Play className="w-8 h-8 text-white ml-1" />
+            <div className="p-5 rounded-full bg-white/20 backdrop-blur-sm hover:scale-110 hover:bg-white/30 transition-all">
+              <Play className="w-14 h-14 text-[hsl(var(--player-contrast))] fill-[hsl(var(--player-contrast))] ml-1" />
             </div>
           </div>
         )}
 
-        {/* Bottom controls - simplified for live */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent px-4 pb-3 pt-12 pointer-events-auto">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1 md:gap-2">
-              <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="text-white hover:text-primary transition p-1.5">
-                {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+        {/* BOTTOM CONTROLS */}
+        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
+          <div className="flex items-center justify-between text-[hsl(var(--player-contrast))]" style={{ textRendering: "optimizeLegibility" }}>
+            {/* Left controls */}
+            <div className="flex items-center gap-3 md:gap-5">
+              {/* Play/Pause */}
+              <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
+                {playing
+                  ? <Pause className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
+                  : <Play className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
+                }
               </button>
-              <div className="flex items-center gap-1 group/vol">
-                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white hover:text-primary transition p-1.5">
-                  {muted || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+
+              {/* Volume — vertical slider on hover (Netflix style) — desktop */}
+              <div className="hidden md:flex items-center relative group/volume">
+                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
+                  {muted || volume === 0
+                    ? <VolumeX className="w-7 h-7" />
+                    : volume < 0.5
+                      ? <Volume1 className="w-7 h-7" />
+                      : <Volume2 className="w-7 h-7" />
+                  }
                 </button>
-                <input
-                  type="range"
-                  min="0" max="1" step="0.05"
-                  value={muted ? 0 : volume}
-                  onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="w-0 group-hover/vol:w-20 transition-all accent-primary h-1 cursor-pointer"
-                />
+                {/* Vertical volume popup */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover/volume:opacity-100 group-hover/volume:scale-100 transition-all duration-200 pointer-events-none group-hover/volume:pointer-events-auto">
+                  <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="range" min="0" max="1" step="0.02"
+                      value={muted ? 0 : volume}
+                      onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
+                      onClick={(e) => e.stopPropagation()}
+                      className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
+                      {...{ orient: "vertical" } as any}
+                      style={{
+                        writingMode: "vertical-lr",
+                        direction: "rtl",
+                        WebkitAppearance: "slider-vertical",
+                        width: "4px",
+                        accentColor: "#E50914",
+                      }}
+                    />
+                  </div>
+                </div>
               </div>
+
+              {/* Mobile mute */}
+              <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="md:hidden hover:text-[hsl(var(--player-contrast)/0.82)] transition">
+                {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+              </button>
             </div>
 
-            <div className="flex items-center gap-1 md:gap-2">
-              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="text-white hover:text-primary transition p-1.5">
-                <Maximize className="w-5 h-5" />
+            {/* Center label — channel info on desktop */}
+            <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] pointer-events-none">
+              <span className="text-[hsl(var(--player-contrast))] font-medium text-sm drop-shadow-xl truncate">
+                {[title, subtitle].filter(Boolean).join(" · ")}
+              </span>
+            </div>
+
+            {/* Right controls */}
+            <div className="flex items-center gap-3 md:gap-5">
+              {/* Fullscreen */}
+              <button onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }} className="hover:scale-110 transition active:scale-90">
+                {isFullscreen ? <Minimize className="w-6 h-6 md:w-7 md:h-7" /> : <Maximize className="w-6 h-6 md:w-7 md:h-7" />}
               </button>
             </div>
           </div>
