@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect, forwardRef } from "react";
-import { Play, Loader2, Shield } from "lucide-react";
+import { Play, Loader2, Shield, ArrowLeft } from "lucide-react";
 import { PreRollAd, type PreRollAdData } from "./ads";
 
 interface EmbedPlayerProps {
@@ -15,12 +15,13 @@ interface EmbedPlayerProps {
   extraControls?: React.ReactNode;
   overlayContent?: React.ReactNode;
   immersive?: boolean;
+  onBack?: () => void;
 }
 
 const REQUIRED_CLICKS = 3;
 
 const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
-  ({ embedUrl, channelName = "Canal", preRollAd, enablePreRoll = true, extraControls, overlayContent, immersive }, ref) => {
+  ({ embedUrl, channelName = "Canal", preRollAd, enablePreRoll = true, extraControls, overlayContent, immersive, onBack }, ref) => {
     const [iframeLoaded, setIframeLoaded] = useState(false);
     const [clickCount, setClickCount] = useState(0);
     const [showPreRoll, setShowPreRoll] = useState(enablePreRoll);
@@ -156,23 +157,40 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
           </button>
         )}
 
-        {/* Floating navigation bar for embed channels — appears on mouse move */}
+        {/* Floating navigation — appears on mouse move */}
         {hasOverlayControls && !isProtectionActive && !showPreRoll && (
           <div
-            className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none"
+            className="absolute inset-0 z-30 pointer-events-none"
             style={{
               opacity: showControls ? 1 : 0,
               transition: "opacity 300ms ease",
             }}
           >
+            {/* Top gradient scrim */}
+            <div
+              className="absolute top-0 left-0 w-full player-scrim-top"
+              style={{ height: "80px" }}
+            />
             {/* Bottom gradient scrim */}
             <div
               className="absolute bottom-0 left-0 w-full player-scrim-bottom"
               style={{ height: "100px" }}
             />
 
-            {/* Controls bar */}
-            <div className="relative px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
+            {/* Top-left back button */}
+            {onBack && (
+              <div className="absolute top-0 left-0 p-4 md:p-6 pointer-events-auto">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onBack(); }}
+                  className="p-1.5 rounded-full hover:bg-white/10 transition text-white hover:text-white/80"
+                >
+                  <ArrowLeft className="w-6 h-6 md:w-7 md:h-7" />
+                </button>
+              </div>
+            )}
+
+            {/* Bottom-right controls */}
+            <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
               <div className="flex items-center justify-end gap-3 md:gap-5 text-white">
                 {extraControls}
               </div>

@@ -8,6 +8,7 @@ interface PlayerContainerProps {
   extraControls?: React.ReactNode;
   overlayContent?: React.ReactNode;
   immersive?: boolean;
+  onBack?: () => void;
 }
 
 /**
@@ -18,7 +19,7 @@ interface PlayerContainerProps {
  * 2. embedUrl → EmbedPlayer (iframe)
  * 3. Fallback → try first streamUrl with LivePlayer
  */
-const PlayerContainer = ({ channel, extraControls, overlayContent, immersive }: PlayerContainerProps) => {
+const PlayerContainer = ({ channel, extraControls, overlayContent, immersive, onBack }: PlayerContainerProps) => {
   const hlsStreamUrl = findHlsUrl(channel.streamUrls);
   const firstPlayableUrl = channel.streamUrls.find(
     (url) => url && url !== "placeholder"
@@ -33,6 +34,7 @@ const PlayerContainer = ({ channel, extraControls, overlayContent, immersive }: 
         extraControls={extraControls}
         overlayContent={overlayContent}
         immersive={immersive}
+        onBack={onBack}
       />
     );
   }
@@ -47,6 +49,7 @@ const PlayerContainer = ({ channel, extraControls, overlayContent, immersive }: 
         extraControls={extraControls}
         overlayContent={overlayContent}
         immersive={immersive}
+        onBack={onBack}
       />
     );
   }
@@ -61,6 +64,7 @@ const PlayerContainer = ({ channel, extraControls, overlayContent, immersive }: 
         extraControls={extraControls}
         overlayContent={overlayContent}
         immersive={immersive}
+        onBack={onBack}
       />
     );
   }
