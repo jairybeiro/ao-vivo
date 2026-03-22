@@ -150,6 +150,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         maxMaxBufferLength: 120,
         startLevel: -1,
         enableWorker: true,
+        startFragPrefetch: true,
       });
       hls.loadSource(proxiedSrc);
       hls.attachMedia(video);
@@ -394,6 +395,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         className="w-full h-full object-cover"
         poster={poster || undefined}
         playsInline
+        preload="auto"
       />
 
       {/* Netflix-style preload */}
@@ -581,7 +583,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
             {/* Center label — Netflix style "SeriesName E4 Episode Title" */}
             <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] pointer-events-none">
                 <span className="text-[hsl(var(--player-contrast))] font-medium text-sm drop-shadow-xl truncate">
-                {centerLabel || [subtitle, title].filter(Boolean).join("  ")}
+                {centerLabel || [title, subtitle].filter(Boolean).join(" · ")}
               </span>
             </div>
 

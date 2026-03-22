@@ -139,16 +139,13 @@ const VodSeriesPlayer = () => {
           key={currentEpisode.id}
           src={currentEpisode.stream_url}
           title={series.name}
-          subtitle={isMobile
-            ? `T${currentEpisode.season}:E${currentEpisode.episode_num} "${currentEpisode.title}"`
-            : `S${currentEpisode.season}E${currentEpisode.episode_num} - ${currentEpisode.title}`
-          }
+          subtitle={`T${currentEpisode.season} E${currentEpisode.episode_num}`}
           poster={currentEpisode.cover_url || series.cover_url || undefined}
           contentType="episode"
           contentId={currentEpisode.id}
           contentName={`${series.name} - S${currentEpisode.season}E${currentEpisode.episode_num}`}
           contentCoverUrl={currentEpisode.cover_url || series.cover_url}
-          centerLabel={`${series.name}  E${currentEpisode.episode_num}  ${currentEpisode.title}`}
+          centerLabel={`${series.name} · T${currentEpisode.season} E${currentEpisode.episode_num}`}
           onBack={() => navigate("/vod")}
           nextEpisode={
             nextEp

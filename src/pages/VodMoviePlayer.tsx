@@ -87,7 +87,7 @@ const VodMoviePlayer = () => {
       <VodPlayer
         src={movie.stream_url}
         title={movie.name}
-        subtitle={movie.category}
+        subtitle=""
         poster={movie.cover_url || undefined}
         contentType="movie"
         contentId={movie.id}
