@@ -201,7 +201,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     };
     const onDurationChange = () => setDuration(video.duration || 0);
     const onError = () => { setError("Erro ao reproduzir"); setLoading(false); };
-    const onVolumeChange = () => { setVolume(video.volume); setMuted(video.muted); };
+    const onVolumeChange = () => {
+      setVolume(video.volume);
+      setMuted(video.muted);
+      try {
+        localStorage.setItem("player_volume", String(video.volume));
+        localStorage.setItem("player_muted", String(video.muted));
+      } catch {}
+    };
     const onVideoEnded = () => {
       setPlaying(false);
       doSave();
