@@ -125,7 +125,7 @@ const MobileEpisodesPanel = ({
               );
             })}
           </div>
-        </ScrollArea>
+        </div>
       </div>
     </>
   );
