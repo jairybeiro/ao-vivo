@@ -133,7 +133,7 @@ const VodSeriesPlayer = () => {
   ) : undefined;
 
   return (
-    <div className="h-screen bg-black">
+    <div className="h-screen w-screen bg-black flex items-center justify-center">
       {currentEpisode ? (
         <VodPlayer
           key={currentEpisode.id}
