@@ -104,7 +104,7 @@ const DesktopEpisodesPanel = ({
                   );
                 })}
               </div>
-            </ScrollArea>
+            </div>
           </>
         )}
 
