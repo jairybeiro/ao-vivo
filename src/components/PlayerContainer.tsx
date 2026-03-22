@@ -8,6 +8,7 @@ interface PlayerContainerProps {
   extraControls?: React.ReactNode;
   overlayContent?: React.ReactNode;
   immersive?: boolean;
+  onBack?: () => void;
 }
 
 /**
