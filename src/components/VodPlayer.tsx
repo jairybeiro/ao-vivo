@@ -377,7 +377,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   return (
     <div
       ref={containerRef}
-      className="relative bg-black select-none flex items-center justify-center"
+      className="relative select-none flex items-center justify-center overflow-hidden"
       style={{
         width: "98vw",
         height: "98vh",
@@ -391,7 +391,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     >
       <video
         ref={videoRef}
-        className="w-full h-full object-contain"
+        className="w-full h-full object-cover"
         poster={poster || undefined}
         playsInline
       />
@@ -467,22 +467,18 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
           transition: "opacity 300ms ease",
         }}
       >
-        {/* GRADIENT SCRIMS — no solid bars, just subtle fades */}
+        {/* GRADIENT SCRIMS — subtle contrast only */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Top scrim */}
           <div
-            className="absolute top-0 left-0 w-full"
+            className="absolute top-0 left-0 w-full player-scrim-top"
             style={{
-              height: "120px",
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)",
+              height: "112px",
             }}
           />
-          {/* Bottom scrim */}
           <div
-            className="absolute bottom-0 left-0 w-full"
+            className="absolute bottom-0 left-0 w-full player-scrim-bottom"
             style={{
-              height: "160px",
-              background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)",
+              height: "136px",
             }}
           />
         </div>
@@ -491,7 +487,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 md:p-6 pointer-events-auto">
           <button
             onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
-            className="text-white hover:scale-110 transition active:scale-95"
+            className="text-[hsl(var(--player-contrast))] hover:scale-110 transition active:scale-95"
           >
             <ArrowLeft className="w-8 h-8 md:w-10 md:h-10" strokeWidth={2.5} />
           </button>
@@ -500,8 +496,8 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         {/* CENTER PLAY BUTTON (when paused) */}
         {!playing && !loading && !error && countdown === null && !showResumePrompt && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-auto cursor-pointer" onClick={togglePlay}>
-            <div className="bg-black/40 p-5 rounded-full backdrop-blur-sm hover:scale-110 transition-transform">
-              <Play className="w-14 h-14 text-white fill-white ml-1" />
+            <div className="p-5 rounded-full hover:scale-110 transition-transform">
+              <Play className="w-14 h-14 text-[hsl(var(--player-contrast))] fill-[hsl(var(--player-contrast))] ml-1" />
             </div>
           </div>
         )}
@@ -519,29 +515,29 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                 seek(pct * duration);
               }}
             >
-              <div className="absolute inset-0 bg-white/25 rounded-full" />
-              <div className="absolute top-0 left-0 h-full bg-white/40 rounded-full" style={{ width: `${bufferedPercent}%` }} />
-              <div className="absolute top-0 left-0 h-full bg-[#E50914] rounded-full" style={{ width: `${progressPercent}%` }} />
+              <div className="absolute inset-0 bg-[hsl(var(--player-contrast)/0.22)] rounded-full" />
+              <div className="absolute top-0 left-0 h-full bg-[hsl(var(--player-contrast)/0.38)] rounded-full" style={{ width: `${bufferedPercent}%` }} />
+              <div className="absolute top-0 left-0 h-full bg-[hsl(var(--player-accent))] rounded-full" style={{ width: `${progressPercent}%` }} />
               <div
-                className="absolute top-1/2 w-[13px] h-[13px] bg-[#E50914] rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow-lg"
+                className="absolute top-1/2 w-[13px] h-[13px] bg-[hsl(var(--player-accent))] rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity shadow-lg"
                 style={{ left: `${progressPercent}%`, transform: "translate(-50%, -50%)" }}
               />
             </div>
             {/* Time at right of progress bar */}
-            <span className="text-white text-xs md:text-sm font-bold font-mono tabular-nums shrink-0 drop-shadow-md">
+            <span className="text-[hsl(var(--player-contrast))] text-xs md:text-sm font-bold font-mono tabular-nums shrink-0 drop-shadow-md">
               {formatTime(duration - currentTime)}
             </span>
           </div>
 
           {/* Controls row */}
-          <div className="flex items-center justify-between text-white" style={{ textRendering: "geometricPrecision" }}>
+          <div className="flex items-center justify-between text-[hsl(var(--player-contrast))]" style={{ textRendering: "optimizeLegibility" }}>
             {/* Left controls */}
             <div className="flex items-center gap-3 md:gap-5">
               {/* Play/Pause */}
-              <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="hover:text-white/80 transition">
+              <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
                 {playing
-                  ? <Pause className="w-8 h-8 md:w-10 md:h-10" fill="white" />
-                  : <Play className="w-8 h-8 md:w-10 md:h-10" fill="white" />
+                  ? <Pause className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
+                  : <Play className="w-8 h-8 md:w-10 md:h-10" fill="currentColor" />
                 }
               </button>
 
@@ -559,7 +555,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
 
               {/* Volume — desktop horizontal slider on hover */}
               <div className="hidden md:flex items-center gap-1 group/volume">
-                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-white/80 transition">
+                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
                   {muted || volume === 0
                     ? <VolumeX className="w-7 h-7" />
                     : volume < 0.5
@@ -572,19 +568,19 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                   value={muted ? 0 : volume}
                   onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-300 h-[3px] bg-white/30 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+                  className="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-300 h-[3px] bg-[hsl(var(--player-contrast)/0.3)] rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-[hsl(var(--player-contrast))] [&::-webkit-slider-thumb]:rounded-full"
                 />
               </div>
 
               {/* Mobile mute */}
-              <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="md:hidden hover:text-white/80 transition">
+              <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="md:hidden hover:text-[hsl(var(--player-contrast)/0.82)] transition">
                 {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
               </button>
             </div>
 
             {/* Center label — Netflix style "SeriesName E4 Episode Title" */}
             <div className="hidden lg:flex items-center justify-center absolute left-1/2 -translate-x-1/2 w-[50%] pointer-events-none">
-              <span className="text-white font-medium text-sm drop-shadow-xl truncate">
+                <span className="text-[hsl(var(--player-contrast))] font-medium text-sm drop-shadow-xl truncate">
                 {centerLabel || [subtitle, title].filter(Boolean).join("  ")}
               </span>
             </div>
@@ -593,7 +589,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
             <div className="flex items-center gap-3 md:gap-5">
               {/* Next episode */}
               {nextEpisode && (
-                <button onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }} className="hover:text-white/80 transition" title="Próximo">
+                <button onClick={(e) => { e.stopPropagation(); nextEpisode.onPlay(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition" title="Próximo">
                   <SkipForward className="w-6 h-6 md:w-7 md:h-7" />
                 </button>
               )}
@@ -605,7 +601,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               <div className="relative hidden md:block">
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
-                  className="hover:text-white/80 font-bold text-sm min-w-[2.5rem] tracking-tight transition"
+                  className="hover:text-[hsl(var(--player-contrast)/0.82)] font-bold text-sm min-w-[2.5rem] tracking-tight transition"
                 >
                   {playbackRate}x
                 </button>
@@ -613,7 +609,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                   <div className="absolute bottom-full right-0 mb-4 bg-black/95 rounded-lg border border-white/10 overflow-hidden flex flex-col-reverse shadow-2xl backdrop-blur-xl min-w-[80px]" onClick={(e) => e.stopPropagation()}>
                     {[0.5, 0.75, 1, 1.25, 1.5, 2].map(r => (
                       <button key={r} onClick={() => changeRate(r)}
-                        className={`px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition whitespace-nowrap ${playbackRate === r ? "text-[#E50914]" : "text-white"}`}
+                        className={`px-5 py-2.5 text-sm font-bold hover:bg-white/10 transition whitespace-nowrap ${playbackRate === r ? "text-[hsl(var(--player-accent))]" : "text-[hsl(var(--player-contrast))]"}`}
                       >{r}x</button>
                     ))}
                   </div>
