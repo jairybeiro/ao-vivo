@@ -163,12 +163,12 @@ const Entertainment = () => {
 
         {/* === PLAYER PRINCIPAL (z-2): Concave focus container === */}
         <div
-          className="relative z-[2] w-[88vw] h-[78vh] overflow-hidden"
+          className="relative z-[2] w-[90vw] h-[80vh] overflow-hidden"
           style={{
-            borderRadius: "20px 20px 0 0",
-            clipPath: "ellipse(52% 100% at 50% 0%)",
+            borderRadius: "16px 16px 0 0",
+            clipPath: "ellipse(150% 100% at 50% 0%)",
             boxShadow:
-              "0 4px 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4)",
+              "0 4px 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4), inset 0 -20px 50px rgba(0,0,0,0.5)",
           }}
         >
           {/* Video or fallback image */}
