@@ -110,6 +110,7 @@ const ContentDetail = () => {
         cover_url: data.cover_url,
         backdrop_url: data.backdrop_url,
         trailer_url: data.trailer_url,
+        trailer_mp4_url: (data as any).trailer_mp4_url || null,
         rating: data.rating,
         plot: (data as any).plot,
         xtream_id: data.xtream_id,
