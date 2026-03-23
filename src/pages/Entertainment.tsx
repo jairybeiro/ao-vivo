@@ -126,46 +126,56 @@ const Entertainment = () => {
         <MainHeader />
       </div>
 
-      {/* ===== FULL-SCREEN HERO ===== */}
-      <section className="relative w-screen h-screen flex items-center justify-center overflow-hidden">
-        {/* Dark page background behind concave container */}
-        <div className="absolute inset-0 bg-[hsl(var(--background))]" />
-
-        {/* === BLURRED GLOW VIDEO BEHIND PLAYER === */}
-        {glowVideoId && (
-          <div className="absolute inset-0 z-[0] overflow-hidden">
+      {/* ===== FULL-SCREEN HERO WITH NETFLIX AMBILIGHT ===== */}
+      <section
+        className="relative w-screen h-screen flex items-center justify-center overflow-hidden"
+        style={{ background: "#0f0f0f" }}
+      >
+        {/* === AMBILIGHT LAYER (z-1): Duplicated blurred video reflection === */}
+        {(heroVideoId || glowVideoId) && (
+          <div
+            className="absolute z-[1] top-1/2 pointer-events-none"
+            style={{
+              width: "120vw",
+              left: "-10vw",
+              height: "120%",
+              transform: "translateY(-50%)",
+              filter: "blur(32px)",
+              opacity: 0.25,
+              WebkitMaskImage:
+                "linear-gradient(180deg, #d9d9d9 78%, transparent 100%)",
+              maskImage:
+                "linear-gradient(180deg, #d9d9d9 78%, transparent 100%)",
+            }}
+          >
             <iframe
-              src={`https://www.youtube.com/embed/${glowVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${glowVideoId}`}
-              className="absolute w-[120%] h-[120%] top-1/2 left-1/2 pointer-events-none"
+              src={`https://www.youtube.com/embed/${heroVideoId || glowVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId || glowVideoId}`}
+              className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
               style={{
                 border: 0,
-                transform: "translate(-50%, -50%) scale(1.3)",
-                filter: "blur(40px) brightness(0.6) saturate(1.5)",
-                opacity: 0.7,
+                transform: "translate(-50%, -50%)",
               }}
               allow="autoplay; encrypted-media"
-              title="Background glow"
+              title="Ambilight reflection"
             />
-            {/* Dark overlay to tame the glow */}
-            <div className="absolute inset-0 bg-[hsl(var(--background))]/50" />
           </div>
         )}
 
-        {/* Concave container — TV-screen shape */}
+        {/* === PLAYER PRINCIPAL (z-2): Concave focus container === */}
         <div
-          className="relative w-[90vw] h-[82vh] overflow-hidden"
+          className="relative z-[2] w-[88vw] h-[78vh] overflow-hidden"
           style={{
             borderRadius: "20px 20px 50% 50% / 20px 20px 6% 6%",
             boxShadow:
-              "0 0 80px 20px rgba(0,0,0,0.5), 0 0 160px 60px rgba(0,0,0,0.3)",
+              "0 4px 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4)",
           }}
         >
-          {/* Background — video or fallback image */}
+          {/* Video or fallback image */}
           {heroVideoId ? (
             <iframe
               src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
               className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
-              style={{ border: 0, transform: "translate(-50%, -50%)", transformOrigin: "center center" }}
+              style={{ border: 0, transform: "translate(-50%, -50%)" }}
               allow="autoplay; encrypted-media"
               title="Hero trailer"
             />
@@ -176,36 +186,42 @@ const Entertainment = () => {
               className="absolute inset-0 w-full h-full object-cover"
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
           )}
 
-          {/* Scrim — transparent "hedge" for text visibility */}
+          {/* Scrim for text legibility */}
           <div
             className="absolute inset-0 z-[1]"
             style={{
               background:
-                "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)",
+                "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.65) 100%)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent z-[1]" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent z-[1]" />
 
-          {/* Hero content — bottom-left anchored */}
-          <div className="absolute inset-0 flex flex-col justify-end px-6 pb-12 md:px-14 md:pb-16 z-[2]">
-            <div className="max-w-2xl space-y-4">
-              {/* Title — elegant serif-style */}
+          {/* Hero content — bottom-left, Netflix-style sans-serif */}
+          <div className="absolute inset-0 flex flex-col justify-end px-6 pb-10 md:px-14 md:pb-14 z-[2]">
+            <div className="max-w-2xl space-y-3">
+              {/* Dynamic title from hero item or fallback */}
               <h1
-                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl"
-                style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1] tracking-tight drop-shadow-2xl"
+                style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}
               >
-                TRAILERS QUE
-                <br />
-                <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
+                {heroItem?.name || (
+                  <>
+                    TRAILERS QUE
+                    <br />
+                    <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
+                  </>
+                )}
               </h1>
 
-              {/* Subtitle */}
-              <p className="text-sm sm:text-base md:text-lg text-white/80 max-w-lg leading-relaxed drop-shadow-lg">
-                A curadoria definitiva para expandir sua visão e mentalidade através do cinema.
-              </p>
+              {/* Synopsis from DB or fallback */}
+              {(heroItem?.plot || !heroItem?.name) && (
+                <p className="text-sm sm:text-base md:text-lg text-white/75 max-w-lg leading-relaxed drop-shadow-lg line-clamp-3">
+                  {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
+                </p>
+              )}
 
               {/* Metadata badges */}
               <div className="flex items-center gap-3 text-xs text-white/60">
@@ -215,7 +231,7 @@ const Entertainment = () => {
               </div>
 
               {/* CTA buttons */}
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex items-center gap-3 pt-1">
                 <button
                   onClick={scrollToContent}
                   className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:brightness-110 transition-all text-sm md:text-base shadow-xl"
@@ -236,7 +252,7 @@ const Entertainment = () => {
         </div>
 
         {/* Bottom fade into collections */}
-        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[hsl(var(--background))] to-transparent z-10" />
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0f0f0f] to-transparent z-10" />
       </section>
 
       {/* ===== COLLECTIONS ===== */}
