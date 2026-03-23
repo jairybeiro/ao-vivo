@@ -446,6 +446,7 @@ export type Database = {
           rating: number | null
           stream_url: string
           tmdb_id: number | null
+          trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
           xtream_id: number
@@ -462,6 +463,7 @@ export type Database = {
           rating?: number | null
           stream_url: string
           tmdb_id?: number | null
+          trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
           xtream_id: number
@@ -478,6 +480,7 @@ export type Database = {
           rating?: number | null
           stream_url?: string
           tmdb_id?: number | null
+          trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
           xtream_id?: number
@@ -497,6 +500,7 @@ export type Database = {
           plot: string | null
           rating: number | null
           tmdb_id: number | null
+          trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
           xtream_id: number
@@ -513,6 +517,7 @@ export type Database = {
           plot?: string | null
           rating?: number | null
           tmdb_id?: number | null
+          trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
           xtream_id: number
@@ -529,6 +534,7 @@ export type Database = {
           plot?: string | null
           rating?: number | null
           tmdb_id?: number | null
+          trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
           xtream_id?: number
@@ -561,6 +567,7 @@ export type Database = {
           rating: number | null
           stream_url: string
           tmdb_id: number | null
+          trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
           xtream_id: number
@@ -586,6 +593,7 @@ export type Database = {
           rating: number | null
           stream_url: string
           tmdb_id: number | null
+          trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
           xtream_id: number
@@ -611,6 +619,7 @@ export type Database = {
           plot: string | null
           rating: number | null
           tmdb_id: number | null
+          trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
           xtream_id: number
@@ -636,6 +645,7 @@ export type Database = {
           plot: string | null
           rating: number | null
           tmdb_id: number | null
+          trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
           xtream_id: number
