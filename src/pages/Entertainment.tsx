@@ -128,132 +128,130 @@ const Entertainment = () => {
 
       {/* ===== FULL-SCREEN HERO WITH NETFLIX AMBILIGHT ===== */}
       <section
-        className="relative w-screen h-screen flex items-center justify-center overflow-hidden"
+        className="relative w-screen h-screen overflow-hidden"
         style={{ background: "#0f0f0f" }}
       >
-        {/* === AMBILIGHT LAYER (z-1): Duplicated blurred video reflection === */}
-        {(heroVideoId || glowVideoId) && (
-          <div
-            className="absolute z-[1] top-1/2 pointer-events-none"
-            style={{
-              width: "120vw",
-              left: "-10vw",
-              height: "120%",
-              transform: "translateY(-50%)",
-              filter: "blur(32px)",
-              opacity: 0.25,
-              WebkitMaskImage:
-                "linear-gradient(180deg, #d9d9d9 78%, transparent 100%)",
-              maskImage:
-                "linear-gradient(180deg, #d9d9d9 78%, transparent 100%)",
-            }}
-          >
-            <iframe
-              src={`https://www.youtube.com/embed/${heroVideoId || glowVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId || glowVideoId}`}
-              className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
-              style={{
-                border: 0,
-                transform: "translate(-50%, -50%)",
-              }}
-              allow="autoplay; encrypted-media"
-              title="Ambilight reflection"
-            />
-          </div>
-        )}
-
-        {/* === PLAYER PRINCIPAL (z-2): Concave focus container === */}
-        <div
-          className="relative z-[2] w-[90vw] h-[80vh] overflow-hidden"
-          style={{
-            borderRadius: "16px 16px 0 0",
-            clipPath: "ellipse(150% 100% at 50% 0%)",
-            boxShadow:
-              "0 4px 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4), inset 0 -20px 50px rgba(0,0,0,0.5)",
-          }}
-        >
-          {/* Video or fallback image */}
-          {heroVideoId ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
-              className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
-              style={{ border: 0, transform: "translate(-50%, -50%)" }}
-              allow="autoplay; encrypted-media"
-              title="Hero trailer"
-            />
-          ) : heroItem?.backdrop_url ? (
-            <img
-              src={heroItem.backdrop_url}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-          )}
-
-          {/* Scrim for text legibility */}
+        {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
+        {(heroVideoId || heroItem?.backdrop_url) && (
           <div
             className="absolute inset-0 z-[1]"
             style={{
-              background:
-                "linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 25%, transparent 75%, rgba(0,0,0,0.65) 100%)",
+              filter: "blur(80px)",
+              opacity: 0.3,
+              transform: "scale(1.3)",
             }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-transparent z-[1]" />
+          >
+            {heroVideoId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
+                className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
+                style={{ border: 0, transform: "translate(-50%, -50%)" }}
+                allow="autoplay; encrypted-media"
+                title="Ambilight reflection"
+              />
+            ) : (
+              <img
+                src={heroItem!.backdrop_url!}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+          </div>
+        )}
 
-          {/* Hero content — bottom-left, Netflix-style sans-serif */}
-          <div className="absolute inset-0 flex flex-col justify-end px-6 pb-10 md:px-14 md:pb-14 z-[2]">
-            <div className="max-w-2xl space-y-3">
-              {/* Dynamic title from hero item or fallback */}
-              <h1
-                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1] tracking-tight drop-shadow-2xl"
-                style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}
-              >
-                {heroItem?.name || (
-                  <>
-                    TRAILERS QUE
-                    <br />
-                    <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
-                  </>
-                )}
-              </h1>
-
-              {/* Synopsis from DB or fallback */}
-              {(heroItem?.plot || !heroItem?.name) && (
-                <p className="text-sm sm:text-base md:text-lg text-white/75 max-w-lg leading-relaxed drop-shadow-lg line-clamp-3">
-                  {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
-                </p>
-              )}
-
-              {/* Metadata badges */}
-              <div className="flex items-center gap-3 text-xs text-white/60">
-                <span className="text-green-400 font-bold text-sm">98% Relevante</span>
-                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
-                <span>Curadoria Exclusiva</span>
-              </div>
-
-              {/* CTA buttons */}
-              <div className="flex items-center gap-3 pt-1">
-                <button
-                  onClick={scrollToContent}
-                  className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:brightness-110 transition-all text-sm md:text-base shadow-xl"
-                >
-                  <Play className="w-5 h-5 fill-white" />
-                  COMEÇAR AGORA
-                </button>
-                <button
-                  onClick={scrollToContent}
-                  className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
-                >
-                  <Film className="w-5 h-5" />
-                  Explorar
-                </button>
-              </div>
-            </div>
+        {/* === CAMADA 2: Player Principal === */}
+        <div className="absolute inset-0 z-[2] flex items-center justify-center">
+          <div
+            className="relative w-[92vw] h-[82vh] overflow-hidden"
+            style={{ borderRadius: "18px" }}
+          >
+            {heroVideoId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
+                className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
+                style={{ border: 0, transform: "translate(-50%, -50%)" }}
+                allow="autoplay; encrypted-media"
+                title="Hero trailer"
+              />
+            ) : heroItem?.backdrop_url ? (
+              <img
+                src={heroItem.backdrop_url}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+            )}
           </div>
         </div>
 
-        {/* Bottom fade into collections */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0f0f0f] to-transparent z-10" />
+        {/* === CAMADA 3: Gradiente Perceptual (Técnica Netflix) === */}
+        <div
+          className="absolute inset-0 z-[3] pointer-events-none"
+          style={{
+            background: `radial-gradient(60% 35% at 50% 10%, rgba(15,15,15,0) 0%, rgba(15,15,15,0.7) 40%, rgba(15,15,15,1) 100%)`,
+          }}
+        />
+        {/* Reforço lateral e base */}
+        <div
+          className="absolute inset-0 z-[3] pointer-events-none"
+          style={{
+            background: `linear-gradient(180deg, transparent 50%, #0f0f0f 100%)`,
+          }}
+        />
+        <div
+          className="absolute inset-0 z-[3] pointer-events-none"
+          style={{
+            background: `linear-gradient(90deg, #0f0f0f 0%, transparent 15%, transparent 85%, #0f0f0f 100%)`,
+          }}
+        />
+
+        {/* === CAMADA 4: Conteúdo Hero (título, sinopse, CTAs) === */}
+        <div className="absolute inset-0 z-[4] flex flex-col justify-end px-6 pb-10 md:px-14 md:pb-14">
+          <div className="max-w-2xl space-y-3">
+            <h1
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1] tracking-tight drop-shadow-2xl"
+              style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}
+            >
+              {heroItem?.name || (
+                <>
+                  TRAILERS QUE
+                  <br />
+                  <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
+                </>
+              )}
+            </h1>
+
+            {(heroItem?.plot || !heroItem?.name) && (
+              <p className="text-sm sm:text-base md:text-lg text-white/75 max-w-lg leading-relaxed drop-shadow-lg line-clamp-3">
+                {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
+              </p>
+            )}
+
+            <div className="flex items-center gap-3 text-xs text-white/60">
+              <span className="text-green-400 font-bold text-sm">98% Relevante</span>
+              <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
+              <span>Curadoria Exclusiva</span>
+            </div>
+
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                onClick={scrollToContent}
+                className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:brightness-110 transition-all text-sm md:text-base shadow-xl"
+              >
+                <Play className="w-5 h-5 fill-white" />
+                COMEÇAR AGORA
+              </button>
+              <button
+                onClick={scrollToContent}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
+              >
+                <Film className="w-5 h-5" />
+                Explorar
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ===== COLLECTIONS ===== */}
