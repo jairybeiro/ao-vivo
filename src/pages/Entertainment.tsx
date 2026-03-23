@@ -32,7 +32,7 @@ const Entertainment = () => {
   const [collections, setCollections] = useState<Record<string, CuratedItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CuratedItem | null>(null);
-  const [bgVideoUrl, setBgVideoUrl] = useState<string | null>(null);
+  
 
   const fetchCurated = useCallback(async () => {
     setLoading(true);
@@ -77,28 +77,6 @@ const Entertainment = () => {
 
   useEffect(() => { fetchCurated(); }, [fetchCurated]);
 
-  // Fetch background glow videos
-  useEffect(() => {
-    const fetchBgVideos = async () => {
-      const { data } = await supabase
-        .from("hero_bg_videos")
-        .select("youtube_url")
-        .eq("is_active", true);
-      if (data && data.length > 0) {
-        const pick = data[Math.floor(Math.random() * data.length)];
-        setBgVideoUrl((pick as any).youtube_url);
-      }
-    };
-    fetchBgVideos();
-  }, []);
-
-  const bgVideoId = useMemo(() => {
-    if (!bgVideoUrl) return null;
-    if (bgVideoUrl.includes("v=")) return bgVideoUrl.split("v=")[1]?.split("&")[0];
-    if (bgVideoUrl.includes("youtu.be/")) return bgVideoUrl.split("youtu.be/")[1]?.split("?")[0];
-    return bgVideoUrl;
-  }, [bgVideoUrl]);
-
   const heroVideoId = useMemo(() => {
     if (!heroItem?.trailer_url) return null;
     const url = heroItem.trailer_url;
@@ -115,9 +93,6 @@ const Entertainment = () => {
   };
 
   const tags = Object.keys(collections);
-
-  // The actual BG glow video ID: use dedicated bg video if available, else fallback to hero trailer
-  const glowVideoId = bgVideoId || heroVideoId;
 
   return (
     <div className="min-h-screen bg-background">
