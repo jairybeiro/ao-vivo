@@ -194,7 +194,7 @@ const Entertainment = () => {
                 style={{ height: "35px" }}
               >
                 <path
-                  d="M0,0 Q600,35 1200,0 L1200,35 L0,35 Z"
+                  d="M0,35 Q600,0 1200,35 L1200,35 L0,35 Z"
                   fill="#0f0f0f"
                 />
               </svg>
