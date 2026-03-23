@@ -78,8 +78,7 @@ const Entertainment = () => {
   useEffect(() => { fetchCurated(); }, [fetchCurated]);
 
   const handleClick = (item: CuratedItem) => {
-    if (item.type === "movie") navigate(`/vod/movie/${item.id}`);
-    else navigate(`/vod/series/${item.id}`);
+    navigate(`/entretenimento/${item.type}/${item.id}`);
   };
 
   const tags = Object.keys(collections);
@@ -150,7 +149,7 @@ const Entertainment = () => {
                   <div
                     key={item.id}
                     onClick={() => handleClick(item)}
-                    className="flex-shrink-0 w-36 md:w-44 cursor-pointer group"
+                    className="flex-shrink-0 w-44 md:w-52 cursor-pointer group"
                   >
                     <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative">
                       {item.cover_url ? (

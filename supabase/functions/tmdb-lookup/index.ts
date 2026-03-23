@@ -7,7 +7,6 @@ const corsHeaders = {
 
 async function fetchTrailer(apiKey: string, mediaType: string, tmdbId: number | string): Promise<string | null> {
   try {
-    // Try pt-BR first
     const url = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/videos?api_key=${apiKey}&language=pt-BR`;
     const resp = await fetch(url);
     if (resp.ok) {
@@ -15,7 +14,6 @@ async function fetchTrailer(apiKey: string, mediaType: string, tmdbId: number | 
       const trailer = data.results?.find((v: any) => v.type === "Trailer" && v.site === "YouTube");
       if (trailer) return `https://www.youtube.com/watch?v=${trailer.key}`;
     }
-    // Fallback en-US
     const urlEn = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/videos?api_key=${apiKey}&language=en-US`;
     const respEn = await fetch(urlEn);
     if (respEn.ok) {
@@ -27,6 +25,54 @@ async function fetchTrailer(apiKey: string, mediaType: string, tmdbId: number | 
   return null;
 }
 
+async function fetchCredits(apiKey: string, mediaType: string, tmdbId: number | string) {
+  try {
+    const url = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/credits?api_key=${apiKey}&language=pt-BR`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      const cast = (data.cast || []).slice(0, 15).map((c: any) => ({
+        name: c.name,
+        character: c.character || c.roles?.[0]?.character || null,
+        profile_path: c.profile_path ? `https://image.tmdb.org/t/p/w185${c.profile_path}` : null,
+      }));
+      const director = (data.crew || []).find((c: any) => c.job === "Director");
+      return { cast, director: director ? { name: director.name, profile_path: director.profile_path ? `https://image.tmdb.org/t/p/w185${director.profile_path}` : null } : null };
+    }
+  } catch { /* silent */ }
+  return { cast: [], director: null };
+}
+
+async function fetchImages(apiKey: string, mediaType: string, tmdbId: number | string) {
+  try {
+    const url = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/images?api_key=${apiKey}`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      const backdrops = (data.backdrops || []).slice(0, 10).map((img: any) => `https://image.tmdb.org/t/p/w780${img.file_path}`);
+      return backdrops;
+    }
+  } catch { /* silent */ }
+  return [];
+}
+
+async function fetchRecommendations(apiKey: string, mediaType: string, tmdbId: number | string) {
+  try {
+    const url = `https://api.themoviedb.org/3/${mediaType}/${tmdbId}/recommendations?api_key=${apiKey}&language=pt-BR&page=1`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      return (data.results || []).slice(0, 12).map((r: any) => ({
+        tmdb_id: r.id,
+        name: mediaType === "tv" ? r.name : r.title,
+        poster_path: r.poster_path ? `https://image.tmdb.org/t/p/w342${r.poster_path}` : null,
+        vote_average: r.vote_average ? Math.round(r.vote_average * 10) / 10 : null,
+      }));
+    }
+  } catch { /* silent */ }
+  return [];
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -35,9 +81,9 @@ serve(async (req) => {
     if (!TMDB_API_KEY) throw new Error("TMDB_API_KEY não configurada");
 
     const body = await req.json();
-    const { tmdb_id, type, season_number, search_name } = body;
+    const { tmdb_id, type, season_number, search_name, full_details } = body;
 
-    // Search mode: find by name and return backdrop + trailer
+    // Search mode
     if (search_name) {
       const mediaType = type === "series" ? "tv" : "movie";
       const searchUrl = `https://api.themoviedb.org/3/search/${mediaType}?api_key=${TMDB_API_KEY}&language=pt-BR&query=${encodeURIComponent(search_name)}`;
@@ -66,7 +112,7 @@ serve(async (req) => {
 
     const mediaType = type === "series" ? "tv" : "movie";
 
-    // If requesting season episodes
+    // Season episodes
     if (type === "series" && season_number != null) {
       const url = `https://api.themoviedb.org/3/tv/${tmdb_id}/season/${season_number}?api_key=${TMDB_API_KEY}&language=pt-BR`;
       const resp = await fetch(url);
@@ -75,7 +121,6 @@ serve(async (req) => {
         throw new Error(`TMDB retornou ${resp.status}: ${t}`);
       }
       const data = await resp.json();
-
       const episodes = (data.episodes || []).map((ep: any) => ({
         episode_number: ep.episode_number,
         name: ep.name || `Episódio ${ep.episode_number}`,
@@ -85,13 +130,12 @@ serve(async (req) => {
         air_date: ep.air_date || null,
         vote_average: ep.vote_average ? Math.round(ep.vote_average * 10) / 10 : null,
       }));
-
       return new Response(JSON.stringify({ season_number: data.season_number, episodes }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Default: fetch main details + trailer
+    // Main details
     const url = `https://api.themoviedb.org/3/${mediaType}/${tmdb_id}?api_key=${TMDB_API_KEY}&language=pt-BR`;
     const resp = await fetch(url);
     if (!resp.ok) {
@@ -99,7 +143,6 @@ serve(async (req) => {
       throw new Error(`TMDB retornou ${resp.status}: ${t}`);
     }
     const data = await resp.json();
-
     const trailerUrl = await fetchTrailer(TMDB_API_KEY, mediaType, tmdb_id);
 
     const result: any = {
@@ -123,6 +166,26 @@ serve(async (req) => {
           episode_count: s.episode_count,
           poster_path: s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : null,
         }));
+    }
+
+    // Full details mode: fetch credits, images, recommendations in parallel
+    if (full_details) {
+      const [credits, images, recommendations] = await Promise.all([
+        fetchCredits(TMDB_API_KEY, mediaType, tmdb_id),
+        fetchImages(TMDB_API_KEY, mediaType, tmdb_id),
+        fetchRecommendations(TMDB_API_KEY, mediaType, tmdb_id),
+      ]);
+      result.credits = credits;
+      result.images = images;
+      result.recommendations = recommendations;
+      // Extra details from main response
+      result.genres = (data.genres || []).map((g: any) => g.name);
+      result.runtime = data.runtime || null;
+      result.release_date = data.release_date || data.first_air_date || null;
+      result.tagline = data.tagline || null;
+      result.status = data.status || null;
+      result.original_language = data.original_language || null;
+      result.vote_count = data.vote_count || 0;
     }
 
     return new Response(JSON.stringify(result), {

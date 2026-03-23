@@ -20,6 +20,7 @@ import Entertainment from "./pages/Entertainment";
 import VodBrowse from "./pages/VodBrowse";
 import VodMoviePlayer from "./pages/VodMoviePlayer";
 import VodSeriesPlayer from "./pages/VodSeriesPlayer";
+import ContentDetail from "./pages/ContentDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,7 @@ const App = () => (
 
             {/* Players (sem header, fullscreen) */}
             <Route path="/course/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
+            <Route path="/entretenimento/:type/:id" element={<ProtectedRoute><ContentDetail /></ProtectedRoute>} />
             <Route path="/vod/movie/:id" element={<ProtectedRoute><VodMoviePlayer /></ProtectedRoute>} />
             <Route path="/vod/series/:id" element={<ProtectedRoute><VodSeriesPlayer /></ProtectedRoute>} />
 
