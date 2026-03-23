@@ -153,19 +153,19 @@ const Entertainment = () => {
 
         {/* Concave container — TV-screen shape */}
         <div
-          className="relative w-[97vw] h-[94vh] overflow-hidden"
+          className="relative w-[90vw] h-[82vh] overflow-hidden"
           style={{
-            borderRadius: "24px 24px 50% 50% / 24px 24px 8% 8%",
+            borderRadius: "20px 20px 50% 50% / 20px 20px 6% 6%",
             boxShadow:
-              "0 0 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4), inset 0 0 80px 20px rgba(0,0,0,0.3)",
+              "0 0 80px 20px rgba(0,0,0,0.5), 0 0 160px 60px rgba(0,0,0,0.3)",
           }}
         >
           {/* Background — video or fallback image */}
           {heroVideoId ? (
             <iframe
               src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-              style={{ border: 0, transform: "scale(1.2)", transformOrigin: "center center" }}
+              className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
+              style={{ border: 0, transform: "translate(-50%, -50%)", transformOrigin: "center center" }}
               allow="autoplay; encrypted-media"
               title="Hero trailer"
             />
