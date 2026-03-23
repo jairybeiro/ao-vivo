@@ -32,6 +32,7 @@ const Entertainment = () => {
   const [collections, setCollections] = useState<Record<string, CuratedItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CuratedItem | null>(null);
+  const [bgVideoUrl, setBgVideoUrl] = useState<string | null>(null);
 
   const fetchCurated = useCallback(async () => {
     setLoading(true);
