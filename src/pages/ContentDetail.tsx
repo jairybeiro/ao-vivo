@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Star, Play, Clock, Calendar, Globe, Users, ChevronRight } from "lucide-react";
+import { ArrowLeft, Star, Play, Clock, Calendar, Globe, Users, ChevronRight, Info } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -115,10 +115,8 @@ const ContentDetail = () => {
       };
       setDbItem(item);
 
-      // Use tmdb_id if available, fallback to xtream_id
       const lookupId = item.tmdb_id || item.xtream_id;
 
-      // Fetch full TMDB details
       try {
         const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
           body: { tmdb_id: lookupId, type, full_details: true },
@@ -170,108 +168,141 @@ const ContentDetail = () => {
 
   const title = tmdb?.name || dbItem.name;
   const plot = tmdb?.plot || dbItem.plot;
+  const backdropSrc = tmdb?.backdrop_url || dbItem.backdrop_url;
+  const ratingPercent = tmdb?.rating ? Math.round(tmdb.rating * 10) : null;
 
   return (
     <div className="min-h-screen bg-background">
-      <MainHeader />
+      {/* Fixed header */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <MainHeader />
+      </div>
 
-      {/* Trailer Hero Section */}
-      <div className="relative w-full aspect-video max-h-[70vh] bg-black overflow-hidden">
+      {/* ===== FULL-SCREEN HERO ===== */}
+      <section className="relative w-screen h-screen overflow-hidden">
+        {/* Background: trailer or backdrop */}
         {youtubeId ? (
           <iframe
             src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
-            className="absolute inset-0 w-full h-full"
+            className="absolute inset-0 w-full h-full scale-[1.2] pointer-events-none"
             allow="autoplay; encrypted-media"
-            allowFullScreen
             title={title}
           />
-        ) : dbItem.backdrop_url || tmdb?.backdrop_url ? (
+        ) : backdropSrc ? (
           <img
-            src={tmdb?.backdrop_url || dbItem.backdrop_url || ""}
+            src={backdropSrc}
             alt={title}
-            className="w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover"
           />
-        ) : null}
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
+        )}
 
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
-        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+        {/* Netflix-style scrim */}
+        <div
+          className="absolute inset-0 z-[1]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent z-[1]" />
 
         {/* Back button */}
         <button
           onClick={() => navigate("/entretenimento")}
-          className="absolute top-4 left-4 z-20 p-2 rounded-full bg-background/40 backdrop-blur-md hover:bg-background/60 transition"
+          className="absolute top-20 left-4 md:left-8 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 transition"
         >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
+          <ArrowLeft className="w-5 h-5 text-white" />
         </button>
 
-        {/* Floating CTA */}
-        <div className="absolute bottom-8 left-6 right-6 md:left-12 md:right-12 z-20">
+        {/* Hero content — bottom-left */}
+        <div className="absolute inset-0 flex flex-col justify-end px-6 pb-16 md:px-14 md:pb-20 z-10">
           <div className="max-w-2xl space-y-3">
+            {/* Tag */}
             {tag && (
               <div className="flex items-center gap-2">
-                <span className="text-2xl">{TAG_EMOJIS[tag] || "🎬"}</span>
-                <span className="text-xs font-bold text-primary uppercase tracking-widest">{tag}</span>
+                <span className="text-xl">{TAG_EMOJIS[tag] || "🎬"}</span>
+                <span className="text-xs font-bold text-[hsl(var(--player-accent))] uppercase tracking-widest">
+                  {tag}
+                </span>
               </div>
             )}
-            <h1 className="text-3xl md:text-5xl font-black text-foreground drop-shadow-2xl leading-tight">{title}</h1>
 
+            {/* Title */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl">
+              {title}
+            </h1>
+
+            {/* Tagline */}
             {tmdb?.tagline && (
-              <p className="text-sm md:text-base text-foreground/70 italic">"{tmdb.tagline}"</p>
+              <p className="text-sm md:text-base text-white/60 italic">"{tmdb.tagline}"</p>
             )}
 
-            <div className="flex flex-wrap items-center gap-3 text-xs text-foreground/60">
-              {tmdb?.rating && (
-                <span className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                  {tmdb.rating}/10
-                  {tmdb.vote_count > 0 && <span className="text-foreground/40">({tmdb.vote_count.toLocaleString()})</span>}
-                </span>
+            {/* Metadata row */}
+            <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
+              {ratingPercent && (
+                <span className="text-green-400 font-bold text-sm">{ratingPercent}% relevante</span>
+              )}
+              {tmdb?.release_date && (
+                <span>{new Date(tmdb.release_date).getFullYear()}</span>
               )}
               {tmdb?.runtime && (
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
+                  <Clock className="w-3 h-3" />
                   {Math.floor(tmdb.runtime / 60)}h {tmdb.runtime % 60}min
                 </span>
               )}
-              {tmdb?.release_date && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {new Date(tmdb.release_date).getFullYear()}
-                </span>
-              )}
+              <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
               {tmdb?.original_language && (
-                <span className="flex items-center gap-1">
-                  <Globe className="w-3.5 h-3.5" />
-                  {tmdb.original_language.toUpperCase()}
-                </span>
+                <span className="uppercase">{tmdb.original_language}</span>
               )}
             </div>
 
+            {/* Genres */}
             {tmdb?.genres && tmdb.genres.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {tmdb.genres.map((g) => (
-                  <span key={g} className="px-2 py-0.5 rounded-full bg-foreground/10 backdrop-blur-sm text-[10px] font-medium text-foreground/80">
+                  <span key={g} className="px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-sm text-[10px] font-medium text-white/70">
                     {g}
                   </span>
                 ))}
               </div>
             )}
 
-            {/* CTA Button */}
-            <button
-              onClick={handleWatch}
-              className="mt-2 inline-flex items-center gap-2.5 px-6 py-3 md:px-8 md:py-3.5 rounded-lg bg-primary text-primary-foreground font-bold text-sm md:text-base shadow-2xl hover:brightness-110 transition-all backdrop-blur-md"
-            >
-              <Play className="w-5 h-5 fill-current" />
-              Assistir agora: {title}
-            </button>
+            {/* Synopsis preview */}
+            {plot && (
+              <p className="text-sm text-white/70 max-w-lg leading-relaxed line-clamp-3 drop-shadow">
+                {plot}
+              </p>
+            )}
+
+            {/* CTA buttons */}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={handleWatch}
+                className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
+              >
+                <Play className="w-5 h-5 fill-black" />
+                Assistir
+              </button>
+              <button
+                onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
+              >
+                <Info className="w-5 h-5" />
+                Mais informações
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Content Body */}
-      <main className="container mx-auto px-4 md:px-8 py-8 space-y-10">
+        {/* Bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-10" />
+      </section>
+
+      {/* ===== CONTENT BODY ===== */}
+      <main id="details" className="container mx-auto px-4 md:px-8 py-8 space-y-10 -mt-8 relative z-20">
 
         {/* Tag insight + Synopsis */}
         <div className="grid md:grid-cols-[1fr_280px] gap-8">
@@ -408,9 +439,9 @@ const ContentDetail = () => {
         <div className="text-center py-6">
           <button
             onClick={handleWatch}
-            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-lg bg-primary text-primary-foreground font-bold text-base shadow-xl hover:brightness-110 transition-all"
+            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-lg bg-white text-black font-bold text-base shadow-xl hover:bg-white/90 transition-all"
           >
-            <Play className="w-5 h-5 fill-current" />
+            <Play className="w-5 h-5 fill-black" />
             Assistir agora: {title}
           </button>
         </div>
