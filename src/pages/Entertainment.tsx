@@ -128,7 +128,8 @@ const Entertainment = () => {
 
       {/* ===== FULL-SCREEN HERO WITH NETFLIX AMBILIGHT ===== */}
       <section
-        className="relative w-screen h-screen overflow-hidden"
+        className="relative w-screen overflow-hidden"
+        style={{ background: "#0f0f0f", height: "110vh" }}
         style={{ background: "#0f0f0f" }}
       >
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
