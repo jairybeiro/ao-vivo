@@ -88,6 +88,7 @@ const ContentDetail = () => {
   const [tmdb, setTmdb] = useState<TmdbDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
+  const [showTrailerPlayer, setShowTrailerPlayer] = useState(false);
 
   useEffect(() => {
     if (!id || !type) return;
