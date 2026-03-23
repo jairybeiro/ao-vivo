@@ -161,27 +161,44 @@ const Entertainment = () => {
 
         {/* === CAMADA 2: Player Principal === */}
         <div className="absolute inset-0 z-[2] flex items-center justify-center">
-          <div
-            className="relative w-[92vw] h-[82vh] overflow-hidden"
-            style={{ borderRadius: "18px" }}
-          >
-            {heroVideoId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
-                className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
-                style={{ border: 0, transform: "translate(-50%, -50%)" }}
-                allow="autoplay; encrypted-media"
-                title="Hero trailer"
-              />
-            ) : heroItem?.backdrop_url ? (
-              <img
-                src={heroItem.backdrop_url}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-            )}
+          <div className="relative w-[92vw] h-[82vh]">
+            {/* Player content — top rounded, bottom straight */}
+            <div
+              className="absolute inset-0 overflow-hidden"
+              style={{ borderRadius: "18px 18px 0 0" }}
+            >
+              {heroVideoId ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
+                  className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
+                  style={{ border: 0, transform: "translate(-50%, -50%)" }}
+                  allow="autoplay; encrypted-media"
+                  title="Hero trailer"
+                />
+              ) : heroItem?.backdrop_url ? (
+                <img
+                  src={heroItem.backdrop_url}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+              )}
+            </div>
+            {/* SVG concave arc at bottom — subtle inward curve like Netflix */}
+            <div className="absolute -bottom-px left-0 right-0 z-[5] pointer-events-none">
+              <svg
+                viewBox="0 0 1200 35"
+                preserveAspectRatio="none"
+                className="block w-full"
+                style={{ height: "35px" }}
+              >
+                <path
+                  d="M0,0 Q600,35 1200,0 L1200,35 L0,35 Z"
+                  fill="#0f0f0f"
+                />
+              </svg>
+            </div>
           </div>
         </div>
 
