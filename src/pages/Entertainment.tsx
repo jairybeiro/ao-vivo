@@ -165,7 +165,10 @@ const Entertainment = () => {
             {/* Player content — top rounded, bottom straight */}
             <div
               className="absolute inset-0 overflow-hidden"
-              style={{ borderRadius: "18px 18px 0 0" }}
+              style={{
+                borderRadius: "18px 18px 0 0",
+                clipPath: "ellipse(150% 100% at 50% 0%)",
+              }}
             >
               {heroVideoId ? (
                 <iframe
@@ -184,20 +187,6 @@ const Entertainment = () => {
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
-            </div>
-            {/* SVG concave arc at bottom — subtle inward curve like Netflix */}
-            <div className="absolute -bottom-px left-0 right-0 z-[5] pointer-events-none">
-              <svg
-                viewBox="0 0 1200 35"
-                preserveAspectRatio="none"
-                className="block w-full"
-                style={{ height: "35px" }}
-              >
-                <path
-                  d="M0,35 Q600,0 1200,35 L1200,35 L0,35 Z"
-                  fill="#0f0f0f"
-                />
-              </svg>
             </div>
           </div>
         </div>
