@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Film, Clapperboard, Star, PlayCircle, ChevronRight } from "lucide-react";
+import { Film, Clapperboard, Star, PlayCircle, ChevronRight, Play } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 
 interface CuratedItem {
@@ -56,7 +56,6 @@ const Entertainment = () => {
       ...(series || []).map((s: any) => ({ ...s, type: "series" as const })),
     ];
 
-    // Group by category_tag
     const grouped: Record<string, CuratedItem[]> = {};
     items.forEach((item) => {
       if (!item.category_tag) return;
@@ -81,53 +80,90 @@ const Entertainment = () => {
     navigate(`/entretenimento/${item.type}/${item.id}`);
   };
 
+  const scrollToContent = () => {
+    document.getElementById("collections")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   const tags = Object.keys(collections);
 
   return (
     <div className="min-h-screen bg-background">
-      <MainHeader />
+      {/* Fixed header over hero */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <MainHeader />
+      </div>
 
-      {/* Hero */}
-      {heroItem && heroItem.backdrop_url && (
-        <div className="relative w-full aspect-[21/9] max-h-[480px] overflow-hidden">
+      {/* ===== FULL-SCREEN HERO ===== */}
+      <section className="relative w-screen h-screen overflow-hidden">
+        {/* Background image */}
+        {heroItem?.backdrop_url ? (
           <img
             src={heroItem.backdrop_url}
-            alt={heroItem.name}
-            className="w-full h-full object-cover"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          <div className="absolute bottom-8 left-8 right-8 max-w-xl space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{TAG_EMOJIS[heroItem.category_tag] || "🎬"}</span>
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">
-                {heroItem.category_tag}
-              </span>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
+        )}
+
+        {/* Netflix-style scrim gradient */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 25%, transparent 70%, rgba(0,0,0,0.85) 100%)",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-transparent" />
+
+        {/* Hero content — bottom-left anchored */}
+        <div className="absolute inset-0 flex flex-col justify-end px-6 pb-16 md:px-14 md:pb-20 z-10">
+          <div className="max-w-2xl space-y-4">
+            {/* Title */}
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl">
+              TRAILERS QUE
+              <br />
+              <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-sm sm:text-base md:text-lg text-white/80 max-w-lg leading-relaxed drop-shadow-lg">
+              A curadoria definitiva para expandir sua visão e mentalidade através do cinema.
+            </p>
+
+            {/* Metadata badges */}
+            <div className="flex items-center gap-3 text-xs text-white/60">
+              <span className="text-green-400 font-bold text-sm">98% Relevante</span>
+              <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
+              <span>Curadoria Exclusiva</span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground drop-shadow-lg">{heroItem.name}</h1>
-            {heroItem.rating && (
-              <div className="flex items-center gap-1 text-sm text-foreground/80">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                {heroItem.rating}
-              </div>
-            )}
-            {heroItem.plot && (
-              <p className="text-sm text-foreground/70 line-clamp-2">{heroItem.plot}</p>
-            )}
-            <div className="flex gap-3 pt-1">
+
+            {/* CTA buttons */}
+            <div className="flex items-center gap-3 pt-2">
               <button
-                onClick={() => handleClick(heroItem)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-foreground text-background rounded-md font-semibold text-sm hover:bg-foreground/90 transition"
+                onClick={scrollToContent}
+                className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
               >
-                <PlayCircle className="w-5 h-5" />
-                Assistir
+                <Play className="w-5 h-5 fill-black" />
+                COMEÇAR AGORA
+              </button>
+              <button
+                onClick={scrollToContent}
+                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
+              >
+                <Film className="w-5 h-5" />
+                Explorar
               </button>
             </div>
           </div>
         </div>
-      )}
 
-      {/* Collections */}
-      <main className="container mx-auto px-4 py-6 space-y-8">
+        {/* Bottom fade into content */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-10" />
+      </section>
+
+      {/* ===== COLLECTIONS ===== */}
+      <main id="collections" className="container mx-auto px-4 py-8 space-y-10 -mt-8 relative z-20">
         {loading ? (
           <div className="text-center text-muted-foreground py-16">Carregando coleções...</div>
         ) : tags.length === 0 ? (
@@ -149,7 +185,7 @@ const Entertainment = () => {
                   <div
                     key={item.id}
                     onClick={() => handleClick(item)}
-                    className="flex-shrink-0 w-44 md:w-52 cursor-pointer group"
+                    className="flex-shrink-0 w-48 md:w-56 cursor-pointer group"
                   >
                     <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative">
                       {item.cover_url ? (
