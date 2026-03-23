@@ -161,9 +161,9 @@ const Entertainment = () => {
           }}
         >
           {/* Background — video or fallback image */}
-          {heroItem?.trailer_url ? (
+          {heroVideoId ? (
             <iframe
-              src={`https://www.youtube.com/embed/${heroItem.trailer_url.includes("v=") ? heroItem.trailer_url.split("v=")[1]?.split("&")[0] : heroItem.trailer_url.split("/").pop()}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroItem.trailer_url.includes("v=") ? heroItem.trailer_url.split("v=")[1]?.split("&")[0] : heroItem.trailer_url.split("/").pop()}`}
+              src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
               className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               style={{ border: 0, transform: "scale(1.2)", transformOrigin: "center center" }}
               allow="autoplay; encrypted-media"
