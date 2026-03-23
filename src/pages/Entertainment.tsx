@@ -174,7 +174,7 @@ const Entertainment = () => {
             <div
               className="absolute inset-0 overflow-hidden"
               style={{
-                borderRadius: "18px 18px 0 0",
+                borderRadius: "18px",
                 clipPath: "url(#hero-player-clip)",
               }}
             >
