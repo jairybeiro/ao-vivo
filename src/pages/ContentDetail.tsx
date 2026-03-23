@@ -18,6 +18,7 @@ interface TmdbDetails {
   cover_url: string | null;
   rating: number | null;
   trailer_url: string | null;
+  original_language?: string | null;
   genres: string[];
   runtime: number | null;
   release_date: string | null;

@@ -42,6 +42,7 @@ const App = () => (
 
             {/* Players (sem header, fullscreen) */}
             <Route path="/course/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
+            <Route path="/entretenimento/:type/:id" element={<ProtectedRoute><ContentDetail /></ProtectedRoute>} />
             <Route path="/vod/movie/:id" element={<ProtectedRoute><VodMoviePlayer /></ProtectedRoute>} />
             <Route path="/vod/series/:id" element={<ProtectedRoute><VodSeriesPlayer /></ProtectedRoute>} />
 
