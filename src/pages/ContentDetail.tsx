@@ -111,8 +111,12 @@ const ContentDetail = () => {
         rating: data.rating,
         plot: (data as any).plot,
         xtream_id: data.xtream_id,
+        tmdb_id: (data as any).tmdb_id || null,
       };
       setDbItem(item);
+
+      // Use tmdb_id if available, fallback to xtream_id
+      const lookupId = item.tmdb_id || item.xtream_id;
 
       // Fetch full TMDB details
       try {
