@@ -72,7 +72,7 @@ const TmdbCuratedImport = () => {
   const [editItem, setEditItem] = useState<CuratedItem | null>(null);
   const [editForm, setEditForm] = useState({
     name: "", category: "", category_tag: "", stream_url: "",
-    cover_url: "", backdrop_url: "", trailer_url: "", rating: "", plot: "",
+    cover_url: "", backdrop_url: "", trailer_url: "", trailer_mp4_url: "", rating: "", plot: "",
   });
   const [editSaving, setEditSaving] = useState(false);
 
@@ -242,6 +242,7 @@ const TmdbCuratedImport = () => {
       cover_url: item.cover_url || "",
       backdrop_url: item.backdrop_url || "",
       trailer_url: item.trailer_url || "",
+      trailer_mp4_url: (item as any).trailer_mp4_url || "",
       rating: item.rating?.toString() || "",
       plot: item.plot || "",
     });
@@ -259,6 +260,7 @@ const TmdbCuratedImport = () => {
       cover_url: editForm.cover_url.trim() || null,
       backdrop_url: editForm.backdrop_url.trim() || null,
       trailer_url: editForm.trailer_url.trim() || null,
+      trailer_mp4_url: editForm.trailer_mp4_url.trim() || null,
       rating: editForm.rating ? parseFloat(editForm.rating) : null,
     };
 
@@ -608,6 +610,11 @@ const TmdbCuratedImport = () => {
               <div className="space-y-2">
                 <Label>URL do Trailer (YouTube)</Label>
                 <Input value={editForm.trailer_url} onChange={(e) => setEditForm(f => ({ ...f, trailer_url: e.target.value }))} />
+              </div>
+              <div className="space-y-2">
+                <Label>URL do Trailer MP4 (HD - para Player)</Label>
+                <Input placeholder="https://...arquivo.mp4 ou .m3u8" value={editForm.trailer_mp4_url} onChange={(e) => setEditForm(f => ({ ...f, trailer_mp4_url: e.target.value }))} />
+                <p className="text-[10px] text-muted-foreground">Link direto .mp4 ou .m3u8 para reprodução no player SDK</p>
               </div>
               <div className="space-y-2">
                 <Label>Nota</Label>
