@@ -292,6 +292,7 @@ const Admin = () => {
 
             {/* Tab de Curadoria */}
             <TabsContent value="curated" className="space-y-6">
+              <HeroBgVideoManager />
               <TmdbCuratedImport />
             </TabsContent>
           </Tabs>
