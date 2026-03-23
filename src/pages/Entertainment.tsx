@@ -128,8 +128,8 @@ const Entertainment = () => {
 
       {/* ===== FULL-SCREEN HERO WITH NETFLIX AMBILIGHT ===== */}
       <section
-        className="relative w-screen h-screen overflow-hidden"
-        style={{ background: "#0f0f0f" }}
+        className="relative w-screen overflow-hidden"
+        style={{ background: "#0f0f0f", height: "110vh" }}
       >
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
         {(heroVideoId || heroItem?.backdrop_url) && (
@@ -160,8 +160,8 @@ const Entertainment = () => {
         )}
 
         {/* === CAMADA 2: Player Principal === */}
-        <div className="absolute inset-0 z-[2] flex items-end justify-center pb-0">
-          <div className="relative w-[92vw] h-[78vh]">
+        <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
+          <div className="relative w-[92vw] h-[80vh]">
             {/* Player content — top rounded, bottom straight */}
             <div
               className="absolute inset-0 overflow-hidden"
