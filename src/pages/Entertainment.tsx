@@ -172,8 +172,8 @@ const Entertainment = () => {
               )}
             </div>
             {/* Stroke outline following the same clip-path */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1 1" preserveAspectRatio="none">
-              <path d="M0,0 H1 V1 C0.78,0.935 0.22,0.935 0,1 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.003" />
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d="M2,0 H98 Q100,0 100,2 V100 C78,93.5 22,93.5 0,100 V2 Q0,0 2,0 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" vectorEffect="non-scaling-stroke" style={{ strokeWidth: '1px' }} />
             </svg>
           </div>
         </div>
