@@ -147,7 +147,7 @@ const Entertainment = () => {
           <div className="relative w-[92vw] h-[80vh]">
             {/* Player content — top rounded, bottom concave */}
             <div
-              className="absolute inset-0 overflow-hidden border border-white/25"
+              className="absolute inset-0 overflow-hidden"
               style={{
                 borderRadius: "18px",
                 clipPath: "url(#hero-player-clip)",
@@ -171,6 +171,10 @@ const Entertainment = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
             </div>
+            {/* Stroke outline following the same clip-path */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1 1" preserveAspectRatio="none">
+              <path d="M0,0 H1 V1 C0.78,0.935 0.22,0.935 0,1 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.003" />
+            </svg>
           </div>
         </div>
 
