@@ -7,7 +7,6 @@ const navItems = [
   { label: "Home", path: "/", icon: Home },
   { label: "Cursos", path: "/cursos", icon: BookOpen },
   { label: "Entretenimento", path: "/entretenimento", icon: Tv },
-  { label: "Canais", path: "/channels", icon: Radio },
 ];
 
 const MainHeader = () => {
