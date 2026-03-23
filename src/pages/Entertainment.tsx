@@ -136,9 +136,9 @@ const Entertainment = () => {
           <div
             className="absolute inset-0 z-[1]"
             style={{
-              filter: "blur(80px)",
-              opacity: 0.3,
-              transform: "scale(1.3)",
+              filter: "blur(60px)",
+              opacity: 0.5,
+              transform: "scale(1.5)",
             }}
           >
             {heroVideoId ? (
