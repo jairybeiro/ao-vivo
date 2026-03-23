@@ -161,8 +161,8 @@ const Entertainment = () => {
         )}
 
         {/* === CAMADA 2: Player Principal === */}
-        <div className="absolute inset-0 z-[2] flex items-end justify-center pb-0">
-          <div className="relative w-[92vw] h-[78vh]">
+        <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
+          <div className="relative w-[92vw] h-[80vh]">
             {/* Player content — top rounded, bottom straight */}
             <div
               className="absolute inset-0 overflow-hidden"
