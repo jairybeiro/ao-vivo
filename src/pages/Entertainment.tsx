@@ -130,7 +130,7 @@ const Entertainment = () => {
       <section
         className="relative w-screen overflow-hidden"
         style={{ background: "#0f0f0f", height: "110vh" }}
-        style={{ background: "#0f0f0f" }}
+      >
       >
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
         {(heroVideoId || heroItem?.backdrop_url) && (
