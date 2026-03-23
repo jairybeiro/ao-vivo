@@ -119,8 +119,8 @@ const Entertainment = () => {
           <div
             className="absolute inset-0 z-[1]"
             style={{
-              filter: "blur(60px)",
-              opacity: 0.5,
+              filter: "blur(45px)",
+              opacity: 0.75,
               transform: "scale(1.5)",
             }}
           >
