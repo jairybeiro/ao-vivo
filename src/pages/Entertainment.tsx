@@ -77,6 +77,22 @@ const Entertainment = () => {
 
   useEffect(() => { fetchCurated(); }, [fetchCurated]);
 
+  const heroVideoId = useMemo(() => {
+    if (!heroItem?.trailer_url) return null;
+    const url = heroItem.trailer_url;
+    if (url.includes("v=")) return url.split("v=")[1]?.split("&")[0];
+    return url.split("/").pop();
+  }, [heroItem?.trailer_url]);
+
+  const handleClick = (item: CuratedItem) => {
+    navigate(`/entretenimento/${item.type}/${item.id}`);
+  };
+
+  const scrollToContent = () => {
+    document.getElementById("collections")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const tags = Object.keys(collections);
 
   return (
     <div className="min-h-screen bg-background">
