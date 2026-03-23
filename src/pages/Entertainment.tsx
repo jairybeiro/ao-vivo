@@ -77,6 +77,35 @@ const Entertainment = () => {
 
   useEffect(() => { fetchCurated(); }, [fetchCurated]);
 
+  // Fetch background glow videos
+  useEffect(() => {
+    const fetchBgVideos = async () => {
+      const { data } = await supabase
+        .from("hero_bg_videos")
+        .select("youtube_url")
+        .eq("is_active", true);
+      if (data && data.length > 0) {
+        const pick = data[Math.floor(Math.random() * data.length)];
+        setBgVideoUrl((pick as any).youtube_url);
+      }
+    };
+    fetchBgVideos();
+  }, []);
+
+  const bgVideoId = useMemo(() => {
+    if (!bgVideoUrl) return null;
+    if (bgVideoUrl.includes("v=")) return bgVideoUrl.split("v=")[1]?.split("&")[0];
+    if (bgVideoUrl.includes("youtu.be/")) return bgVideoUrl.split("youtu.be/")[1]?.split("?")[0];
+    return bgVideoUrl;
+  }, [bgVideoUrl]);
+
+  const heroVideoId = useMemo(() => {
+    if (!heroItem?.trailer_url) return null;
+    const url = heroItem.trailer_url;
+    if (url.includes("v=")) return url.split("v=")[1]?.split("&")[0];
+    return url.split("/").pop();
+  }, [heroItem?.trailer_url]);
+
   const handleClick = (item: CuratedItem) => {
     navigate(`/entretenimento/${item.type}/${item.id}`);
   };
@@ -86,6 +115,9 @@ const Entertainment = () => {
   };
 
   const tags = Object.keys(collections);
+
+  // The actual BG glow video ID: use dedicated bg video if available, else fallback to hero trailer
+  const glowVideoId = bgVideoId || heroVideoId;
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,6 +130,26 @@ const Entertainment = () => {
       <section className="relative w-screen h-screen flex items-center justify-center overflow-hidden">
         {/* Dark page background behind concave container */}
         <div className="absolute inset-0 bg-[hsl(var(--background))]" />
+
+        {/* === BLURRED GLOW VIDEO BEHIND PLAYER === */}
+        {glowVideoId && (
+          <div className="absolute inset-0 z-[0] overflow-hidden">
+            <iframe
+              src={`https://www.youtube.com/embed/${glowVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${glowVideoId}`}
+              className="absolute w-[120%] h-[120%] top-1/2 left-1/2 pointer-events-none"
+              style={{
+                border: 0,
+                transform: "translate(-50%, -50%) scale(1.3)",
+                filter: "blur(40px) brightness(0.6) saturate(1.5)",
+                opacity: 0.7,
+              }}
+              allow="autoplay; encrypted-media"
+              title="Background glow"
+            />
+            {/* Dark overlay to tame the glow */}
+            <div className="absolute inset-0 bg-[hsl(var(--background))]/50" />
+          </div>
+        )}
 
         {/* Concave container — TV-screen shape */}
         <div
