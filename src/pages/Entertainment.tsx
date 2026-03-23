@@ -94,72 +94,96 @@ const Entertainment = () => {
       </div>
 
       {/* ===== FULL-SCREEN HERO ===== */}
-      <section className="relative w-screen h-screen overflow-hidden">
-        {/* Background image */}
-        {heroItem?.backdrop_url ? (
-          <img
-            src={heroItem.backdrop_url}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
-        )}
+      <section className="relative w-screen h-screen flex items-center justify-center overflow-hidden">
+        {/* Dark page background behind concave container */}
+        <div className="absolute inset-0 bg-[hsl(var(--background))]" />
 
-        {/* Netflix-style scrim gradient */}
+        {/* Concave container — TV-screen shape */}
         <div
-          className="absolute inset-0"
+          className="relative w-[97vw] h-[94vh] overflow-hidden"
           style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 25%, transparent 70%, rgba(0,0,0,0.85) 100%)",
+            borderRadius: "24px 24px 50% 50% / 24px 24px 8% 8%",
+            boxShadow:
+              "0 0 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4), inset 0 0 80px 20px rgba(0,0,0,0.3)",
           }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-transparent to-transparent" />
+        >
+          {/* Background — video or fallback image */}
+          {heroItem?.trailer_url ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${heroItem.trailer_url.includes("v=") ? heroItem.trailer_url.split("v=")[1]?.split("&")[0] : heroItem.trailer_url.split("/").pop()}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroItem.trailer_url.includes("v=") ? heroItem.trailer_url.split("v=")[1]?.split("&")[0] : heroItem.trailer_url.split("/").pop()}`}
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+              style={{ border: 0, transform: "scale(1.2)", transformOrigin: "center center" }}
+              allow="autoplay; encrypted-media"
+              title="Hero trailer"
+            />
+          ) : heroItem?.backdrop_url ? (
+            <img
+              src={heroItem.backdrop_url}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
+          )}
 
-        {/* Hero content — bottom-left anchored */}
-        <div className="absolute inset-0 flex flex-col justify-end px-6 pb-16 md:px-14 md:pb-20 z-10">
-          <div className="max-w-2xl space-y-4">
-            {/* Title */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl">
-              TRAILERS QUE
-              <br />
-              <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
-            </h1>
+          {/* Scrim — transparent "hedge" for text visibility */}
+          <div
+            className="absolute inset-0 z-[1]"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent z-[1]" />
 
-            {/* Subtitle */}
-            <p className="text-sm sm:text-base md:text-lg text-white/80 max-w-lg leading-relaxed drop-shadow-lg">
-              A curadoria definitiva para expandir sua visão e mentalidade através do cinema.
-            </p>
-
-            {/* Metadata badges */}
-            <div className="flex items-center gap-3 text-xs text-white/60">
-              <span className="text-green-400 font-bold text-sm">98% Relevante</span>
-              <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
-              <span>Curadoria Exclusiva</span>
-            </div>
-
-            {/* CTA buttons */}
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={scrollToContent}
-                className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
+          {/* Hero content — bottom-left anchored */}
+          <div className="absolute inset-0 flex flex-col justify-end px-6 pb-12 md:px-14 md:pb-16 z-[2]">
+            <div className="max-w-2xl space-y-4">
+              {/* Title — elegant serif-style */}
+              <h1
+                className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl"
+                style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}
               >
-                <Play className="w-5 h-5 fill-black" />
-                COMEÇAR AGORA
-              </button>
-              <button
-                onClick={scrollToContent}
-                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
-              >
-                <Film className="w-5 h-5" />
-                Explorar
-              </button>
+                TRAILERS QUE
+                <br />
+                <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
+              </h1>
+
+              {/* Subtitle */}
+              <p className="text-sm sm:text-base md:text-lg text-white/80 max-w-lg leading-relaxed drop-shadow-lg">
+                A curadoria definitiva para expandir sua visão e mentalidade através do cinema.
+              </p>
+
+              {/* Metadata badges */}
+              <div className="flex items-center gap-3 text-xs text-white/60">
+                <span className="text-green-400 font-bold text-sm">98% Relevante</span>
+                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
+                <span>Curadoria Exclusiva</span>
+              </div>
+
+              {/* CTA buttons */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={scrollToContent}
+                  className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:brightness-110 transition-all text-sm md:text-base shadow-xl"
+                >
+                  <Play className="w-5 h-5 fill-white" />
+                  COMEÇAR AGORA
+                </button>
+                <button
+                  onClick={scrollToContent}
+                  className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
+                >
+                  <Film className="w-5 h-5" />
+                  Explorar
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom fade into content */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-10" />
+        {/* Bottom fade into collections */}
+        <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[hsl(var(--background))] to-transparent z-10" />
       </section>
 
       {/* ===== COLLECTIONS ===== */}
