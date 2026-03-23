@@ -78,8 +78,7 @@ const Entertainment = () => {
   useEffect(() => { fetchCurated(); }, [fetchCurated]);
 
   const handleClick = (item: CuratedItem) => {
-    if (item.type === "movie") navigate(`/vod/movie/${item.id}`);
-    else navigate(`/vod/series/${item.id}`);
+    navigate(`/entretenimento/${item.type}/${item.id}`);
   };
 
   const tags = Object.keys(collections);
