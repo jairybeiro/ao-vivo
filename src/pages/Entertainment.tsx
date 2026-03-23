@@ -165,7 +165,8 @@ const Entertainment = () => {
         <div
           className="relative z-[2] w-[88vw] h-[78vh] overflow-hidden"
           style={{
-            borderRadius: "20px 20px 50% 50% / 20px 20px 6% 6%",
+            borderRadius: "20px 20px 0 0",
+            clipPath: "ellipse(52% 100% at 50% 0%)",
             boxShadow:
               "0 4px 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4)",
           }}
