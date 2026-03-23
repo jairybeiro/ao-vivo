@@ -153,11 +153,11 @@ const Entertainment = () => {
 
         {/* Concave container — TV-screen shape */}
         <div
-          className="relative w-[97vw] h-[94vh] overflow-hidden"
+          className="relative w-[90vw] h-[82vh] overflow-hidden"
           style={{
-            borderRadius: "24px 24px 50% 50% / 24px 24px 8% 8%",
+            borderRadius: "20px 20px 50% 50% / 20px 20px 6% 6%",
             boxShadow:
-              "0 0 60px 10px rgba(0,0,0,0.7), 0 0 120px 40px rgba(0,0,0,0.4), inset 0 0 80px 20px rgba(0,0,0,0.3)",
+              "0 0 80px 20px rgba(0,0,0,0.5), 0 0 160px 60px rgba(0,0,0,0.3)",
           }}
         >
           {/* Background — video or fallback image */}
