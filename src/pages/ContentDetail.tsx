@@ -121,7 +121,7 @@ const ContentDetail = () => {
       // Fetch full TMDB details
       try {
         const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
-          body: { tmdb_id: item.xtream_id, type, full_details: true },
+          body: { tmdb_id: lookupId, type, full_details: true },
         });
         if (tmdbData && !tmdbData.error) {
           setTmdb(tmdbData);
