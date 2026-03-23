@@ -147,7 +147,7 @@ const Entertainment = () => {
           <div className="relative w-[92vw] h-[80vh]">
             {/* Player content — top rounded, bottom concave */}
             <div
-              className="absolute inset-0 overflow-hidden ring-1 ring-white/15"
+              className="absolute inset-0 overflow-hidden border border-white/25"
               style={{
                 borderRadius: "18px",
                 clipPath: "url(#hero-player-clip)",
