@@ -136,9 +136,9 @@ const Entertainment = () => {
           <div
             className="absolute inset-0 z-[1]"
             style={{
-              filter: "blur(80px)",
-              opacity: 0.3,
-              transform: "scale(1.3)",
+              filter: "blur(60px)",
+              opacity: 0.5,
+              transform: "scale(1.5)",
             }}
           >
             {heroVideoId ? (
@@ -160,8 +160,8 @@ const Entertainment = () => {
         )}
 
         {/* === CAMADA 2: Player Principal === */}
-        <div className="absolute inset-0 z-[2] flex items-center justify-center">
-          <div className="relative w-[92vw] h-[82vh]">
+        <div className="absolute inset-0 z-[2] flex items-end justify-center pb-0">
+          <div className="relative w-[92vw] h-[78vh]">
             {/* Player content — top rounded, bottom straight */}
             <div
               className="absolute inset-0 overflow-hidden"
