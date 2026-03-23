@@ -46,6 +46,7 @@ interface DbItem {
   cover_url: string | null;
   backdrop_url: string | null;
   trailer_url: string | null;
+  trailer_mp4_url: string | null;
   rating: number | null;
   plot?: string | null;
   xtream_id: number;
