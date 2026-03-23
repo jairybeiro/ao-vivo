@@ -217,7 +217,7 @@ const Entertainment = () => {
         />
 
         {/* === CAMADA 4: Conteúdo Hero (título, sinopse, CTAs) === */}
-        <div className="absolute inset-0 z-[4] flex flex-col justify-end px-6 pb-20 md:px-14 md:pb-24">
+        <div className="absolute inset-0 z-[4] flex flex-col justify-end px-6 pb-32 md:px-14 md:pb-40">
           <div className="max-w-2xl space-y-3">
             <h1
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1] tracking-tight drop-shadow-2xl"
