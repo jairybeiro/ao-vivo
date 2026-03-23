@@ -213,6 +213,33 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_bg_videos: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          label: string | null
+          updated_at: string | null
+          youtube_url: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          updated_at?: string | null
+          youtube_url: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          label?: string | null
+          updated_at?: string | null
+          youtube_url?: string
+        }
+        Relationships: []
+      }
       premium_content: {
         Row: {
           category: string | null
