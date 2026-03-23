@@ -167,7 +167,7 @@ const Entertainment = () => {
               className="absolute inset-0 overflow-hidden"
               style={{
                 borderRadius: "18px 18px 0 0",
-                clipPath: "ellipse(150% 100% at 50% 0%)",
+                clipPath: "ellipse(150% 100% at 50% 120%)",
               }}
             >
               {heroVideoId ? (
