@@ -223,20 +223,20 @@ const Entertainment = () => {
               className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1] tracking-tight drop-shadow-2xl"
               style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}
             >
-              {heroItem?.name || (
-                <>
-                  TRAILERS QUE
-                  <br />
-                  <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
-                </>
-              )}
+              TRAILERS QUE
+              <br />
+              <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
             </h1>
 
-            {(heroItem?.plot || !heroItem?.name) && (
-              <p className="text-sm sm:text-base md:text-lg text-white/75 max-w-lg leading-relaxed drop-shadow-lg line-clamp-3">
-                {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
+            {heroItem?.name && (
+              <p className="text-base sm:text-lg md:text-xl font-semibold text-white/90 drop-shadow-lg">
+                {heroItem.name}
               </p>
             )}
+
+            <p className="text-sm sm:text-base md:text-lg text-white/75 max-w-lg leading-relaxed drop-shadow-lg line-clamp-3">
+              {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
+            </p>
 
             <div className="flex items-center gap-3 text-xs text-white/60">
               <span className="text-green-400 font-bold text-sm">98% Relevante</span>
