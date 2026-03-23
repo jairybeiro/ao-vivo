@@ -48,6 +48,7 @@ interface DbItem {
   rating: number | null;
   plot?: string | null;
   xtream_id: number;
+  tmdb_id: number | null;
 }
 
 const TAG_EMOJIS: Record<string, string> = {
@@ -110,13 +111,17 @@ const ContentDetail = () => {
         rating: data.rating,
         plot: (data as any).plot,
         xtream_id: data.xtream_id,
+        tmdb_id: (data as any).tmdb_id || null,
       };
       setDbItem(item);
+
+      // Use tmdb_id if available, fallback to xtream_id
+      const lookupId = item.tmdb_id || item.xtream_id;
 
       // Fetch full TMDB details
       try {
         const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
-          body: { tmdb_id: item.xtream_id, type, full_details: true },
+          body: { tmdb_id: lookupId, type, full_details: true },
         });
         if (tmdbData && !tmdbData.error) {
           setTmdb(tmdbData);

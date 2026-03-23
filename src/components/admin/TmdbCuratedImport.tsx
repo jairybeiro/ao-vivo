@@ -125,6 +125,7 @@ const TmdbCuratedImport = () => {
         trailer_url: preview.trailer_url,
         category_tag: categoryTag,
         xtream_id: xtreamId,
+        tmdb_id: parseInt(tmdbId),
         is_active: true,
       };
 
