@@ -188,7 +188,7 @@ const VodMoviePlayer = () => {
         contentId={movie.id}
         contentName={movie.name}
         contentCoverUrl={movie.cover_url}
-        onBack={() => navigate("/vod")}
+        onBack={() => navigate("/entretenimento")}
         extraControls={catalogButton}
         overlayContent={catalogOverlay}
       />
