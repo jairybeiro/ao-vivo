@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Film, Clapperboard, Search, Loader2, Plus, Star, Trash2, Pencil } from "lucide-react";
+import { Film, Clapperboard, Search, Loader2, Plus, Star, Trash2, Pencil, Upload, Brain } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const CATEGORY_TAGS = [
@@ -53,6 +53,17 @@ const TmdbCuratedImport = () => {
   const [streamUrl, setStreamUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<TmdbResult | null>(null);
+
+  // Bulk import state
+  const [bulkIds, setBulkIds] = useState("");
+  const [bulkType, setBulkType] = useState<"movie" | "series">("movie");
+  const [bulkTag, setBulkTag] = useState("");
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResults, setBulkResults] = useState<{ tmdb_id: number; name: string; status: string }[]>([]);
+
+  // AI Insight state
+  const [insightLoading, setInsightLoading] = useState<string | null>(null);
+  const [insightModal, setInsightModal] = useState<{ item: CuratedItem; insight: string } | null>(null);
 
   const [curatedItems, setCuratedItems] = useState<CuratedItem[]>([]);
   const [curatedLoading, setCuratedLoading] = useState(false);
@@ -151,6 +162,65 @@ const TmdbCuratedImport = () => {
     setLoading(false);
   };
 
+  // Bulk import handler
+  const handleBulkImport = async () => {
+    if (!bulkTag) {
+      toast.error("Selecione uma tag de curadoria");
+      return;
+    }
+    const ids = bulkIds
+      .split(/[\n,;\s]+/)
+      .map(s => s.trim())
+      .filter(s => s && !isNaN(Number(s)))
+      .map(Number);
+
+    if (ids.length === 0) {
+      toast.error("Nenhum ID válido encontrado");
+      return;
+    }
+    if (ids.length > 50) {
+      toast.error("Máximo de 50 IDs por vez");
+      return;
+    }
+
+    setBulkLoading(true);
+    setBulkResults([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("bulk-import-tmdb", {
+        body: { tmdb_ids: ids, type: bulkType, category_tag: bulkTag },
+      });
+      if (error) throw error;
+      setBulkResults(data.results || []);
+      const imported = (data.results || []).filter((r: any) => r.status === "Importado").length;
+      toast.success(`${imported} de ${ids.length} importados com sucesso!`);
+      fetchCurated();
+    } catch (e: any) {
+      toast.error("Erro na importação em massa: " + e.message);
+    }
+    setBulkLoading(false);
+  };
+
+  // AI Insight handler
+  const handleGenerateInsight = async (item: CuratedItem) => {
+    setInsightLoading(item.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-insight", {
+        body: {
+          name: item.name,
+          plot: item.plot || null,
+          category_tag: item.category_tag,
+          type: item.type,
+        },
+      });
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      setInsightModal({ item, insight: data.insight });
+    } catch (e: any) {
+      toast.error("Erro ao gerar análise: " + e.message);
+    }
+    setInsightLoading(null);
+  };
+
   const handleRemoveTag = async (item: CuratedItem) => {
     const table = item.type === "movie" ? "vod_movies" : "vod_series";
     const { error } = await supabase.from(table).update({ category_tag: null } as any).eq("id", item.id);
@@ -212,7 +282,7 @@ const TmdbCuratedImport = () => {
 
   return (
     <div className="space-y-6">
-      {/* Import Form */}
+      {/* Single Import Form */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -308,6 +378,74 @@ const TmdbCuratedImport = () => {
         </CardContent>
       </Card>
 
+      {/* Bulk Import */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Upload className="w-4 h-4" />
+            Importação em Massa (Bulk)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Cole uma lista de IDs do TMDB (separados por vírgula, espaço ou linha). Todos serão importados com a mesma tag.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Select value={bulkType} onValueChange={(v) => setBulkType(v as "movie" | "series")}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="movie">Filme</SelectItem>
+                  <SelectItem value="series">Série</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Tag de Curadoria</Label>
+              <Select value={bulkTag} onValueChange={setBulkTag}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  {CATEGORY_TAGS.map((t) => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>IDs do TMDB</Label>
+            <Textarea
+              placeholder={"550, 244786, 106646, 1402\nou um por linha:\n550\n244786\n106646"}
+              value={bulkIds}
+              onChange={(e) => setBulkIds(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <Button onClick={handleBulkImport} disabled={bulkLoading || !bulkIds.trim() || !bulkTag}>
+            {bulkLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
+            Importar em Massa
+          </Button>
+
+          {/* Bulk Results */}
+          {bulkResults.length > 0 && (
+            <div className="border border-border rounded-lg p-3 space-y-1 max-h-60 overflow-y-auto">
+              {bulkResults.map((r, i) => (
+                <div key={i} className="flex items-center justify-between text-xs py-1 border-b border-border/50 last:border-0">
+                  <span className="text-foreground font-medium">{r.name || `ID ${r.tmdb_id}`}</span>
+                  <Badge
+                    variant={r.status === "Importado" ? "default" : r.status === "Já existe" ? "secondary" : "destructive"}
+                    className="text-[10px]"
+                  >
+                    {r.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Curated Items List */}
       <Card>
         <CardHeader>
@@ -347,6 +485,20 @@ const TmdbCuratedImport = () => {
                     </div>
                   </div>
                   <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      title="Gerar Análise Estratégica"
+                      onClick={() => handleGenerateInsight(item)}
+                      disabled={insightLoading === item.id}
+                    >
+                      {insightLoading === item.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      ) : (
+                        <Brain className="w-4 h-4 text-primary" />
+                      )}
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(item)}>
                       <Pencil className="w-4 h-4 text-muted-foreground" />
                     </Button>
@@ -473,6 +625,45 @@ const TmdbCuratedImport = () => {
                   Salvar
                 </Button>
                 <Button variant="outline" onClick={() => setEditItem(null)}>Cancelar</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Insight Modal */}
+      <Dialog open={!!insightModal} onOpenChange={(open) => !open && setInsightModal(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-primary" />
+              Análise Estratégica: {insightModal?.item.name}
+            </DialogTitle>
+            <DialogDescription>
+              Rascunho gerado por IA — revise e edite antes de publicar
+            </DialogDescription>
+          </DialogHeader>
+          {insightModal && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge>{insightModal.item.category_tag}</Badge>
+                <Badge variant="secondary">{insightModal.item.type === "movie" ? "Filme" : "Série"}</Badge>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4 text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                {insightModal.insight}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    navigator.clipboard.writeText(insightModal.insight);
+                    toast.success("Análise copiada!");
+                  }}
+                >
+                  Copiar Texto
+                </Button>
+                <Button variant="outline" onClick={() => setInsightModal(null)}>Fechar</Button>
               </div>
             </div>
           )}
