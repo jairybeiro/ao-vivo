@@ -48,6 +48,7 @@ interface DbItem {
   rating: number | null;
   plot?: string | null;
   xtream_id: number;
+  tmdb_id: number | null;
 }
 
 const TAG_EMOJIS: Record<string, string> = {
