@@ -612,6 +612,11 @@ const TmdbCuratedImport = () => {
                 <Input value={editForm.trailer_url} onChange={(e) => setEditForm(f => ({ ...f, trailer_url: e.target.value }))} />
               </div>
               <div className="space-y-2">
+                <Label>URL do Trailer MP4 (HD - para Player)</Label>
+                <Input placeholder="https://...arquivo.mp4 ou .m3u8" value={editForm.trailer_mp4_url} onChange={(e) => setEditForm(f => ({ ...f, trailer_mp4_url: e.target.value }))} />
+                <p className="text-[10px] text-muted-foreground">Link direto .mp4 ou .m3u8 para reprodução no player SDK</p>
+              </div>
+              <div className="space-y-2">
                 <Label>Nota</Label>
                 <Input type="number" step="0.1" min="0" max="10" value={editForm.rating} onChange={(e) => setEditForm(f => ({ ...f, rating: e.target.value }))} />
               </div>
