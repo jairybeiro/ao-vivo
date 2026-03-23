@@ -260,6 +260,7 @@ const TmdbCuratedImport = () => {
       cover_url: editForm.cover_url.trim() || null,
       backdrop_url: editForm.backdrop_url.trim() || null,
       trailer_url: editForm.trailer_url.trim() || null,
+      trailer_mp4_url: editForm.trailer_mp4_url.trim() || null,
       rating: editForm.rating ? parseFloat(editForm.rating) : null,
     };
 
