@@ -138,6 +138,7 @@ const ContentDetail = () => {
 
   const trailerUrl = tmdb?.trailer_url || dbItem?.trailer_url;
   const youtubeId = trailerUrl ? extractYouTubeId(trailerUrl) : null;
+  const trailerMp4 = dbItem?.trailer_mp4_url;
   const tag = dbItem?.category_tag;
 
   const handleWatch = () => {
