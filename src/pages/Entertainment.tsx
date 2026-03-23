@@ -131,6 +131,14 @@ const Entertainment = () => {
         className="relative w-screen overflow-hidden"
         style={{ background: "#0f0f0f", height: "110vh" }}
       >
+        <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true" focusable="false">
+          <defs>
+            <clipPath id="hero-player-clip" clipPathUnits="objectBoundingBox">
+              <path d="M0,0 H1 V1 C0.78,0.935 0.22,0.935 0,1 Z" />
+            </clipPath>
+          </defs>
+        </svg>
+
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
         {(heroVideoId || heroItem?.backdrop_url) && (
           <div
@@ -162,12 +170,12 @@ const Entertainment = () => {
         {/* === CAMADA 2: Player Principal === */}
         <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
           <div className="relative w-[92vw] h-[80vh]">
-            {/* Player content — top rounded, bottom straight */}
+            {/* Player content — top rounded, bottom concave */}
             <div
               className="absolute inset-0 overflow-hidden"
               style={{
                 borderRadius: "18px 18px 0 0",
-                clipPath: "ellipse(120% 95% at 50% 110%)",
+                clipPath: "url(#hero-player-clip)",
               }}
             >
               {heroVideoId ? (
