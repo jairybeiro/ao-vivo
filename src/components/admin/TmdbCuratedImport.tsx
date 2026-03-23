@@ -72,7 +72,7 @@ const TmdbCuratedImport = () => {
   const [editItem, setEditItem] = useState<CuratedItem | null>(null);
   const [editForm, setEditForm] = useState({
     name: "", category: "", category_tag: "", stream_url: "",
-    cover_url: "", backdrop_url: "", trailer_url: "", rating: "", plot: "",
+    cover_url: "", backdrop_url: "", trailer_url: "", trailer_mp4_url: "", rating: "", plot: "",
   });
   const [editSaving, setEditSaving] = useState(false);
 
