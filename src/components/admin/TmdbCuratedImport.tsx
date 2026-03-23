@@ -242,6 +242,7 @@ const TmdbCuratedImport = () => {
       cover_url: item.cover_url || "",
       backdrop_url: item.backdrop_url || "",
       trailer_url: item.trailer_url || "",
+      trailer_mp4_url: (item as any).trailer_mp4_url || "",
       rating: item.rating?.toString() || "",
       plot: item.plot || "",
     });
