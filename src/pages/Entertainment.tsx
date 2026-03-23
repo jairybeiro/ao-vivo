@@ -202,18 +202,11 @@ const Entertainment = () => {
           </div>
         </div>
 
-        {/* === CAMADA 3: Gradiente Perceptual (Técnica Netflix) === */}
+        {/* === CAMADA 3: Gradiente Perceptual — apenas base e laterais === */}
         <div
           className="absolute inset-0 z-[3] pointer-events-none"
           style={{
-            background: `radial-gradient(60% 35% at 50% 10%, rgba(15,15,15,0) 0%, rgba(15,15,15,0.7) 40%, rgba(15,15,15,1) 100%)`,
-          }}
-        />
-        {/* Reforço lateral e base */}
-        <div
-          className="absolute inset-0 z-[3] pointer-events-none"
-          style={{
-            background: `linear-gradient(180deg, transparent 50%, #0f0f0f 100%)`,
+            background: `linear-gradient(180deg, transparent 65%, rgba(15,15,15,0.6) 85%, #0f0f0f 100%)`,
           }}
         />
         <div
