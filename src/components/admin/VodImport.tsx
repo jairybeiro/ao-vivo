@@ -40,9 +40,11 @@ const VodImport = () => {
   useEffect(() => {
     const loadCredentials = async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token || SUPABASE_KEY;
         const res = await fetch(
           `${SUPABASE_URL}/rest/v1/admin_settings?key=eq.${SETTINGS_KEY}&select=value`,
-          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` } }
         );
         if (!res.ok) return;
         const rows = await res.json();
@@ -66,6 +68,12 @@ const VodImport = () => {
     }
     setSaving(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        toast.error("Você precisa estar autenticado");
+        return;
+      }
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/admin_settings`,
         {
@@ -73,7 +81,7 @@ const VodImport = () => {
           headers: {
             "Content-Type": "application/json",
             apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Authorization: `Bearer ${token}`,
             Prefer: "resolution=merge-duplicates",
           },
           body: JSON.stringify({ key: SETTINGS_KEY, value: { dns, username, password }, updated_at: new Date().toISOString() }),
