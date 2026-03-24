@@ -141,6 +141,9 @@ const ContentDetail = () => {
   const trailerMp4 = dbItem?.trailer_mp4_url;
   const tag = dbItem?.category_tag;
 
+  // Check if stream_url is valid (not "pending" or empty)
+  const hasValidStream = dbItem?.stream_url && dbItem.stream_url !== "pending" && dbItem.stream_url.startsWith("http");
+
   const handleWatch = () => {
     if (type === "movie") navigate(`/vod/movie/${id}`);
     else navigate(`/vod/series/${id}`);
