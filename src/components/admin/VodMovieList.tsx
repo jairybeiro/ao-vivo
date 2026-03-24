@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Search, Film, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Film, Loader2, LinkIcon, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { VodMovieForm } from "./VodMovieForm";
 import { BulkUpdateTmdbButton } from "./BulkUpdateTmdbButton";
+import { Progress } from "@/components/ui/progress";
 
 interface Movie {
   id: string;
