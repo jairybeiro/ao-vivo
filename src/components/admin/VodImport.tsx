@@ -34,6 +34,24 @@ const VodImport = () => {
   const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
   const workerRef = useRef<Worker | null>(null);
 
+  // Load saved credentials
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const { dns: d, username: u, password: p } = JSON.parse(saved);
+        if (d) setDns(d);
+        if (u) setUsername(u);
+        if (p) setPassword(p);
+      }
+    } catch {}
+  }, []);
+
+  const handleSaveCredentials = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ dns, username, password }));
+    toast.success("Credenciais salvas!");
+  };
+
   // Cleanup worker on unmount
   useEffect(() => {
     return () => {
