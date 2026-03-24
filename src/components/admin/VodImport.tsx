@@ -39,28 +39,40 @@ const VodImport = () => {
   // Load saved credentials from database
   useEffect(() => {
     const loadCredentials = async () => {
-      const { data } = await supabase
-        .from("admin_settings")
-        .select("value")
-        .eq("key", SETTINGS_KEY)
-        .maybeSingle();
-      if (data?.value) {
-        const val = data.value as Record<string, string>;
-        if (val.dns) setDns(val.dns);
-        if (val.username) setUsername(val.username);
-        if (val.password) setPassword(val.password);
+      try {
+        const { data, error } = await supabase
+          .from("admin_settings" as any)
+          .select("value")
+          .eq("key", SETTINGS_KEY)
+          .maybeSingle();
+        if (error) {
+          console.error("Erro ao carregar credenciais:", error);
+          return;
+        }
+        if (data?.value) {
+          const val = data.value as Record<string, string>;
+          if (val.dns) setDns(val.dns);
+          if (val.username) setUsername(val.username);
+          if (val.password) setPassword(val.password);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar credenciais:", err);
       }
     };
     loadCredentials();
   }, []);
 
   const handleSaveCredentials = async () => {
+    if (!dns || !username || !password) {
+      toast.error("Preencha todos os campos antes de salvar");
+      return;
+    }
     setSaving(true);
     try {
       const { error } = await supabase
-        .from("admin_settings")
+        .from("admin_settings" as any)
         .upsert(
-          { key: SETTINGS_KEY, value: { dns, username, password } as any, updated_at: new Date().toISOString() },
+          { key: SETTINGS_KEY, value: { dns, username, password }, updated_at: new Date().toISOString() },
           { onConflict: "key" }
         );
       if (error) throw error;
