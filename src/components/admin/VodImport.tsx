@@ -213,6 +213,10 @@ const VodImport = () => {
         </div>
 
         <div className="flex gap-2 flex-wrap">
+          <Button onClick={handleSaveCredentials} variant="secondary" disabled={loading || !dns || !username || !password}>
+            <CheckCircle className="w-4 h-4 mr-2" /> Salvar Credenciais
+          </Button>
+
           <Button onClick={handleCheck} disabled={loading || checking} variant="outline">
             {checking ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
