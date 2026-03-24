@@ -28,6 +28,9 @@ export const VodMovieList = () => {
   const [search, setSearch] = useState("");
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyProgress, setVerifyProgress] = useState({ checked: 0, total: 0, offline: 0 });
+  const [offlineItems, setOfflineItems] = useState<{ id: string; name: string; stream_url: string }[]>([]);
 
   const fetchMovies = useCallback(async () => {
     setLoading(true);
