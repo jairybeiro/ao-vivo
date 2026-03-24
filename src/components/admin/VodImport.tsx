@@ -7,7 +7,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Film, Clapperboard, Loader2, CheckCircle, XCircle, Search, RefreshCw, Save } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -39,31 +38,50 @@ const VodImport = () => {
   // Load saved credentials from database
   useEffect(() => {
     const loadCredentials = async () => {
-      const { data } = await supabase
-        .from("admin_settings")
-        .select("value")
-        .eq("key", SETTINGS_KEY)
-        .maybeSingle();
-      if (data?.value) {
-        const val = data.value as Record<string, string>;
-        if (val.dns) setDns(val.dns);
-        if (val.username) setUsername(val.username);
-        if (val.password) setPassword(val.password);
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/admin_settings?key=eq.${SETTINGS_KEY}&select=value`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (rows?.[0]?.value) {
+          const val = rows[0].value;
+          if (val.dns) setDns(val.dns);
+          if (val.username) setUsername(val.username);
+          if (val.password) setPassword(val.password);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar credenciais:", err);
       }
     };
     loadCredentials();
   }, []);
 
   const handleSaveCredentials = async () => {
+    if (!dns || !username || !password) {
+      toast.error("Preencha todos os campos antes de salvar");
+      return;
+    }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("admin_settings")
-        .upsert(
-          { key: SETTINGS_KEY, value: { dns, username, password } as any, updated_at: new Date().toISOString() },
-          { onConflict: "key" }
-        );
-      if (error) throw error;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/admin_settings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Prefer: "resolution=merge-duplicates",
+          },
+          body: JSON.stringify({ key: SETTINGS_KEY, value: { dns, username, password }, updated_at: new Date().toISOString() }),
+        }
+      );
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Erro");
+      }
       toast.success("Credenciais salvas no banco!");
     } catch (err) {
       toast.error("Erro ao salvar credenciais");
