@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Film, Search, Star, PlayCircle } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
+import ScrollableCategories from "@/components/ScrollableCategories";
 
 const formatTime = (s: number) => {
   if (!isFinite(s) || s < 0) return "0:00";
