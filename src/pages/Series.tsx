@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useVodSeries, useVodMovies } from "@/hooks/useVod";
+import { useVodSeries } from "@/hooks/useVod";
 import { useContinueWatching } from "@/hooks/useWatchProgress";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
