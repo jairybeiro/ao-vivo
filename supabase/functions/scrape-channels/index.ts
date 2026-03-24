@@ -34,39 +34,62 @@ Deno.serve(async (req) => {
     const html = await res.text();
     const channels: ScrapedChannel[] = [];
 
-    // New structure: <div class="card" data-category="Esportes">
-    //   <a aria-label="ESPN" class="thumb" href="https://2.embedcanaisonline.com/espn/">
-    //     <img alt="ESPN" src="https://embedcanaisonline.com/images/espn.png">
-    //   </a>
-    //   <div class="title">ESPN</div>
-    // </div>
-    const cardRegex = /<div\s+class="card"[^>]*data-category="([^"]*)"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
-
-    let match;
-    while ((match = cardRegex.exec(html)) !== null) {
-      const category = match[1] || "Variedades";
-      const cardHtml = match[2];
-
-      // Extract embed URL from the <a> tag
-      const hrefMatch = cardHtml.match(/<a[^>]*href="([^"]+)"[^>]*>/i);
-      if (!hrefMatch) continue;
-      const embedUrl = hrefMatch[1];
-
-      // Extract name from aria-label or <div class="title">
-      const titleMatch = cardHtml.match(/<div\s+class="title"[^>]*>(?:<[^>]+>)*(.*?)(?:<\/[^>]+>)*<\/div>/i);
-      const ariaMatch = cardHtml.match(/aria-label="([^"]+)"/i);
-      const name = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, "").trim() : 
-                   ariaMatch ? ariaMatch[1].trim() : "";
-
-      if (!name || name.length < 2) continue;
-
-      // Extract logo from <img> src
-      const imgMatch = cardHtml.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
-      const logo = imgMatch ? imgMatch[1] : null;
-
-      // Skip duplicates
-      if (!channels.find((c) => c.embedUrl === embedUrl)) {
-        channels.push({ name, embedUrl, category, logo });
+    // Strategy: split by <h2> category headers, then parse cards within each section
+    // Pattern: <h2 ...>Category Name</h2> followed by <div class="card">...</div> blocks
+    
+    // First, find all category sections by splitting on h2 tags
+    const sectionRegex = /<h2[^>]*>(.*?)<\/h2>([\s\S]*?)(?=<h2|<\/main|$)/gi;
+    let sectionMatch;
+    
+    while ((sectionMatch = sectionRegex.exec(html)) !== null) {
+      const categoryRaw = sectionMatch[1].replace(/<[^>]+>/g, "").trim();
+      const category = categoryRaw || "Variedades";
+      const sectionHtml = sectionMatch[2];
+      
+      // Find all cards in this section
+      const cardRegex = /<div\s+class="card"[^>]*>([\s\S]*?)<\/div>\s*<div\s+class="embedrow">/gi;
+      let cardMatch;
+      
+      while ((cardMatch = cardRegex.exec(sectionHtml)) !== null) {
+        const cardHtml = cardMatch[1];
+        
+        // Extract embed URL from <a> href
+        const hrefMatch = cardHtml.match(/<a[^>]*href="([^"]+)"[^>]*>/i);
+        if (!hrefMatch) continue;
+        const embedUrl = hrefMatch[1];
+        
+        // Extract name from aria-label
+        const ariaMatch = cardHtml.match(/aria-label="([^"]+)"/i);
+        const name = ariaMatch ? ariaMatch[1].trim() : "";
+        
+        if (!name || name.length < 2) continue;
+        
+        // Extract logo from <img> src
+        const imgMatch = cardHtml.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
+        const logo = imgMatch ? imgMatch[1] : null;
+        
+        if (!channels.find((c) => c.embedUrl === embedUrl)) {
+          channels.push({ name, embedUrl, category, logo });
+        }
+      }
+    }
+    
+    // Fallback: if section approach found nothing, try simple card extraction
+    if (channels.length === 0) {
+      const simpleCardRegex = /<div\s+class="card"[^>]*>[\s\S]*?<a[^>]*aria-label="([^"]*)"[^>]*href="([^"]*)"[^>]*>[\s\S]*?<img[^>]*src="([^"]*)"[^>]*>[\s\S]*?<div\s+class="title"[^>]*>([\s\S]*?)<\/div>/gi;
+      let simpleMatch;
+      
+      while ((simpleMatch = simpleCardRegex.exec(html)) !== null) {
+        const ariaName = simpleMatch[1].trim();
+        const embedUrl = simpleMatch[2];
+        const logo = simpleMatch[3];
+        const titleName = simpleMatch[4].replace(/<[^>]+>/g, "").trim();
+        const name = titleName || ariaName;
+        
+        if (!name || name.length < 2) continue;
+        if (!channels.find((c) => c.embedUrl === embedUrl)) {
+          channels.push({ name, embedUrl, category: "Variedades", logo });
+        }
       }
     }
 
@@ -77,7 +100,7 @@ Deno.serve(async (req) => {
         JSON.stringify({
           success: false,
           error: "Nenhum canal encontrado na página",
-          htmlPreview: html.substring(0, 500),
+          htmlPreview: html.substring(0, 1000),
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
