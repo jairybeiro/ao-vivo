@@ -145,10 +145,47 @@ export const VodMovieList = () => {
           <Input placeholder="Buscar filme..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <BulkUpdateTmdbButton type="movies" onComplete={fetchMovies} />
+        <Button variant="outline" onClick={handleVerifyLinks} disabled={verifying}>
+          {verifying ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LinkIcon className="w-4 h-4 mr-2" />}
+          {verifying ? "Verificando..." : "Verificar Links"}
+        </Button>
         <Button onClick={() => { setEditingMovie(null); setIsModalOpen(true); }}>
           <Plus className="w-4 h-4 mr-2" /> Adicionar Filme
         </Button>
       </div>
+
+      {verifying && verifyProgress.total > 0 && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Verificando {verifyProgress.checked} de {verifyProgress.total}</span>
+            <span>{verifyProgress.offline} offline</span>
+          </div>
+          <Progress value={(verifyProgress.checked / verifyProgress.total) * 100} />
+        </div>
+      )}
+
+      {!verifying && offlineItems.length > 0 && (
+        <Card className="border-destructive/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-destructive" />
+              {offlineItems.length} filmes com links offline
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="max-h-40 overflow-y-auto space-y-1">
+              {offlineItems.map(item => (
+                <div key={item.id} className="text-xs text-muted-foreground truncate">
+                  ❌ {item.name}
+                </div>
+              ))}
+            </div>
+            <Button variant="destructive" size="sm" onClick={handleDisableOffline}>
+              Desativar {offlineItems.length} filmes offline
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
