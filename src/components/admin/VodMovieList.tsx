@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Search, Film, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Film, Loader2, LinkIcon, CheckCircle, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { VodMovieForm } from "./VodMovieForm";
 import { BulkUpdateTmdbButton } from "./BulkUpdateTmdbButton";
+import { Progress } from "@/components/ui/progress";
 
 interface Movie {
   id: string;
@@ -27,6 +28,9 @@ export const VodMovieList = () => {
   const [search, setSearch] = useState("");
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [verifyProgress, setVerifyProgress] = useState({ checked: 0, total: 0, offline: 0 });
+  const [offlineItems, setOfflineItems] = useState<{ id: string; name: string; stream_url: string }[]>([]);
 
   const fetchMovies = useCallback(async () => {
     setLoading(true);
@@ -71,6 +75,59 @@ export const VodMovieList = () => {
     fetchMovies();
   };
 
+  const handleVerifyLinks = async () => {
+    setVerifying(true);
+    setOfflineItems([]);
+    setVerifyProgress({ checked: 0, total: 0, offline: 0 });
+    let offset = 0;
+    const batchSize = 20;
+    let totalChecked = 0;
+    let totalOffline = 0;
+    let allOffline: { id: string; name: string; stream_url: string }[] = [];
+
+    try {
+      while (true) {
+        const { data, error } = await supabase.functions.invoke('verify-vod-links', {
+          body: { type: 'movies', offset, batchSize, autoDisable: false },
+        });
+        if (error) throw error;
+
+        totalChecked += data.checked || 0;
+        totalOffline += data.offline || 0;
+        if (data.offlineItems) allOffline = [...allOffline, ...data.offlineItems];
+
+        setVerifyProgress({ checked: totalChecked, total: data.total, offline: totalOffline });
+        setOfflineItems(allOffline);
+
+        if (data.done || !data.hasMore) break;
+        offset = data.nextOffset;
+      }
+
+      if (totalOffline === 0) {
+        toast.success(`✅ Todos os ${totalChecked} links estão online!`);
+      } else {
+        toast.warning(`⚠️ ${totalOffline} de ${totalChecked} links estão offline`);
+      }
+    } catch (err: any) {
+      toast.error("Erro na verificação", { description: err.message });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleDisableOffline = async () => {
+    const ids = offlineItems.map(i => i.id);
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("vod_movies").update({ is_active: false }).in("id", ids);
+    if (error) {
+      toast.error("Erro ao desativar", { description: error.message });
+    } else {
+      toast.success(`${ids.length} filmes marcados como inativos`);
+      setOfflineItems([]);
+      fetchMovies();
+    }
+  };
+
   const getStreamFormat = (url: string) => {
     const lower = url.toLowerCase();
     if (lower.includes(".m3u8")) return "M3U8";
@@ -88,10 +145,47 @@ export const VodMovieList = () => {
           <Input placeholder="Buscar filme..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
         </div>
         <BulkUpdateTmdbButton type="movies" onComplete={fetchMovies} />
+        <Button variant="outline" onClick={handleVerifyLinks} disabled={verifying}>
+          {verifying ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <LinkIcon className="w-4 h-4 mr-2" />}
+          {verifying ? "Verificando..." : "Verificar Links"}
+        </Button>
         <Button onClick={() => { setEditingMovie(null); setIsModalOpen(true); }}>
           <Plus className="w-4 h-4 mr-2" /> Adicionar Filme
         </Button>
       </div>
+
+      {verifying && verifyProgress.total > 0 && (
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Verificando {verifyProgress.checked} de {verifyProgress.total}</span>
+            <span>{verifyProgress.offline} offline</span>
+          </div>
+          <Progress value={(verifyProgress.checked / verifyProgress.total) * 100} />
+        </div>
+      )}
+
+      {!verifying && offlineItems.length > 0 && (
+        <Card className="border-destructive/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <XCircle className="w-4 h-4 text-destructive" />
+              {offlineItems.length} filmes com links offline
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="max-h-40 overflow-y-auto space-y-1">
+              {offlineItems.map(item => (
+                <div key={item.id} className="text-xs text-muted-foreground truncate">
+                  ❌ {item.name}
+                </div>
+              ))}
+            </div>
+            <Button variant="destructive" size="sm" onClick={handleDisableOffline}>
+              Desativar {offlineItems.length} filmes offline
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {loading ? (
         <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
