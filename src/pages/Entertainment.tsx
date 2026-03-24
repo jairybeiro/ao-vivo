@@ -103,7 +103,7 @@ const Entertainment = () => {
 
       {/* ===== FULL-SCREEN HERO WITH NETFLIX AMBILIGHT ===== */}
       <section
-        className="relative w-screen overflow-hidden"
+        className="relative w-full overflow-hidden"
         style={{ background: "#0f0f0f", height: "110vh" }}
       >
         <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true" focusable="false">

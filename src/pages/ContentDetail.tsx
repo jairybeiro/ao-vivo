@@ -199,7 +199,7 @@ const ContentDetail = () => {
       </div>
 
       {/* ===== FULL-SCREEN HERO ===== */}
-      <section className="relative w-screen h-screen overflow-hidden">
+      <section className="relative w-full h-screen overflow-hidden">
         {/* Background: trailer or backdrop */}
         {youtubeId ? (
           <iframe
