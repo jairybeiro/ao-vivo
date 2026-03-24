@@ -165,6 +165,20 @@ const MainHeader = () => {
               <BookOpen className="w-4 h-4" />
               <span className="hidden sm:inline">Cursos</span>
             </button>
+
+            {/* Inspire-se */}
+            <button
+              onClick={() => navigate("/entretenimento")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                isActive("/entretenimento")
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-accent"
+              )}
+            >
+              <Sparkles className="w-4 h-4" />
+              <span className="hidden sm:inline">Inspire-se</span>
+            </button>
           </nav>
 
           {/* Logout */}
