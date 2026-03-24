@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clapperboard, Search, Star, PlayCircle } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
+import ScrollableCategories from "@/components/ScrollableCategories";
 
 const formatTime = (s: number) => {
   if (!isFinite(s) || s < 0) return "0:00";
@@ -100,23 +101,11 @@ const Series = () => {
         </div>
 
         {seriesCategories.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <button
-              onClick={() => setSeriesCategory("Todos")}
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${seriesCategory === "Todos" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-            >
-              Todos
-            </button>
-            {seriesCategories.map(c => (
-              <button
-                key={c}
-                onClick={() => setSeriesCategory(c)}
-                className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${seriesCategory === c ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <ScrollableCategories
+            categories={seriesCategories}
+            selected={seriesCategory}
+            onSelect={setSeriesCategory}
+          />
         )}
 
         {loading ? (
