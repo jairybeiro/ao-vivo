@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Film, Search, Star, PlayCircle } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import ScrollableCategories from "@/components/ScrollableCategories";
+import HeroBanner from "@/components/vod/HeroBanner";
 
 const formatTime = (s: number) => {
   if (!isFinite(s) || s < 0) return "0:00";
@@ -53,9 +54,9 @@ const Movies = () => {
   return (
     <div ref={mainRef} tabIndex={-1} className="h-screen overflow-y-auto bg-background" style={{ outline: "none" }}>
       <MainHeader />
+      <HeroBanner movies={movies} series={[]} activeTab="movies" />
 
       <main className="container mx-auto px-4 py-4 space-y-4">
-        <h1 className="text-2xl font-bold text-foreground">Filmes</h1>
 
         {/* Continue Watching */}
         {!cwLoading && movieCW.length > 0 && (
