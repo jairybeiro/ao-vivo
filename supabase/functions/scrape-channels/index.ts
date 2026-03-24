@@ -32,83 +32,39 @@ Deno.serve(async (req) => {
     }
 
     const html = await res.text();
-
-    // Extract channel links – typical pattern: <a href="/channel-slug">
-    // with an image (logo) and text (name)
     const channels: ScrapedChannel[] = [];
 
-    // Pattern: links pointing to embed pages
-    const linkRegex =
-      /<a[^>]*href=["']([^"']*?)["'][^>]*>([\s\S]*?)<\/a>/gi;
+    // New structure: <div class="card" data-category="Esportes">
+    //   <a aria-label="ESPN" class="thumb" href="https://2.embedcanaisonline.com/espn/">
+    //     <img alt="ESPN" src="https://embedcanaisonline.com/images/espn.png">
+    //   </a>
+    //   <div class="title">ESPN</div>
+    // </div>
+    const cardRegex = /<div\s+class="card"[^>]*data-category="([^"]*)"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/gi;
 
     let match;
-    while ((match = linkRegex.exec(html)) !== null) {
-      const href = match[1];
-      const inner = match[2];
+    while ((match = cardRegex.exec(html)) !== null) {
+      const category = match[1] || "Variedades";
+      const cardHtml = match[2];
 
-      // Skip external links and navigation
-      if (
-        !href ||
-        href === "/" ||
-        href === "#" ||
-        href.startsWith("http") ||
-        href.includes("javascript:")
-      ) {
-        continue;
-      }
+      // Extract embed URL from the <a> tag
+      const hrefMatch = cardHtml.match(/<a[^>]*href="([^"]+)"[^>]*>/i);
+      if (!hrefMatch) continue;
+      const embedUrl = hrefMatch[1];
 
-      // Extract channel name from text or alt attribute
-      const nameMatch =
-        inner.match(/<(?:span|p|h\d)[^>]*>(.*?)<\/(?:span|p|h\d)>/i) ||
-        inner.match(/alt=["'](.*?)["']/i);
-      const name = nameMatch
-        ? nameMatch[1].replace(/<[^>]+>/g, "").trim()
-        : inner.replace(/<[^>]+>/g, "").trim();
+      // Extract name from aria-label or <div class="title">
+      const titleMatch = cardHtml.match(/<div\s+class="title"[^>]*>(?:<[^>]+>)*(.*?)(?:<\/[^>]+>)*<\/div>/i);
+      const ariaMatch = cardHtml.match(/aria-label="([^"]+)"/i);
+      const name = titleMatch ? titleMatch[1].replace(/<[^>]+>/g, "").trim() : 
+                   ariaMatch ? ariaMatch[1].trim() : "";
 
       if (!name || name.length < 2) continue;
 
-      // Extract logo
-      const imgMatch = inner.match(
-        /(?:src|data-src)=["'](https?:\/\/[^"']+)["']/i
-      );
+      // Extract logo from <img> src
+      const imgMatch = cardHtml.match(/<img[^>]*src="([^"]+)"[^>]*>/i);
       const logo = imgMatch ? imgMatch[1] : null;
 
-      // Build full embed URL
-      const embedUrl = href.startsWith("http")
-        ? href
-        : `https://embedcanaisonline.com${href.startsWith("/") ? "" : "/"}${href}`;
-
-      // Simple category inference from name
-      let category = "Variedades";
-      const lowerName = name.toLowerCase();
-      if (
-        lowerName.includes("sport") ||
-        lowerName.includes("espn") ||
-        lowerName.includes("fox sports") ||
-        lowerName.includes("premiere") ||
-        lowerName.includes("combate")
-      ) {
-        category = "Esportes";
-      } else if (
-        lowerName.includes("news") ||
-        lowerName.includes("notícia") ||
-        lowerName.includes("globonews") ||
-        lowerName.includes("cnn") ||
-        lowerName.includes("band news") ||
-        lowerName.includes("record news")
-      ) {
-        category = "Notícias";
-      } else if (
-        lowerName.includes("telecine") ||
-        lowerName.includes("hbo") ||
-        lowerName.includes("megapix") ||
-        lowerName.includes("film") ||
-        lowerName.includes("cine")
-      ) {
-        category = "Filmes";
-      }
-
-      // Avoid duplicates
+      // Skip duplicates
       if (!channels.find((c) => c.embedUrl === embedUrl)) {
         channels.push({ name, embedUrl, category, logo });
       }
