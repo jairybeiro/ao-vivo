@@ -99,25 +99,12 @@ const Movies = () => {
           </div>
         </div>
 
-        {/* Category pills */}
         {movieCategories.length > 0 && (
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <button
-              onClick={() => setMovieCategory("Todos")}
-              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${movieCategory === "Todos" ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-            >
-              Todos
-            </button>
-            {movieCategories.map(c => (
-              <button
-                key={c}
-                onClick={() => setMovieCategory(c)}
-                className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${movieCategory === c ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:bg-accent"}`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <ScrollableCategories
+            categories={movieCategories}
+            selected={movieCategory}
+            onSelect={setMovieCategory}
+          />
         )}
 
         {/* Grid */}
