@@ -20,6 +20,8 @@ interface CheckResult {
   newSeries: number;
 }
 
+const STORAGE_KEY = "vod_import_credentials";
+
 const VodImport = () => {
   const [dns, setDns] = useState("");
   const [username, setUsername] = useState("");
