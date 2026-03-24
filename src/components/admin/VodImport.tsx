@@ -5,11 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Film, Clapperboard, Loader2, CheckCircle, XCircle, Search, RefreshCw } from "lucide-react";
+import { Film, Clapperboard, Loader2, CheckCircle, XCircle, Search, RefreshCw, Save } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const SETTINGS_KEY = "xtream_credentials";
 
 interface CheckResult {
   moviesInApi: number;
@@ -20,13 +23,12 @@ interface CheckResult {
   newSeries: number;
 }
 
-const STORAGE_KEY = "vod_import_credentials";
-
 const VodImport = () => {
   const [dns, setDns] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
   const [importType, setImportType] = useState<"movies" | "series" | "both">("both");
   const [progress, setProgress] = useState({ current: 0, total: 0, phase: "" });
@@ -34,22 +36,41 @@ const VodImport = () => {
   const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
   const workerRef = useRef<Worker | null>(null);
 
-  // Load saved credentials
+  // Load saved credentials from database
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const { dns: d, username: u, password: p } = JSON.parse(saved);
-        if (d) setDns(d);
-        if (u) setUsername(u);
-        if (p) setPassword(p);
+    const loadCredentials = async () => {
+      const { data } = await supabase
+        .from("admin_settings")
+        .select("value")
+        .eq("key", SETTINGS_KEY)
+        .maybeSingle();
+      if (data?.value) {
+        const val = data.value as Record<string, string>;
+        if (val.dns) setDns(val.dns);
+        if (val.username) setUsername(val.username);
+        if (val.password) setPassword(val.password);
       }
-    } catch {}
+    };
+    loadCredentials();
   }, []);
 
-  const handleSaveCredentials = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ dns, username, password }));
-    toast.success("Credenciais salvas!");
+  const handleSaveCredentials = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("admin_settings")
+        .upsert(
+          { key: SETTINGS_KEY, value: { dns, username, password } as any, updated_at: new Date().toISOString() },
+          { onConflict: "key" }
+        );
+      if (error) throw error;
+      toast.success("Credenciais salvas no banco!");
+    } catch (err) {
+      toast.error("Erro ao salvar credenciais");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Cleanup worker on unmount
