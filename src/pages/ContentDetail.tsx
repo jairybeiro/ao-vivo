@@ -89,6 +89,7 @@ const ContentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
   const [showTrailerPlayer, setShowTrailerPlayer] = useState(false);
+  const [hasEpisodes, setHasEpisodes] = useState(false);
 
   useEffect(() => {
     if (!id || !type) return;
@@ -118,6 +119,15 @@ const ContentDetail = () => {
         tmdb_id: (data as any).tmdb_id || null,
       };
       setDbItem(item);
+
+      // For series, check if there are episodes
+      if (type === "series") {
+        const { count } = await supabase
+          .from("vod_episodes")
+          .select("id", { count: "exact", head: true })
+          .eq("series_id", id);
+        setHasEpisodes((count ?? 0) > 0);
+      }
 
       const lookupId = item.tmdb_id || item.xtream_id;
 
