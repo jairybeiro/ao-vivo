@@ -40,17 +40,14 @@ const VodImport = () => {
   useEffect(() => {
     const loadCredentials = async () => {
       try {
-        const { data, error } = await supabase
-          .from("admin_settings" as any)
-          .select("value")
-          .eq("key", SETTINGS_KEY)
-          .maybeSingle();
-        if (error) {
-          console.error("Erro ao carregar credenciais:", error);
-          return;
-        }
-        if (data?.value) {
-          const val = data.value as Record<string, string>;
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/admin_settings?key=eq.${SETTINGS_KEY}&select=value`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (!res.ok) return;
+        const rows = await res.json();
+        if (rows?.[0]?.value) {
+          const val = rows[0].value;
           if (val.dns) setDns(val.dns);
           if (val.username) setUsername(val.username);
           if (val.password) setPassword(val.password);
@@ -69,13 +66,23 @@ const VodImport = () => {
     }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("admin_settings" as any)
-        .upsert(
-          { key: SETTINGS_KEY, value: { dns, username, password }, updated_at: new Date().toISOString() },
-          { onConflict: "key" }
-        );
-      if (error) throw error;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/admin_settings`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            Prefer: "resolution=merge-duplicates",
+          },
+          body: JSON.stringify({ key: SETTINGS_KEY, value: { dns, username, password }, updated_at: new Date().toISOString() }),
+        }
+      );
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || "Erro");
+      }
       toast.success("Credenciais salvas no banco!");
     } catch (err) {
       toast.error("Erro ao salvar credenciais");
