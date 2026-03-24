@@ -137,7 +137,20 @@ export const VodMovieForm = ({ editingMovie, onSuccess, onCancel }: VodMovieForm
       </div>
 
       <div className="space-y-2">
-        <Label>URL do Stream (mp4, m3u8, txt, ts)</Label>
+        <div className="flex items-center justify-between">
+          <Label>URL do Stream (mp4, m3u8, txt, ts)</Label>
+          {streamUrl && streamUrl !== "pending" && (
+            <a
+              href={streamUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline flex items-center gap-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              🔗 Testar no navegador
+            </a>
+          )}
+        </div>
         <Input placeholder="https://...mp4 ou .m3u8 ou .txt ou .ts" value={streamUrl} onChange={(e) => setStreamUrl(e.target.value)} required />
       </div>
 
