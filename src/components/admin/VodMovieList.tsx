@@ -75,6 +75,59 @@ export const VodMovieList = () => {
     fetchMovies();
   };
 
+  const handleVerifyLinks = async () => {
+    setVerifying(true);
+    setOfflineItems([]);
+    setVerifyProgress({ checked: 0, total: 0, offline: 0 });
+    let offset = 0;
+    const batchSize = 20;
+    let totalChecked = 0;
+    let totalOffline = 0;
+    let allOffline: { id: string; name: string; stream_url: string }[] = [];
+
+    try {
+      while (true) {
+        const { data, error } = await supabase.functions.invoke('verify-vod-links', {
+          body: { type: 'movies', offset, batchSize, autoDisable: false },
+        });
+        if (error) throw error;
+
+        totalChecked += data.checked || 0;
+        totalOffline += data.offline || 0;
+        if (data.offlineItems) allOffline = [...allOffline, ...data.offlineItems];
+
+        setVerifyProgress({ checked: totalChecked, total: data.total, offline: totalOffline });
+        setOfflineItems(allOffline);
+
+        if (data.done || !data.hasMore) break;
+        offset = data.nextOffset;
+      }
+
+      if (totalOffline === 0) {
+        toast.success(`✅ Todos os ${totalChecked} links estão online!`);
+      } else {
+        toast.warning(`⚠️ ${totalOffline} de ${totalChecked} links estão offline`);
+      }
+    } catch (err: any) {
+      toast.error("Erro na verificação", { description: err.message });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleDisableOffline = async () => {
+    const ids = offlineItems.map(i => i.id);
+    if (ids.length === 0) return;
+    const { error } = await supabase.from("vod_movies").update({ is_active: false }).in("id", ids);
+    if (error) {
+      toast.error("Erro ao desativar", { description: error.message });
+    } else {
+      toast.success(`${ids.length} filmes marcados como inativos`);
+      setOfflineItems([]);
+      fetchMovies();
+    }
+  };
+
   const getStreamFormat = (url: string) => {
     const lower = url.toLowerCase();
     if (lower.includes(".m3u8")) return "M3U8";
