@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Film, Clapperboard, BookOpen, LogOut, ChevronDown, Search } from "lucide-react";
+import { Home, Film, Clapperboard, BookOpen, Sparkles, LogOut, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
