@@ -31,12 +31,6 @@ const VodMoviePlayer = () => {
         .eq("id", id)
         .single();
       if (!error && data) {
-        // Check if stream_url is valid
-        if (!data.stream_url || data.stream_url === "pending" || !data.stream_url.startsWith("http")) {
-          setNotFound(true);
-          setLoading(false);
-          return;
-        }
         const m: VodMovie = {
           id: data.id,
           name: data.name,
