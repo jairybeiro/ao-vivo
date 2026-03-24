@@ -89,6 +89,7 @@ const ContentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
   const [showTrailerPlayer, setShowTrailerPlayer] = useState(false);
+  const [hasEpisodes, setHasEpisodes] = useState(false);
 
   useEffect(() => {
     if (!id || !type) return;
@@ -119,6 +120,15 @@ const ContentDetail = () => {
       };
       setDbItem(item);
 
+      // For series, check if there are episodes
+      if (type === "series") {
+        const { count } = await supabase
+          .from("vod_episodes")
+          .select("id", { count: "exact", head: true })
+          .eq("series_id", id);
+        setHasEpisodes((count ?? 0) > 0);
+      }
+
       const lookupId = item.tmdb_id || item.xtream_id;
 
       try {
@@ -140,6 +150,11 @@ const ContentDetail = () => {
   const youtubeId = trailerUrl ? extractYouTubeId(trailerUrl) : null;
   const trailerMp4 = dbItem?.trailer_mp4_url;
   const tag = dbItem?.category_tag;
+
+  // Check if content is playable
+  const hasValidStream = type === "series"
+    ? hasEpisodes
+    : (dbItem?.stream_url && dbItem.stream_url !== "pending" && dbItem.stream_url.startsWith("http"));
 
   const handleWatch = () => {
     if (type === "movie") navigate(`/vod/movie/${id}`);
@@ -293,13 +308,15 @@ const ContentDetail = () => {
                   Trailer HD
                 </button>
               )}
-              <button
-                onClick={handleWatch}
-                className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
-              >
-                <Play className="w-5 h-5 fill-black" />
-                Assistir
-              </button>
+              {hasValidStream && (
+                <button
+                  onClick={handleWatch}
+                  className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
+                >
+                  <Play className="w-5 h-5 fill-black" />
+                  Assistir Completo
+                </button>
+              )}
               <button
                 onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })}
                 className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"

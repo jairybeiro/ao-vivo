@@ -31,6 +31,12 @@ const VodMoviePlayer = () => {
         .eq("id", id)
         .single();
       if (!error && data) {
+        // Check if stream_url is valid
+        if (!data.stream_url || data.stream_url === "pending" || !data.stream_url.startsWith("http")) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
         const m: VodMovie = {
           id: data.id,
           name: data.name,
@@ -162,9 +168,9 @@ const VodMoviePlayer = () => {
     return (
       <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
         <Film className="w-12 h-12 text-muted-foreground/50" />
-        <p className="text-muted-foreground">Este filme não está mais disponível</p>
+        <p className="text-muted-foreground">Este filme não está disponível para reprodução</p>
         <p className="text-muted-foreground/60 text-xs max-w-xs text-center">
-          O conteúdo pode ter sido removido ou atualizado pelo provedor.
+          O conteúdo pode ter sido removido, estar em processo de configuração, ou o link de reprodução ainda não foi definido.
         </p>
         <button
           onClick={() => navigate("/entretenimento")}
