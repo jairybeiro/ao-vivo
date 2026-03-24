@@ -20,6 +20,8 @@ interface CheckResult {
   newSeries: number;
 }
 
+const STORAGE_KEY = "vod_import_credentials";
+
 const VodImport = () => {
   const [dns, setDns] = useState("");
   const [username, setUsername] = useState("");
@@ -31,6 +33,24 @@ const VodImport = () => {
   const [totalResult, setTotalResult] = useState<{ movies: number; series: number; episodes: number; errors: number } | null>(null);
   const [checkResult, setCheckResult] = useState<CheckResult | null>(null);
   const workerRef = useRef<Worker | null>(null);
+
+  // Load saved credentials
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const { dns: d, username: u, password: p } = JSON.parse(saved);
+        if (d) setDns(d);
+        if (u) setUsername(u);
+        if (p) setPassword(p);
+      }
+    } catch {}
+  }, []);
+
+  const handleSaveCredentials = () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ dns, username, password }));
+    toast.success("Credenciais salvas!");
+  };
 
   // Cleanup worker on unmount
   useEffect(() => {
@@ -193,6 +213,10 @@ const VodImport = () => {
         </div>
 
         <div className="flex gap-2 flex-wrap">
+          <Button onClick={handleSaveCredentials} variant="secondary" disabled={loading || !dns || !username || !password}>
+            <CheckCircle className="w-4 h-4 mr-2" /> Salvar Credenciais
+          </Button>
+
           <Button onClick={handleCheck} disabled={loading || checking} variant="outline">
             {checking ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verificando...</>
