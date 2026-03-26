@@ -273,6 +273,15 @@ const ContentDetail = () => {
             allow="autoplay; encrypted-media"
             title={title}
           />
+        ) : isGenericEmbed ? (
+          <iframe
+            src={bgSource!}
+            className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none"
+            allow="autoplay; encrypted-media; fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            referrerPolicy="no-referrer"
+            title={title}
+          />
         ) : backdropSrc ? (
           <img
             src={backdropSrc}
