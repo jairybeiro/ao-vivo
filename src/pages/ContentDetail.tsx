@@ -254,95 +254,69 @@ const ContentDetail = () => {
   return (
     <div className="h-screen overflow-y-auto bg-background">
       {/* Fixed header */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <MainHeader />
+      <div className={`fixed top-0 left-0 right-0 z-50 ${isMobile ? "bg-[#0f0f0f]" : ""}`}>
+        <MainHeader transparent={!isMobile} />
       </div>
 
-      {/* ===== FULL-SCREEN HERO ===== */}
-      <section className="relative w-full h-screen overflow-hidden">
-        {/* Background: trailer or backdrop */}
-        {isDirectVideo ? (
-          <HlsAutoplayVideo
-            src={bgSource!}
-            poster={backdropSrc}
-            delayMs={5000}
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-          />
-        ) : youtubeId ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
-            className="absolute inset-0 w-full h-full scale-[1.2] pointer-events-none"
-            allow="autoplay; encrypted-media"
-            title={title}
-          />
-        ) : isGenericEmbed ? (
-          <iframe
-            src={bgSource!}
-            className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none"
-            allow="autoplay; encrypted-media; fullscreen"
-            sandbox="allow-scripts allow-same-origin allow-presentation"
-            referrerPolicy="no-referrer"
-            title={title}
-          />
-        ) : backdropSrc ? (
-          <img
-            src={backdropSrc}
-            alt={title}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
-        )}
+      {/* ===== HERO SECTION ===== */}
+      {isMobile ? (
+        /* ===== MOBILE: Compact player + content below ===== */
+        <section className="relative w-full bg-[#0f0f0f] pt-16">
+          {/* Compact player - no text overlay */}
+          <div className="relative w-full aspect-video">
+            {isDirectVideo ? (
+              <HlsAutoplayVideo
+                src={bgSource!}
+                poster={backdropSrc}
+                delayMs={5000}
+                showControls
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : youtubeId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
+                className="absolute inset-0 w-full h-full"
+                allow="autoplay; encrypted-media"
+                title={title}
+              />
+            ) : isGenericEmbed ? (
+              <iframe
+                src={bgSource!}
+                className="absolute inset-0 w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="no-referrer"
+                title={title}
+              />
+            ) : backdropSrc ? (
+              <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+            )}
+            {/* Bottom gradient fade */}
+            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
+          </div>
 
-        {/* Netflix-style scrim */}
-        <div
-          className="absolute inset-0 z-[1]"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent z-[1]" />
-
-        {/* Back button */}
-        <button
-          onClick={() => navigate("/entretenimento")}
-          className="absolute top-20 left-4 md:left-8 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 transition"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
-
-        {/* Hero content — bottom-left */}
-        <div className="absolute inset-0 flex flex-col justify-end px-6 pb-16 md:px-14 md:pb-20 z-10">
-          <div className="max-w-2xl space-y-3">
+          {/* Content below player */}
+          <div className="px-4 pb-6 pt-2 space-y-3 bg-[#0f0f0f]">
             {/* Tag */}
             {tag && (
               <div className="flex items-center gap-2">
-                <span className="text-xl">{TAG_EMOJIS[tag] || "🎬"}</span>
-                <span className="text-xs font-bold text-[hsl(var(--player-accent))] uppercase tracking-widest">
-                  {tag}
-                </span>
+                <span className="text-lg">{TAG_EMOJIS[tag] || "🎬"}</span>
+                <span className="text-[10px] font-bold text-[hsl(var(--player-accent))] uppercase tracking-widest">{tag}</span>
               </div>
             )}
 
-            {/* Title */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl">
-              {title}
-            </h1>
+            <h2 className="text-lg font-bold text-white leading-tight">{title}</h2>
 
-            {/* Tagline */}
             {tmdb?.tagline && (
-              <p className="text-sm md:text-base text-white/60 italic">"{tmdb.tagline}"</p>
+              <p className="text-xs text-white/50 italic">"{tmdb.tagline}"</p>
             )}
 
-            {/* Metadata row */}
-            <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
-              {ratingPercent && (
-                <span className="text-green-400 font-bold text-sm">{ratingPercent}% relevante</span>
-              )}
-              {tmdb?.release_date && (
-                <span>{new Date(tmdb.release_date).getFullYear()}</span>
-              )}
+            {/* Metadata */}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-white/50">
+              {ratingPercent && <span className="text-green-400 font-bold">{ratingPercent}% relevante</span>}
+              {tmdb?.release_date && <span>{new Date(tmdb.release_date).getFullYear()}</span>}
               {tmdb?.runtime && (
                 <span className="flex items-center gap-1">
                   <Clock className="w-3 h-3" />
@@ -350,54 +324,132 @@ const ContentDetail = () => {
                 </span>
               )}
               <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
-              {tmdb?.original_language && (
-                <span className="uppercase">{tmdb.original_language}</span>
-              )}
             </div>
 
             {/* Genres */}
             {tmdb?.genres && tmdb.genres.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {tmdb.genres.map((g) => (
-                  <span key={g} className="px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-sm text-[10px] font-medium text-white/70">
-                    {g}
-                  </span>
+                  <span key={g} className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-medium text-white/70">{g}</span>
                 ))}
               </div>
             )}
 
-            {/* Synopsis preview */}
+            {/* Synopsis */}
             {plot && (
-              <p className="text-sm text-white/70 max-w-lg leading-relaxed line-clamp-3 drop-shadow">
-                {plot}
-              </p>
+              <p className="text-sm text-white/70 leading-relaxed line-clamp-2">{plot}</p>
             )}
 
             {/* CTA buttons */}
-            <div className="flex items-center gap-3 pt-2">
-              {hasTrailer && (
-                <button
-                  onClick={() => setShowTrailerPlayer(true)}
-                  className="flex items-center gap-2.5 bg-red-600 text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-red-700 transition-colors text-sm md:text-base shadow-xl"
-                >
-                  <Play className="w-5 h-5 fill-white" />
-                  Trailer HD
-                </button>
-              )}
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                onClick={handleWatch}
+                className="flex-1 flex items-center justify-center gap-2 bg-[hsl(var(--player-accent))] text-white font-bold py-3 rounded-md text-sm shadow-lg active:scale-[0.97] transition-transform"
+              >
+                <Play className="w-4 h-4 fill-white" />
+                ASSISTIR
+              </button>
               <button
                 onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })}
-                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
+                className="flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white font-semibold px-5 py-3 rounded-md text-sm active:scale-[0.97] transition-transform"
               >
-                <Info className="w-5 h-5" />
-                Mais informações
+                <Info className="w-4 h-4" />
+                Mais info
               </button>
             </div>
-          </div>
-        </div>
 
-        {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-10" />
-      </section>
+            {/* Back to Inspire-se */}
+            <button
+              onClick={() => navigate("/entretenimento")}
+              className="flex items-center gap-1.5 text-white/50 text-xs mt-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Voltar
+            </button>
+          </div>
+        </section>
+      ) : (
+        /* ===== DESKTOP: Full-screen hero (unchanged) ===== */
+        <section className="relative w-full h-screen overflow-hidden">
+          {isDirectVideo ? (
+            <HlsAutoplayVideo
+              src={bgSource!}
+              poster={backdropSrc}
+              delayMs={5000}
+              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            />
+          ) : youtubeId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
+              className="absolute inset-0 w-full h-full scale-[1.2] pointer-events-none"
+              allow="autoplay; encrypted-media"
+              title={title}
+            />
+          ) : isGenericEmbed ? (
+            <iframe
+              src={bgSource!}
+              className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none"
+              allow="autoplay; encrypted-media; fullscreen"
+              sandbox="allow-scripts allow-same-origin allow-presentation"
+              referrerPolicy="no-referrer"
+              title={title}
+            />
+          ) : backdropSrc ? (
+            <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
+          )}
+
+          <div className="absolute inset-0 z-[1]" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)" }} />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent z-[1]" />
+
+          <button onClick={() => navigate("/entretenimento")} className="absolute top-20 left-8 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 transition">
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+
+          <div className="absolute inset-0 flex flex-col justify-end px-14 pb-20 z-10">
+            <div className="max-w-2xl space-y-3">
+              {tag && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">{TAG_EMOJIS[tag] || "🎬"}</span>
+                  <span className="text-xs font-bold text-[hsl(var(--player-accent))] uppercase tracking-widest">{tag}</span>
+                </div>
+              )}
+              <h1 className="text-5xl lg:text-6xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl">{title}</h1>
+              {tmdb?.tagline && <p className="text-base text-white/60 italic">"{tmdb.tagline}"</p>}
+              <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
+                {ratingPercent && <span className="text-green-400 font-bold text-sm">{ratingPercent}% relevante</span>}
+                {tmdb?.release_date && <span>{new Date(tmdb.release_date).getFullYear()}</span>}
+                {tmdb?.runtime && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{Math.floor(tmdb.runtime / 60)}h {tmdb.runtime % 60}min</span>}
+                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
+                {tmdb?.original_language && <span className="uppercase">{tmdb.original_language}</span>}
+              </div>
+              {tmdb?.genres && tmdb.genres.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {tmdb.genres.map((g) => (
+                    <span key={g} className="px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-sm text-[10px] font-medium text-white/70">{g}</span>
+                  ))}
+                </div>
+              )}
+              {plot && <p className="text-sm text-white/70 max-w-lg leading-relaxed line-clamp-3 drop-shadow">{plot}</p>}
+              <div className="flex items-center gap-3 pt-2">
+                {hasTrailer && (
+                  <button onClick={() => setShowTrailerPlayer(true)} className="flex items-center gap-2.5 bg-red-600 text-white font-bold px-8 py-3.5 rounded-md hover:bg-red-700 transition-colors text-base shadow-xl">
+                    <Play className="w-5 h-5 fill-white" />
+                    Trailer HD
+                  </button>
+                )}
+                <button onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })} className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-7 py-3.5 rounded-md hover:bg-white/30 transition-colors text-base">
+                  <Info className="w-5 h-5" />
+                  Mais informações
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-10" />
+        </section>
+      )}
 
       {/* ===== CONTENT BODY ===== */}
       <main id="details" className="container mx-auto px-4 md:px-8 py-8 space-y-10 -mt-8 relative z-20">
