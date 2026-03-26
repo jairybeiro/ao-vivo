@@ -44,6 +44,7 @@ interface CuratedItem {
   trailer_url: string | null;
   stream_url?: string;
   plot?: string | null;
+  linked_content_id?: string | null;
 }
 
 const TmdbCuratedImport = () => {
@@ -73,6 +74,7 @@ const TmdbCuratedImport = () => {
   const [editForm, setEditForm] = useState({
     name: "", category: "", category_tag: "", stream_url: "",
     cover_url: "", backdrop_url: "", trailer_url: "", trailer_mp4_url: "", rating: "", plot: "",
+    linked_content_id: "",
   });
   const [editSaving, setEditSaving] = useState(false);
 
