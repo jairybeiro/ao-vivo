@@ -167,7 +167,7 @@ const VodMoviePlayer = () => {
           O conteúdo pode ter sido removido, estar em processo de configuração, ou o link de reprodução ainda não foi definido.
         </p>
         <button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(-1)}
           className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm hover:opacity-90 transition"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -188,7 +188,7 @@ const VodMoviePlayer = () => {
         contentId={movie.id}
         contentName={movie.name}
         contentCoverUrl={movie.cover_url}
-        onBack={() => navigate("/")}
+        onBack={() => navigate(-1)}
         extraControls={catalogButton}
         overlayContent={catalogOverlay}
       />

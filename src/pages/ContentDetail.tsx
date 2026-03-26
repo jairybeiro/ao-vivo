@@ -368,48 +368,70 @@ const ContentDetail = () => {
           </div>
         </section>
       ) : (
-        /* ===== DESKTOP: Compact player + content below (matching mobile) ===== */
+        /* ===== DESKTOP: Player with Ambilight glow + content below ===== */
         <section className="w-full bg-[#0f0f0f] pt-16">
-          {/* Player - constrained, centered */}
-          <div className="relative w-full max-w-5xl mx-auto aspect-video">
-            {/* Back arrow */}
-            <button
-              onClick={() => navigate("/entretenimento")}
-              className="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition"
-            >
-              <ArrowLeft className="w-5 h-5 text-white" />
-            </button>
-            {isDirectVideo ? (
-              <HlsAutoplayVideo
-                src={bgSource!}
-                poster={backdropSrc}
-                delayMs={5000}
-                showControls
-                className="absolute inset-0 w-full h-full object-cover rounded-xl"
-              />
-            ) : youtubeId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
-                className="absolute inset-0 w-full h-full rounded-xl"
-                allow="autoplay; encrypted-media"
-                title={title}
-              />
-            ) : isGenericEmbed ? (
-              <iframe
-                src={bgSource!}
-                className="absolute inset-0 w-full h-full rounded-xl"
-                allow="autoplay; encrypted-media; fullscreen"
-                sandbox="allow-scripts allow-same-origin allow-presentation"
-                referrerPolicy="no-referrer"
-                title={title}
-              />
-            ) : backdropSrc ? (
-              <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f] rounded-xl" />
-            )}
-            {/* Bottom gradient fade */}
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none rounded-b-xl" />
+          {/* Ambilight container - full width */}
+          <div className="relative w-full flex items-center justify-center" style={{ minHeight: "60vh" }}>
+            {/* Ambilight layer: duplicated video blurred behind the player */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+              {isDirectVideo ? (
+                <HlsAutoplayVideo
+                  src={bgSource!}
+                  poster={backdropSrc}
+                  delayMs={5000}
+                  className="w-full h-full object-cover scale-110 blur-3xl opacity-50"
+                />
+              ) : backdropSrc ? (
+                <img src={backdropSrc} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+              )}
+              {/* Fade edges into background */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-70" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
+            </div>
+
+            {/* Main player - constrained, centered, above ambilight */}
+            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10">
+              {/* Back arrow */}
+              <button
+                onClick={() => navigate("/entretenimento")}
+                className="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition"
+              >
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+              {isDirectVideo ? (
+                <HlsAutoplayVideo
+                  src={bgSource!}
+                  poster={backdropSrc}
+                  delayMs={5000}
+                  showControls
+                  className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                />
+              ) : youtubeId ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
+                  className="absolute inset-0 w-full h-full rounded-xl"
+                  allow="autoplay; encrypted-media"
+                  title={title}
+                />
+              ) : isGenericEmbed ? (
+                <iframe
+                  src={bgSource!}
+                  className="absolute inset-0 w-full h-full rounded-xl"
+                  allow="autoplay; encrypted-media; fullscreen"
+                  sandbox="allow-scripts allow-same-origin allow-presentation"
+                  referrerPolicy="no-referrer"
+                  title={title}
+                />
+              ) : backdropSrc ? (
+                <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f] rounded-xl" />
+              )}
+              {/* Bottom gradient fade */}
+              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none rounded-b-xl" />
+            </div>
           </div>
 
           {/* Content below player */}
