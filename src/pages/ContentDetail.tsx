@@ -368,45 +368,91 @@ const ContentDetail = () => {
           </div>
         </section>
       ) : (
-        /* ===== DESKTOP: Full-screen hero (unchanged) ===== */
-        <section className="relative w-full h-screen overflow-hidden">
-          {isDirectVideo ? (
-            <HlsAutoplayVideo
-              src={bgSource!}
-              poster={backdropSrc}
-              delayMs={5000}
-              className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-            />
-          ) : youtubeId ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
-              className="absolute inset-0 w-full h-full scale-[1.2] pointer-events-none"
-              allow="autoplay; encrypted-media"
-              title={title}
-            />
-          ) : isGenericEmbed ? (
-            <iframe
-              src={bgSource!}
-              className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none"
-              allow="autoplay; encrypted-media; fullscreen"
-              sandbox="allow-scripts allow-same-origin allow-presentation"
-              referrerPolicy="no-referrer"
-              title={title}
-            />
-          ) : backdropSrc ? (
-            <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[hsl(var(--background))]" />
+        /* ===== DESKTOP: Ambilight hero (matching Inspire-se) ===== */
+        <section
+          className="relative w-full overflow-hidden"
+          style={{ background: "#0f0f0f", height: "85vh" }}
+        >
+          <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true" focusable="false">
+            <defs>
+              <clipPath id="detail-player-clip" clipPathUnits="objectBoundingBox">
+                <path d="M0,0 H1 V1 C0.78,0.935 0.22,0.935 0,1 Z" />
+              </clipPath>
+            </defs>
+          </svg>
+
+          {/* Ambilight layer */}
+          {(bgSource || backdropSrc) && (
+            <div
+              className="absolute inset-0 z-[1]"
+              style={{ filter: "blur(45px)", opacity: 0.75, transform: "scale(1.5)" }}
+            >
+              {isDirectVideo ? (
+                <HlsAutoplayVideo
+                  src={bgSource!}
+                  poster={backdropSrc}
+                  delayMs={5000}
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                />
+              ) : backdropSrc ? (
+                <img src={backdropSrc} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              ) : null}
+            </div>
           )}
 
-          <div className="absolute inset-0 z-[1]" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%)" }} />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent z-[1]" />
+          {/* Main player */}
+          <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
+            <div className="relative w-[92vw] h-[80vh]">
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ borderRadius: "18px", clipPath: "url(#detail-player-clip)" }}
+              >
+                {isDirectVideo ? (
+                  <HlsAutoplayVideo
+                    src={bgSource!}
+                    poster={backdropSrc}
+                    delayMs={5000}
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                ) : youtubeId ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
+                    className="absolute inset-0 w-full h-full scale-[1.1]"
+                    allow="autoplay; encrypted-media"
+                    title={title}
+                  />
+                ) : isGenericEmbed ? (
+                  <iframe
+                    src={bgSource!}
+                    className="absolute inset-0 w-full h-full"
+                    allow="autoplay; encrypted-media; fullscreen"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"
+                    referrerPolicy="no-referrer"
+                    title={title}
+                  />
+                ) : backdropSrc ? (
+                  <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+                )}
+              </div>
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M2,0 H98 Q100,0 100,2 V100 C78,93.5 22,93.5 0,100 V2 Q0,0 2,0 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" vectorEffect="non-scaling-stroke" style={{ strokeWidth: '1px' }} />
+              </svg>
+            </div>
+          </div>
 
+          {/* Gradients */}
+          <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: `linear-gradient(180deg, transparent 65%, rgba(15,15,15,0.6) 85%, #0f0f0f 100%)` }} />
+          <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: `linear-gradient(90deg, #0f0f0f 0%, transparent 15%, transparent 85%, #0f0f0f 100%)` }} />
+
+          {/* Back arrow */}
           <button onClick={() => navigate("/entretenimento")} className="absolute top-20 left-8 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 transition">
             <ArrowLeft className="w-5 h-5 text-white" />
           </button>
 
-          <div className="absolute inset-0 flex flex-col justify-end px-14 pb-20 z-10">
+          {/* Hero content */}
+          <div className="absolute inset-0 z-[4] flex flex-col justify-end px-14 pb-40">
             <div className="max-w-2xl space-y-3">
               {tag && (
                 <div className="flex items-center gap-2">
@@ -415,7 +461,7 @@ const ContentDetail = () => {
                 </div>
               )}
               <h1 className="text-5xl lg:text-6xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl">{title}</h1>
-              {tmdb?.tagline && <p className="text-base text-white/60 italic">"{tmdb.tagline}"</p>}
+              {tmdb?.tagline && <p className="text-base text-white/60 italic drop-shadow-lg">"{tmdb.tagline}"</p>}
               <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
                 {ratingPercent && <span className="text-green-400 font-bold text-sm">{ratingPercent}% relevante</span>}
                 {tmdb?.release_date && <span>{new Date(tmdb.release_date).getFullYear()}</span>}
@@ -432,8 +478,15 @@ const ContentDetail = () => {
               )}
               {plot && <p className="text-sm text-white/70 max-w-lg leading-relaxed line-clamp-3 drop-shadow">{plot}</p>}
               <div className="flex items-center gap-3 pt-2">
+                <button
+                  onClick={handleWatch}
+                  className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-8 py-3.5 rounded-md hover:brightness-110 transition-all text-base shadow-xl"
+                >
+                  <Play className="w-5 h-5 fill-white" />
+                  ASSISTIR
+                </button>
                 {hasTrailer && (
-                  <button onClick={() => setShowTrailerPlayer(true)} className="flex items-center gap-2.5 bg-red-600 text-white font-bold px-8 py-3.5 rounded-md hover:bg-red-700 transition-colors text-base shadow-xl">
+                  <button onClick={() => setShowTrailerPlayer(true)} className="flex items-center gap-2.5 bg-red-600 text-white font-bold px-7 py-3.5 rounded-md hover:bg-red-700 transition-colors text-base shadow-xl">
                     <Play className="w-5 h-5 fill-white" />
                     Trailer HD
                   </button>
@@ -445,8 +498,6 @@ const ContentDetail = () => {
               </div>
             </div>
           </div>
-
-          <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-10" />
         </section>
       )}
 
