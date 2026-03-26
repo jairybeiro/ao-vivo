@@ -97,15 +97,15 @@ const Entertainment = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
-      {/* Fixed header over hero */}
+      {/* Transparent header overlaid on hero */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <MainHeader />
+        <MainHeader transparent />
       </div>
 
       {/* ===== FULL-SCREEN HERO WITH NETFLIX AMBILIGHT ===== */}
       <section
         className="relative w-full overflow-hidden"
-        style={{ background: "#0f0f0f", height: "110vh" }}
+        style={{ background: "#0f0f0f", height: "85vh" }}
       >
         <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true" focusable="false">
           <defs>

@@ -5,6 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
+interface MainHeaderProps {
+  transparent?: boolean;
+}
+
 interface GenreDropdownProps {
   label: string;
   path: string;
@@ -71,7 +75,7 @@ const GenreDropdown = ({ label, path, icon, isActive, categories, onNavigate }: 
   );
 };
 
-const MainHeader = () => {
+const MainHeader = ({ transparent = false }: MainHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
@@ -103,7 +107,12 @@ const MainHeader = () => {
 
   return (
     <header
-      className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50"
+      className={cn(
+        "sticky top-0 z-50 transition-colors duration-300",
+        transparent
+          ? "bg-transparent border-b-0"
+          : "border-b border-border bg-card/80 backdrop-blur-md"
+      )}
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="container mx-auto px-4">
