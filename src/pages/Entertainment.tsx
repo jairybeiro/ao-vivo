@@ -80,9 +80,14 @@ const Entertainment = () => {
   const heroVideoId = useMemo(() => {
     if (!heroItem?.trailer_url) return null;
     const url = heroItem.trailer_url;
-    if (url.includes("v=")) return url.split("v=")[1]?.split("&")[0];
-    return url.split("/").pop();
+    const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
   }, [heroItem?.trailer_url]);
+
+  const heroIsDirectVideo = useMemo(() => {
+    if (!heroItem?.trailer_url || heroVideoId) return false;
+    return /\.(mp4|m3u8|m3u)/i.test(heroItem.trailer_url);
+  }, [heroItem?.trailer_url, heroVideoId]);
 
   const handleClick = (item: CuratedItem) => {
     navigate(`/entretenimento/${item.type}/${item.id}`);
