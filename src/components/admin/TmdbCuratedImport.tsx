@@ -247,6 +247,7 @@ const TmdbCuratedImport = () => {
       trailer_mp4_url: (item as any).trailer_mp4_url || "",
       rating: item.rating?.toString() || "",
       plot: item.plot || "",
+      linked_content_id: item.linked_content_id || "",
     });
   };
 
