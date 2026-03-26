@@ -252,7 +252,7 @@ const ContentDetail = () => {
   const ratingPercent = tmdb?.rating ? Math.round(tmdb.rating * 10) : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen overflow-y-auto bg-background">
       {/* Fixed header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <MainHeader />
