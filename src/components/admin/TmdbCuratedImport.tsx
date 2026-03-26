@@ -80,13 +80,13 @@ const TmdbCuratedImport = () => {
     setCuratedLoading(true);
     const { data: movies } = await supabase
       .from("vod_movies")
-      .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag, category, stream_url")
+      .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, category, stream_url")
       .not("category_tag", "is", null)
       .order("name");
 
     const { data: series } = await supabase
       .from("vod_series")
-      .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag, category, plot")
+      .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, category, plot")
       .not("category_tag", "is", null)
       .order("name");
 
