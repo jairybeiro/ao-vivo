@@ -365,14 +365,6 @@ const ContentDetail = () => {
               </button>
             </div>
 
-            {/* Back to Inspire-se */}
-            <button
-              onClick={() => navigate("/entretenimento")}
-              className="flex items-center gap-1.5 text-white/50 text-xs mt-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Voltar
-            </button>
           </div>
         </section>
       ) : (
