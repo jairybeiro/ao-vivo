@@ -107,7 +107,12 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
 
   return (
     <header
-      className="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50"
+      className={cn(
+        "sticky top-0 z-50 transition-colors duration-300",
+        transparent
+          ? "bg-transparent border-b-0"
+          : "border-b border-border bg-card/80 backdrop-blur-md"
+      )}
       style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
     >
       <div className="container mx-auto px-4">
