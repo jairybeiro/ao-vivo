@@ -544,7 +544,7 @@ const ContentDetail = () => {
               setShowTrailerPlayer(false);
               handleWatch();
             }}
-            className="absolute bottom-[calc(env(safe-area-inset-bottom)+26px)] right-24 md:right-28 z-[70] flex items-center gap-1 bg-white/80 text-black font-semibold px-2.5 py-1 rounded hover:bg-white transition-colors text-[11px] shadow-md backdrop-blur-sm"
+            className="absolute bottom-[calc(env(safe-area-inset-bottom)+30px)] right-24 md:right-32 z-[70] flex items-center gap-1 bg-white/80 text-black font-semibold px-2.5 py-1 rounded hover:bg-white transition-colors text-[11px] shadow-md backdrop-blur-sm"
           >
             <Play className="w-3 h-3 fill-black" />
             {type === "series" ? "Veja Série" : "Veja Filme"}
