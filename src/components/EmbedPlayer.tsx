@@ -179,7 +179,7 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
 
             {/* Top-left back button */}
             {onBack && (
-              <div className="absolute top-0 left-0 p-4 md:p-6 pointer-events-auto">
+              <div className="absolute top-0 left-0 p-4 pl-6 pt-[calc(env(safe-area-inset-top)+20px)] md:p-6 pointer-events-auto">
                 <button
                   onClick={(e) => { e.stopPropagation(); onBack(); }}
                   className="p-1.5 rounded-full hover:bg-white/10 transition text-white hover:text-white/80"
@@ -190,7 +190,7 @@ const EmbedPlayer = forwardRef<HTMLDivElement, EmbedPlayerProps>(
             )}
 
             {/* Bottom-right controls */}
-            <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
+            <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-[calc(env(safe-area-inset-bottom)+14px)] md:pb-5 pointer-events-auto">
               <div className="flex items-center justify-end gap-3 md:gap-5 text-white">
                 {extraControls}
               </div>
