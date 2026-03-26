@@ -157,6 +157,7 @@ const ContentDetail = () => {
   const bgSource = trailerMp4 || trailerUrl;
   const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
   const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
+  const isGenericEmbed = bgSource && !youtubeId && !isDirectVideo;
   const tag = dbItem?.category_tag;
   const hasTrailer = !!(trailerMp4 || trailerUrl);
 
