@@ -183,7 +183,7 @@ const Entertainment = () => {
           }}
         />
         <div
-          className="absolute inset-0 z-[3] pointer-events-none"
+          className="absolute inset-0 z-[3] pointer-events-none hidden md:block"
           style={{
             background: `linear-gradient(90deg, #0f0f0f 0%, transparent 15%, transparent 85%, #0f0f0f 100%)`,
           }}
