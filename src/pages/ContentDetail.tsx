@@ -538,23 +538,15 @@ const ContentDetail = () => {
       {/* ===== TRAILER PLAYER OVERLAY ===== */}
       {showTrailerPlayer && hasTrailer && (
         <div className="fixed inset-0 z-[60] bg-black flex flex-col">
-          {/* Close button */}
-          <button
-            onClick={() => setShowTrailerPlayer(false)}
-            className="absolute top-4 right-4 z-[70] p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition"
-          >
-            <X className="w-6 h-6 text-white" />
-          </button>
-
-          {/* Assistir Completo button inside trailer */}
+          {/* Assistir Completo button — near volume controls */}
           <button
             onClick={() => {
               setShowTrailerPlayer(false);
               handleWatch();
             }}
-            className="absolute bottom-6 right-6 z-[70] flex items-center gap-2 bg-white text-black font-bold px-6 py-3 rounded-md hover:bg-white/90 transition-colors text-sm shadow-xl"
+            className="absolute bottom-[calc(env(safe-area-inset-bottom)+18px)] right-4 z-[70] flex items-center gap-1.5 bg-white/90 text-black font-semibold px-3 py-1.5 rounded-md hover:bg-white transition-colors text-xs shadow-lg backdrop-blur-sm"
           >
-            <Play className="w-5 h-5 fill-black" />
+            <Play className="w-3.5 h-3.5 fill-black" />
             Assistir Completo
           </button>
 
