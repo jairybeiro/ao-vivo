@@ -202,11 +202,8 @@ const Entertainment = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
             </div>
 
-            {/* Main player - constrained, centered, above ambilight, with true concave bottom edge */}
-            <div
-              className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden"
-              style={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 88% 95%, 72% 91%, 50% 88%, 28% 91%, 12% 95%, 0 100%)" }}
-            >
+            {/* Main player - constrained, centered, above ambilight */}
+            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden rounded-xl border border-white/10">
               {heroVideoUrl ? (
                 <HlsAutoplayVideo
                   src={heroVideoUrl}
