@@ -157,6 +157,7 @@ const ContentDetail = () => {
   const bgSource = trailerMp4 || trailerUrl;
   const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
   const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
+  const isGenericEmbed = bgSource && !youtubeId && !isDirectVideo;
   const tag = dbItem?.category_tag;
   const hasTrailer = !!(trailerMp4 || trailerUrl);
 
@@ -270,6 +271,15 @@ const ContentDetail = () => {
             src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
             className="absolute inset-0 w-full h-full scale-[1.2] pointer-events-none"
             allow="autoplay; encrypted-media"
+            title={title}
+          />
+        ) : isGenericEmbed ? (
+          <iframe
+            src={bgSource!}
+            className="absolute inset-0 w-full h-full scale-[1.05] pointer-events-none"
+            allow="autoplay; encrypted-media; fullscreen"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            referrerPolicy="no-referrer"
             title={title}
           />
         ) : backdropSrc ? (
@@ -548,11 +558,31 @@ const ContentDetail = () => {
 
           {/* Player */}
           <div className="flex-1">
-            <VodPlayer
-              src={trailerMp4 || trailerUrl!}
-              title={`Trailer - ${title}`}
-              poster={backdropSrc || undefined}
-            />
+            {(trailerMp4 || (trailerUrl && /\.(mp4|m3u8|m3u)/i.test(trailerUrl))) ? (
+              <VodPlayer
+                src={trailerMp4 || trailerUrl!}
+                title={`Trailer - ${title}`}
+                poster={backdropSrc || undefined}
+              />
+            ) : trailerUrl && extractYouTubeId(trailerUrl) ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${extractYouTubeId(trailerUrl)}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                title={`Trailer - ${title}`}
+              />
+            ) : (
+              <iframe
+                src={trailerUrl!}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+                referrerPolicy="no-referrer"
+                title={`Trailer - ${title}`}
+              />
+            )}
           </div>
         </div>
       )}
