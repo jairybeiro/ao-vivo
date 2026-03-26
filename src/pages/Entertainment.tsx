@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Film, Clapperboard, Star, PlayCircle, ChevronRight, Play } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
+import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 
 interface CuratedItem {
   id: string;
@@ -13,6 +14,7 @@ interface CuratedItem {
   backdrop_url: string | null;
   rating: number | null;
   trailer_url: string | null;
+  trailer_mp4_url: string | null;
   plot?: string | null;
 }
 
@@ -32,7 +34,6 @@ const Entertainment = () => {
   const [collections, setCollections] = useState<Record<string, CuratedItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CuratedItem | null>(null);
-  
 
   const fetchCurated = useCallback(async () => {
     setLoading(true);
@@ -40,13 +41,13 @@ const Entertainment = () => {
     const [{ data: movies }, { data: series }] = await Promise.all([
       supabase
         .from("vod_movies")
-        .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag")
+        .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag")
         .not("category_tag", "is", null)
         .eq("is_active", true)
         .order("name"),
       supabase
         .from("vod_series")
-        .select("id, name, cover_url, backdrop_url, rating, trailer_url, category_tag, plot")
+        .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, plot")
         .not("category_tag", "is", null)
         .eq("is_active", true)
         .order("name"),
@@ -66,10 +67,12 @@ const Entertainment = () => {
 
     setCollections(grouped);
 
-    // Pick hero: item with backdrop
+    // Pick hero: prefer items with trailer_mp4_url, then backdrop
+    const withVideo = items.filter((i) => i.trailer_mp4_url);
     const withBackdrop = items.filter((i) => i.backdrop_url);
-    if (withBackdrop.length > 0) {
-      setHeroItem(withBackdrop[Math.floor(Math.random() * withBackdrop.length)]);
+    const candidates = withVideo.length > 0 ? withVideo : withBackdrop;
+    if (candidates.length > 0) {
+      setHeroItem(candidates[Math.floor(Math.random() * candidates.length)]);
     }
 
     setLoading(false);
@@ -77,17 +80,8 @@ const Entertainment = () => {
 
   useEffect(() => { fetchCurated(); }, [fetchCurated]);
 
-  const heroVideoId = useMemo(() => {
-    if (!heroItem?.trailer_url) return null;
-    const url = heroItem.trailer_url;
-    const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    return match ? match[1] : null;
-  }, [heroItem?.trailer_url]);
-
-  const heroIsDirectVideo = useMemo(() => {
-    if (!heroItem?.trailer_url || heroVideoId) return false;
-    return /\.(mp4|m3u8|m3u)/i.test(heroItem.trailer_url);
-  }, [heroItem?.trailer_url, heroVideoId]);
+  // Resolve hero video: trailer_mp4_url (HD direct) is the only video source
+  const heroVideoUrl = heroItem?.trailer_mp4_url || null;
 
   const handleClick = (item: CuratedItem) => {
     navigate(`/entretenimento/${item.type}/${item.id}`);
@@ -120,7 +114,7 @@ const Entertainment = () => {
         </svg>
 
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
-        {(heroVideoId || heroIsDirectVideo || heroItem?.backdrop_url) && (
+        {(heroVideoUrl || heroItem?.backdrop_url) && (
           <div
             className="absolute inset-0 z-[1]"
             style={{
@@ -129,21 +123,9 @@ const Entertainment = () => {
               transform: "scale(1.5)",
             }}
           >
-            {heroVideoId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
-                className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
-                style={{ border: 0, transform: "translate(-50%, -50%)" }}
-                allow="autoplay; encrypted-media"
-                title="Ambilight reflection"
-              />
-            ) : heroIsDirectVideo ? (
-              <video
-                src={heroItem!.trailer_url!}
-                autoPlay
-                muted
-                loop
-                playsInline
+            {heroVideoUrl ? (
+              <HlsAutoplayVideo
+                src={heroVideoUrl}
                 className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               />
             ) : (
@@ -159,7 +141,6 @@ const Entertainment = () => {
         {/* === CAMADA 2: Player Principal === */}
         <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
           <div className="relative w-[92vw] h-[80vh]">
-            {/* Player content — top rounded, bottom concave */}
             <div
               className="absolute inset-0 overflow-hidden"
               style={{
@@ -167,21 +148,9 @@ const Entertainment = () => {
                 clipPath: "url(#hero-player-clip)",
               }}
             >
-              {heroVideoId ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${heroVideoId}?autoplay=1&mute=1&loop=1&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1&playlist=${heroVideoId}`}
-                  className="absolute w-[300%] h-[300%] top-1/2 left-1/2 pointer-events-none"
-                  style={{ border: 0, transform: "translate(-50%, -50%)" }}
-                  allow="autoplay; encrypted-media"
-                  title="Hero trailer"
-                />
-              ) : heroIsDirectVideo ? (
-                <video
-                  src={heroItem!.trailer_url!}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
+              {heroVideoUrl ? (
+                <HlsAutoplayVideo
+                  src={heroVideoUrl}
                   className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                 />
               ) : heroItem?.backdrop_url ? (
@@ -194,14 +163,13 @@ const Entertainment = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
             </div>
-            {/* Stroke outline following the same clip-path */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
               <path d="M2,0 H98 Q100,0 100,2 V100 C78,93.5 22,93.5 0,100 V2 Q0,0 2,0 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" vectorEffect="non-scaling-stroke" style={{ strokeWidth: '1px' }} />
             </svg>
           </div>
         </div>
 
-        {/* === CAMADA 3: Gradiente Perceptual — apenas base e laterais === */}
+        {/* === CAMADA 3: Gradiente Perceptual === */}
         <div
           className="absolute inset-0 z-[3] pointer-events-none"
           style={{
@@ -215,7 +183,7 @@ const Entertainment = () => {
           }}
         />
 
-        {/* === CAMADA 4: Conteúdo Hero (título, sinopse, CTAs) === */}
+        {/* === CAMADA 4: Conteúdo Hero === */}
         <div className="absolute inset-0 z-[4] flex flex-col justify-end px-6 pb-32 md:px-14 md:pb-40">
           <div className="max-w-2xl space-y-3">
             <h1

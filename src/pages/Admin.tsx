@@ -20,7 +20,6 @@ import { VodMovieList } from "@/components/admin/VodMovieList";
 import { VodSeriesList } from "@/components/admin/VodSeriesList";
 import { toProxyAssetUrl } from "@/lib/streamProxy";
 import TmdbCuratedImport from "@/components/admin/TmdbCuratedImport";
-import HeroBgVideoManager from "@/components/admin/HeroBgVideoManager";
 
 interface Channel {
   id: string;
@@ -292,7 +291,6 @@ const Admin = () => {
 
             {/* Tab de Curadoria */}
             <TabsContent value="curated" className="space-y-6">
-              <HeroBgVideoManager />
               <TmdbCuratedImport />
             </TabsContent>
           </Tabs>

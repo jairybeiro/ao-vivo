@@ -6,6 +6,7 @@ import { ArrowLeft, Star, Play, Clock, Calendar, Globe, Users, ChevronRight, Inf
 import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import VodPlayer from "@/components/VodPlayer";
+import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 
 interface CastMember {
   name: string;
@@ -258,21 +259,17 @@ const ContentDetail = () => {
       {/* ===== FULL-SCREEN HERO ===== */}
       <section className="relative w-full h-screen overflow-hidden">
         {/* Background: trailer or backdrop */}
-        {youtubeId ? (
+        {isDirectVideo ? (
+          <HlsAutoplayVideo
+            src={bgSource!}
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
+        ) : youtubeId ? (
           <iframe
             src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
             className="absolute inset-0 w-full h-full scale-[1.2] pointer-events-none"
             allow="autoplay; encrypted-media"
             title={title}
-          />
-        ) : isDirectVideo ? (
-          <video
-            src={bgSource!}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           />
         ) : backdropSrc ? (
           <img
