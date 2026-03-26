@@ -558,11 +558,31 @@ const ContentDetail = () => {
 
           {/* Player */}
           <div className="flex-1">
-            <VodPlayer
-              src={trailerMp4 || trailerUrl!}
-              title={`Trailer - ${title}`}
-              poster={backdropSrc || undefined}
-            />
+            {(trailerMp4 || (trailerUrl && /\.(mp4|m3u8|m3u)/i.test(trailerUrl))) ? (
+              <VodPlayer
+                src={trailerMp4 || trailerUrl!}
+                title={`Trailer - ${title}`}
+                poster={backdropSrc || undefined}
+              />
+            ) : trailerUrl && extractYouTubeId(trailerUrl) ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${extractYouTubeId(trailerUrl)}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                title={`Trailer - ${title}`}
+              />
+            ) : (
+              <iframe
+                src={trailerUrl!}
+                className="w-full h-full"
+                allow="autoplay; encrypted-media; fullscreen"
+                allowFullScreen
+                sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+                referrerPolicy="no-referrer"
+                title={`Trailer - ${title}`}
+              />
+            )}
           </div>
         </div>
       )}
