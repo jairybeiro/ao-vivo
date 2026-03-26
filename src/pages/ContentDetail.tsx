@@ -264,6 +264,13 @@ const ContentDetail = () => {
         <section className="relative w-full bg-[#0f0f0f] pt-16">
           {/* Compact player - no text overlay */}
           <div className="relative w-full aspect-video">
+            {/* Back arrow */}
+            <button
+              onClick={() => navigate("/entretenimento")}
+              className="absolute top-3 left-3 z-10 w-9 h-9 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-full active:scale-90 transition-transform"
+            >
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
             {isDirectVideo ? (
               <HlsAutoplayVideo
                 src={bgSource!}
@@ -358,14 +365,6 @@ const ContentDetail = () => {
               </button>
             </div>
 
-            {/* Back to Inspire-se */}
-            <button
-              onClick={() => navigate("/entretenimento")}
-              className="flex items-center gap-1.5 text-white/50 text-xs mt-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Voltar
-            </button>
           </div>
         </section>
       ) : (
