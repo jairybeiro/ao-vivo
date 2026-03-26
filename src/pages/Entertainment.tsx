@@ -80,9 +80,14 @@ const Entertainment = () => {
   const heroVideoId = useMemo(() => {
     if (!heroItem?.trailer_url) return null;
     const url = heroItem.trailer_url;
-    if (url.includes("v=")) return url.split("v=")[1]?.split("&")[0];
-    return url.split("/").pop();
+    const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
   }, [heroItem?.trailer_url]);
+
+  const heroIsDirectVideo = useMemo(() => {
+    if (!heroItem?.trailer_url || heroVideoId) return false;
+    return /\.(mp4|m3u8|m3u)/i.test(heroItem.trailer_url);
+  }, [heroItem?.trailer_url, heroVideoId]);
 
   const handleClick = (item: CuratedItem) => {
     navigate(`/entretenimento/${item.type}/${item.id}`);
@@ -115,7 +120,7 @@ const Entertainment = () => {
         </svg>
 
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
-        {(heroVideoId || heroItem?.backdrop_url) && (
+        {(heroVideoId || heroIsDirectVideo || heroItem?.backdrop_url) && (
           <div
             className="absolute inset-0 z-[1]"
             style={{
@@ -131,6 +136,15 @@ const Entertainment = () => {
                 style={{ border: 0, transform: "translate(-50%, -50%)" }}
                 allow="autoplay; encrypted-media"
                 title="Ambilight reflection"
+              />
+            ) : heroIsDirectVideo ? (
+              <video
+                src={heroItem!.trailer_url!}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               />
             ) : (
               <img
@@ -160,6 +174,15 @@ const Entertainment = () => {
                   style={{ border: 0, transform: "translate(-50%, -50%)" }}
                   allow="autoplay; encrypted-media"
                   title="Hero trailer"
+                />
+              ) : heroIsDirectVideo ? (
+                <video
+                  src={heroItem!.trailer_url!}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                 />
               ) : heroItem?.backdrop_url ? (
                 <img
