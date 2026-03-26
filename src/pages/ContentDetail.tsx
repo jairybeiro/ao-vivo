@@ -151,6 +151,7 @@ const ContentDetail = () => {
 
   const trailerUrl = tmdb?.trailer_url || dbItem?.trailer_url;
   const youtubeId = trailerUrl ? extractYouTubeId(trailerUrl) : null;
+  const isDirectVideo = trailerUrl && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(trailerUrl);
   const trailerMp4 = dbItem?.trailer_mp4_url;
   const tag = dbItem?.category_tag;
 
@@ -260,6 +261,15 @@ const ContentDetail = () => {
             className="absolute inset-0 w-full h-full scale-[1.2] pointer-events-none"
             allow="autoplay; encrypted-media"
             title={title}
+          />
+        ) : isDirectVideo ? (
+          <video
+            src={trailerUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           />
         ) : backdropSrc ? (
           <img
