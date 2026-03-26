@@ -264,6 +264,8 @@ const ContentDetail = () => {
         {isDirectVideo ? (
           <HlsAutoplayVideo
             src={bgSource!}
+            poster={backdropSrc}
+            delayMs={5000}
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           />
         ) : youtubeId ? (
