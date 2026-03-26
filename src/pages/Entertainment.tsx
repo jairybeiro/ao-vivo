@@ -205,7 +205,7 @@ const Entertainment = () => {
             {/* Main player - constrained, centered, above ambilight, concave TV-screen bottom */}
             <div
               className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden"
-              style={{ clipPath: "ellipse(75% 100% at 50% 0%)" }}
+              style={{ clipPath: "ellipse(75% 100% at 50% 100%)" }}
             >
               {heroVideoUrl ? (
                 <HlsAutoplayVideo
