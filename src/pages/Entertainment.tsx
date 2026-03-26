@@ -148,8 +148,8 @@ const Entertainment = () => {
             <div
               className="absolute inset-0 overflow-hidden"
               style={{
-                borderRadius: window.innerWidth >= 768 ? "18px" : "0px",
-                clipPath: window.innerWidth >= 768 ? "url(#hero-player-clip)" : "none",
+                borderRadius: isMobile ? "0px" : "18px",
+                clipPath: isMobile ? "none" : "url(#hero-player-clip)",
               }}
             >
               {heroVideoUrl ? (
