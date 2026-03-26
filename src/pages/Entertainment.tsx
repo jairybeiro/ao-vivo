@@ -95,7 +95,7 @@ const Entertainment = () => {
   const tags = Object.keys(collections);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
       {/* Fixed header over hero */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <MainHeader />

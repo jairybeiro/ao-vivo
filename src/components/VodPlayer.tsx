@@ -571,36 +571,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               </button>
 
               {/* Volume — vertical slider on hover (Netflix style) */}
-              <div className="hidden md:flex items-center relative group/volume">
-                <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
-                  {muted || volume === 0
-                    ? <VolumeX className="w-7 h-7" />
-                    : volume < 0.5
-                      ? <Volume1 className="w-7 h-7" />
-                      : <Volume2 className="w-7 h-7" />
-                  }
-                </button>
-                {/* Vertical volume popup */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 scale-95 group-hover/volume:opacity-100 group-hover/volume:scale-100 transition-all duration-200 pointer-events-none group-hover/volume:pointer-events-auto">
-                  <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="range" min="0" max="1" step="0.02"
-                      value={muted ? 0 : volume}
-                      onChange={(e) => { e.stopPropagation(); changeVolume(parseFloat(e.target.value)); }}
-                      onClick={(e) => e.stopPropagation()}
-                      className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
-                      {...{ orient: "vertical" } as any}
-                      style={{
-                        writingMode: "vertical-lr",
-                        direction: "rtl",
-                        WebkitAppearance: "slider-vertical",
-                        width: "4px",
-                        accentColor: "#E50914",
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <VodVolumeControl muted={muted} volume={volume} onToggleMute={(e) => { e.stopPropagation(); toggleMute(); }} onChangeVolume={changeVolume} />
 
               {/* Mobile mute */}
               <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="md:hidden hover:text-[hsl(var(--player-contrast)/0.82)] transition">

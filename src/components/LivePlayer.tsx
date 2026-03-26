@@ -361,17 +361,11 @@ const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immer
                   setShowVolume(true);
                 }}
                 onMouseLeave={() => {
-                  volumeHideTimer.current = setTimeout(() => setShowVolume(false), 400);
+                  volumeHideTimer.current = setTimeout(() => setShowVolume(false), 1200);
                 }}
               >
                 <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
-                  {muted || volume === 0
-                    ? <VolumeX className="w-7 h-7" />
-                    : volume < 0.5
-                      ? <Volume1 className="w-7 h-7" />
-                      : <Volume2 className="w-7 h-7" />
-                  }
-                </button>
+{/* ... keep existing code */}
                 {/* Vertical volume popup */}
                 <div
                   className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200"
@@ -385,8 +379,8 @@ const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immer
                     setShowVolume(true);
                   }}
                   onMouseLeave={() => {
-                    volumeHideTimer.current = setTimeout(() => setShowVolume(false), 400);
-                  }}
+                    volumeHideTimer.current = setTimeout(() => setShowVolume(false), 1200);
+                  }
                 >
                   <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
                     <input
