@@ -32,6 +32,7 @@ const TAG_EMOJIS: Record<string, string> = {
 
 const Entertainment = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [collections, setCollections] = useState<Record<string, CuratedItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CuratedItem | null>(null);
