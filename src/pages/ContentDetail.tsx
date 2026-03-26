@@ -530,31 +530,6 @@ const ContentDetail = () => {
         </div>
       </main>
 
-      {/* ===== TRAILER MP4 PLAYER OVERLAY ===== */}
-      {showTrailerPlayer && trailerMp4 && (
-        <div className="fixed inset-0 z-[60] bg-black">
-          <VodPlayer
-            src={trailerMp4}
-            title={`Trailer: ${title}`}
-            subtitle="Trailer Oficial HD"
-            poster={backdropSrc || undefined}
-            contentType="movie"
-            contentId={`trailer-${dbItem.id}`}
-            contentName={`Trailer: ${title}`}
-            contentCoverUrl={dbItem.cover_url}
-            onBack={() => setShowTrailerPlayer(false)}
-            extraControls={
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowTrailerPlayer(false); handleWatch(); }}
-                className="flex items-center gap-1.5 bg-white/20 backdrop-blur-sm text-white font-semibold px-3 py-1.5 rounded-md hover:bg-white/30 transition-colors text-xs"
-              >
-                <Play className="w-3.5 h-3.5 fill-white" />
-                Assistir Completo
-              </button>
-            }
-          />
-        </div>
-      )}
     </div>
   );
 };
