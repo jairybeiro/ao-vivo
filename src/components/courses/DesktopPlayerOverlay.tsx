@@ -106,7 +106,7 @@ export const DesktopPlayerOverlay = ({
   const handleVolumeAreaLeave = () => {
     hideVolumeTimeout.current = setTimeout(() => {
       setShowVolumeSlider(false);
-    }, 1000);
+    }, 1200);
   };
 
   const VolumeIcon = getVolumeIcon(isMuted, volume);
