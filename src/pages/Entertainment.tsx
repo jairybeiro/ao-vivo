@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Film, Clapperboard, Star, PlayCircle, ChevronRight, Play } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CuratedItem {
   id: string;
