@@ -97,16 +97,16 @@ const Entertainment = () => {
 
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
-      {/* Transparent header overlaid on hero */}
-      <div className="fixed top-0 left-0 right-0 z-50">
-        <MainHeader transparent />
+      {/* Header: transparent on desktop, solid dark on mobile */}
+      <div className={`fixed top-0 left-0 right-0 z-50 ${isMobile ? "bg-[#0f0f0f]" : ""}`}>
+        <MainHeader transparent={!isMobile} />
       </div>
 
       {/* ===== HERO SECTION ===== */}
       {isMobile ? (
         /* ===== MOBILE: Netflix-style compact player + content below ===== */
         <>
-          <section className="relative w-full bg-[#0f0f0f]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+          <section className="relative w-full bg-[#0f0f0f] pt-16">
             {/* Compact player - no text overlay */}
             <div className="relative w-full aspect-video">
               {heroVideoUrl ? (
