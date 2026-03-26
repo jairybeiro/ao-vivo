@@ -44,6 +44,7 @@ interface CuratedItem {
   trailer_url: string | null;
   stream_url?: string;
   plot?: string | null;
+  linked_content_id?: string | null;
 }
 
 const TmdbCuratedImport = () => {
@@ -73,6 +74,7 @@ const TmdbCuratedImport = () => {
   const [editForm, setEditForm] = useState({
     name: "", category: "", category_tag: "", stream_url: "",
     cover_url: "", backdrop_url: "", trailer_url: "", trailer_mp4_url: "", rating: "", plot: "",
+    linked_content_id: "",
   });
   const [editSaving, setEditSaving] = useState(false);
 
@@ -80,13 +82,13 @@ const TmdbCuratedImport = () => {
     setCuratedLoading(true);
     const { data: movies } = await supabase
       .from("vod_movies")
-      .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, category, stream_url")
+      .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, category, stream_url, linked_content_id")
       .not("category_tag", "is", null)
       .order("name");
 
     const { data: series } = await supabase
       .from("vod_series")
-      .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, category, plot")
+      .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, category, plot, linked_content_id")
       .not("category_tag", "is", null)
       .order("name");
 
@@ -245,6 +247,7 @@ const TmdbCuratedImport = () => {
       trailer_mp4_url: (item as any).trailer_mp4_url || "",
       rating: item.rating?.toString() || "",
       plot: item.plot || "",
+      linked_content_id: item.linked_content_id || "",
     });
   };
 
@@ -262,6 +265,7 @@ const TmdbCuratedImport = () => {
       trailer_url: editForm.trailer_url.trim() || null,
       trailer_mp4_url: editForm.trailer_mp4_url.trim() || null,
       rating: editForm.rating ? parseFloat(editForm.rating) : null,
+      linked_content_id: editForm.linked_content_id.trim() || null,
     };
 
     if (editItem.type === "movie") {
@@ -615,6 +619,11 @@ const TmdbCuratedImport = () => {
                 <Label>URL do Trailer MP4 (HD - para Player)</Label>
                 <Input placeholder="https://...arquivo.mp4 ou .m3u8" value={editForm.trailer_mp4_url} onChange={(e) => setEditForm(f => ({ ...f, trailer_mp4_url: e.target.value }))} />
                 <p className="text-[10px] text-muted-foreground">Link direto .mp4 ou .m3u8 para reprodução no player SDK</p>
+              </div>
+              <div className="space-y-2">
+                <Label>ID do Conteúdo Vinculado (override manual)</Label>
+                <Input placeholder="UUID do filme/série no catálogo VOD" value={editForm.linked_content_id} onChange={(e) => setEditForm(f => ({ ...f, linked_content_id: e.target.value }))} />
+                <p className="text-[10px] text-muted-foreground">Opcional — o sistema busca automaticamente pelo TMDB ID. Use para vincular manualmente a um conteúdo específico.</p>
               </div>
               <div className="space-y-2">
                 <Label>Nota</Label>

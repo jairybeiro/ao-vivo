@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useRef } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Star, Play, Clock, Calendar, Globe, Users, ChevronRight, Info } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
@@ -51,6 +52,7 @@ interface DbItem {
   plot?: string | null;
   xtream_id: number;
   tmdb_id: number | null;
+  linked_content_id?: string | null;
 }
 
 const TAG_EMOJIS: Record<string, string> = {
@@ -117,6 +119,7 @@ const ContentDetail = () => {
         plot: (data as any).plot,
         xtream_id: data.xtream_id,
         tmdb_id: (data as any).tmdb_id || null,
+        linked_content_id: (data as any).linked_content_id || null,
       };
       setDbItem(item);
 
@@ -156,9 +159,59 @@ const ContentDetail = () => {
     ? hasEpisodes
     : (dbItem?.stream_url && dbItem.stream_url !== "pending" && dbItem.stream_url.startsWith("http"));
 
-  const handleWatch = () => {
-    if (type === "movie") navigate(`/vod/movie/${id}`);
-    else navigate(`/vod/series/${id}`);
+  const handleWatch = async () => {
+    // 1. If content itself has a valid stream, navigate directly
+    if (hasValidStream) {
+      if (type === "movie") navigate(`/vod/movie/${id}`);
+      else navigate(`/vod/series/${id}`);
+      return;
+    }
+
+    // 2. If there's a manual linked_content_id, use it
+    if (dbItem?.linked_content_id) {
+      if (type === "movie") navigate(`/vod/movie/${dbItem.linked_content_id}`);
+      else navigate(`/vod/series/${dbItem.linked_content_id}`);
+      return;
+    }
+
+    // 3. Auto-match by tmdb_id: find another record with same tmdb_id and valid stream
+    if (dbItem?.tmdb_id) {
+      if (type === "movie") {
+        const { data } = await supabase
+          .from("vod_movies")
+          .select("id, stream_url")
+          .eq("tmdb_id", dbItem.tmdb_id)
+          .neq("id", dbItem.id)
+          .eq("is_active", true)
+          .limit(1);
+        if (data && data.length > 0 && data[0].stream_url && data[0].stream_url !== "pending") {
+          navigate(`/vod/movie/${data[0].id}`);
+          return;
+        }
+      } else {
+        const { data } = await supabase
+          .from("vod_series")
+          .select("id")
+          .eq("tmdb_id", dbItem.tmdb_id)
+          .neq("id", dbItem.id)
+          .eq("is_active", true)
+          .limit(1);
+        if (data && data.length > 0) {
+          // Check if the matched series has episodes
+          const { count } = await supabase
+            .from("vod_episodes")
+            .select("id", { count: "exact", head: true })
+            .eq("series_id", data[0].id);
+          if ((count ?? 0) > 0) {
+            navigate(`/vod/series/${data[0].id}`);
+            return;
+          }
+        }
+      }
+    }
+
+    // 4. No match found
+    toast.info("Conteúdo completo ainda não disponível no catálogo");
   };
 
   if (loading) {
@@ -308,7 +361,7 @@ const ContentDetail = () => {
                   Trailer HD
                 </button>
               )}
-              {hasValidStream && (
+              {(hasValidStream || dbItem?.linked_content_id || dbItem?.tmdb_id) && (
                 <button
                   onClick={handleWatch}
                   className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"

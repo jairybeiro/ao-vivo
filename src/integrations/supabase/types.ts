@@ -466,6 +466,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          linked_content_id: string | null
           name: string
           rating: number | null
           stream_url: string
@@ -483,6 +484,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          linked_content_id?: string | null
           name: string
           rating?: number | null
           stream_url: string
@@ -500,6 +502,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          linked_content_id?: string | null
           name?: string
           rating?: number | null
           stream_url?: string
@@ -520,6 +523,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          linked_content_id: string | null
           name: string
           plot: string | null
           rating: number | null
@@ -537,6 +541,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          linked_content_id?: string | null
           name: string
           plot?: string | null
           rating?: number | null
@@ -554,6 +559,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          linked_content_id?: string | null
           name?: string
           plot?: string | null
           rating?: number | null
@@ -587,6 +593,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          linked_content_id: string | null
           name: string
           rating: number | null
           stream_url: string
@@ -613,6 +620,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          linked_content_id: string | null
           name: string
           rating: number | null
           stream_url: string
@@ -639,6 +647,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          linked_content_id: string | null
           name: string
           plot: string | null
           rating: number | null
@@ -665,6 +674,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          linked_content_id: string | null
           name: string
           plot: string | null
           rating: number | null
