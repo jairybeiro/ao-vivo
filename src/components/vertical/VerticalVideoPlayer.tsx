@@ -225,13 +225,13 @@ export const VerticalVideoPlayer = ({
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white pointer-events-auto"
-            style={{ marginTop: "env(safe-area-inset-top)" }}
+            className="absolute top-4 left-6 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white pointer-events-auto"
+            style={{ marginTop: "calc(env(safe-area-inset-top) + 8px)" }}
           >
             <X className="w-5 h-5" />
           </button>
           {/* Info */}
-          <div className="absolute bottom-0 left-0 right-20 p-4 pointer-events-auto" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}>
+          <div className="absolute bottom-0 left-0 right-20 p-4 pointer-events-auto" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}>
             <h3 className="text-white font-bold text-lg line-clamp-2">{title}</h3>
             {description && <p className="text-white/70 text-sm line-clamp-2 mt-1">{description}</p>}
           </div>
@@ -281,8 +281,8 @@ export const VerticalVideoPlayer = ({
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white"
-          style={{ marginTop: "env(safe-area-inset-top)" }}
+          className="absolute top-4 left-6 w-10 h-10 rounded-full bg-black/50 flex items-center justify-center text-white"
+          style={{ marginTop: "calc(env(safe-area-inset-top) + 8px)" }}
         >
           <X className="w-5 h-5" />
         </button>
@@ -333,7 +333,7 @@ export const VerticalVideoPlayer = ({
         </div>
 
         {/* Bottom info */}
-        <div className="absolute bottom-0 left-0 right-20 p-4" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}>
+        <div className="absolute bottom-0 left-0 right-20 p-4" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}>
           <h3 className="text-white font-bold text-lg line-clamp-2">{title}</h3>
           {description && <p className="text-white/70 text-sm line-clamp-2 mt-1">{description}</p>}
         </div>
