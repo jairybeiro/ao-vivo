@@ -149,10 +149,13 @@ const ContentDetail = () => {
     fetchData();
   }, [id, type]);
 
-  const trailerUrl = tmdb?.trailer_url || dbItem?.trailer_url;
-  const youtubeId = trailerUrl ? extractYouTubeId(trailerUrl) : null;
-  const isDirectVideo = trailerUrl && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(trailerUrl);
+  // Priority for background: trailer_mp4_url > dbItem.trailer_url > tmdb.trailer_url
   const trailerMp4 = dbItem?.trailer_mp4_url;
+  const trailerUrl = dbItem?.trailer_url || tmdb?.trailer_url;
+  // For background hero, prefer direct video (mp4/m3u8) over YouTube
+  const bgSource = trailerMp4 || trailerUrl;
+  const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
+  const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
   const tag = dbItem?.category_tag;
 
   // Check if content is playable
