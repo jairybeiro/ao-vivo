@@ -116,7 +116,7 @@ const Entertainment = () => {
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
         {(heroVideoUrl || heroItem?.backdrop_url) && (
           <div
-            className="absolute inset-0 z-[1]"
+            className="absolute inset-0 z-[1] hidden md:block"
             style={{
               filter: "blur(45px)",
               opacity: 0.75,
@@ -141,13 +141,13 @@ const Entertainment = () => {
         )}
 
         {/* === CAMADA 2: Player Principal === */}
-        <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
-          <div className="relative w-[92vw] h-[80vh]">
+        <div className="absolute inset-0 z-[2] flex items-center justify-center md:pt-14">
+          <div className="relative w-full h-full md:w-[92vw] md:h-[80vh]">
             <div
               className="absolute inset-0 overflow-hidden"
               style={{
-                borderRadius: "18px",
-                clipPath: "url(#hero-player-clip)",
+                borderRadius: window.innerWidth >= 768 ? "18px" : "0px",
+                clipPath: window.innerWidth >= 768 ? "url(#hero-player-clip)" : "none",
               }}
             >
               {heroVideoUrl ? (
@@ -167,7 +167,7 @@ const Entertainment = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
             </div>
-            <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+            <svg className="absolute inset-0 w-full h-full pointer-events-none hidden md:block" viewBox="0 0 100 100" preserveAspectRatio="none">
               <path d="M2,0 H98 Q100,0 100,2 V100 C78,93.5 22,93.5 0,100 V2 Q0,0 2,0 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" vectorEffect="non-scaling-stroke" style={{ strokeWidth: '1px' }} />
             </svg>
           </div>
