@@ -262,6 +262,15 @@ const ContentDetail = () => {
             allow="autoplay; encrypted-media"
             title={title}
           />
+        ) : isDirectVideo ? (
+          <video
+            src={trailerUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          />
         ) : backdropSrc ? (
           <img
             src={backdropSrc}
