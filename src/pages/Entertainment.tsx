@@ -126,6 +126,8 @@ const Entertainment = () => {
             {heroVideoUrl ? (
               <HlsAutoplayVideo
                 src={heroVideoUrl}
+                poster={heroItem?.backdrop_url}
+                delayMs={5000}
                 className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               />
             ) : (
@@ -151,6 +153,8 @@ const Entertainment = () => {
               {heroVideoUrl ? (
                 <HlsAutoplayVideo
                   src={heroVideoUrl}
+                  poster={heroItem?.backdrop_url}
+                  delayMs={5000}
                   className="absolute inset-0 w-full h-full object-cover pointer-events-none"
                 />
               ) : heroItem?.backdrop_url ? (
