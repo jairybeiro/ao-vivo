@@ -539,7 +539,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         </div>
 
         {/* TOP BAR — Back arrow (left) */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 md:p-6 pointer-events-auto">
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 pl-6 pt-[calc(env(safe-area-inset-top)+20px)] md:p-6 pointer-events-auto">
           <button
             onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
             className="text-[hsl(var(--player-contrast))] hover:scale-110 transition active:scale-95"
@@ -558,7 +558,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         )}
 
         {/* BOTTOM CONTROLS */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
+        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-[calc(env(safe-area-inset-bottom)+14px)] md:pb-5 pointer-events-auto">
           {/* Progress bar row — bar + time on the right */}
           <div className="flex items-center gap-3 mb-4">
             <div

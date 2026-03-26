@@ -301,7 +301,7 @@ const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immer
         </div>
 
         {/* TOP BAR — AO VIVO indicator + info */}
-        <div className="absolute top-0 left-0 right-0 flex items-center gap-3 p-4 md:p-6 pointer-events-auto">
+        <div className="absolute top-0 left-0 right-0 flex items-center gap-3 p-4 pl-6 pt-[calc(env(safe-area-inset-top)+20px)] md:p-6 pointer-events-auto">
           {onBack && (
             <button
               onClick={(e) => { e.stopPropagation(); onBack(); }}
@@ -341,7 +341,7 @@ const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immer
         )}
 
         {/* BOTTOM CONTROLS */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-3 md:pb-5 pointer-events-auto">
+        <div className="absolute bottom-0 left-0 right-0 px-4 md:px-8 pb-[calc(env(safe-area-inset-bottom)+14px)] md:pb-5 pointer-events-auto">
           <div className="flex items-center justify-between text-[hsl(var(--player-contrast))]" style={{ textRendering: "optimizeLegibility" }}>
             {/* Left controls */}
             <div className="flex items-center gap-3 md:gap-5">

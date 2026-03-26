@@ -83,7 +83,7 @@ export const MobilePlayerOverlay = ({
       }`}
     >
       {/* Top - Back button only */}
-      <div className="relative z-10 p-4 pt-[calc(env(safe-area-inset-top)+12px)]">
+      <div className="relative z-10 p-4 pl-6 pt-[calc(env(safe-area-inset-top)+20px)]">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -123,7 +123,7 @@ export const MobilePlayerOverlay = ({
         )}
 
         {/* Controls bar */}
-        <div className="flex items-center justify-between gap-1 px-3 py-2 pb-safe bg-gradient-to-t from-black/80 to-transparent">
+        <div className="flex items-center justify-between gap-1 px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+14px)] bg-gradient-to-t from-black/80 to-transparent">
           {/* Left side: Play, Skip back, Skip forward, Volume */}
           <div className="flex items-center gap-1">
             {/* Play/Pause */}
