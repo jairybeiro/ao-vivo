@@ -368,134 +368,86 @@ const ContentDetail = () => {
           </div>
         </section>
       ) : (
-        /* ===== DESKTOP: Ambilight hero (matching Inspire-se) ===== */
-        <section
-          className="relative w-full overflow-hidden"
-          style={{ background: "#0f0f0f", height: "85vh" }}
-        >
-          <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true" focusable="false">
-            <defs>
-              <clipPath id="detail-player-clip" clipPathUnits="objectBoundingBox">
-                <path d="M0,0 H1 V1 C0.78,0.935 0.22,0.935 0,1 Z" />
-              </clipPath>
-            </defs>
-          </svg>
-
-          {/* Ambilight layer */}
-          {(bgSource || backdropSrc) && (
-            <div
-              className="absolute inset-0 z-[1]"
-              style={{ filter: "blur(45px)", opacity: 0.75, transform: "scale(1.5)" }}
+        /* ===== DESKTOP: Compact player + content below (matching mobile) ===== */
+        <section className="w-full bg-[#0f0f0f] pt-16">
+          {/* Player - constrained, centered */}
+          <div className="relative w-full max-w-5xl mx-auto aspect-video">
+            {/* Back arrow */}
+            <button
+              onClick={() => navigate("/entretenimento")}
+              className="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition"
             >
-              {isDirectVideo ? (
-                <HlsAutoplayVideo
-                  src={bgSource!}
-                  poster={backdropSrc}
-                  delayMs={5000}
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                />
-              ) : backdropSrc ? (
-                <img src={backdropSrc} alt="" className="absolute inset-0 w-full h-full object-cover" />
-              ) : null}
-            </div>
-          )}
-
-          {/* Main player */}
-          <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
-            <div className="relative w-[92vw] h-[80vh]">
-              <div
-                className="absolute inset-0 overflow-hidden"
-                style={{ borderRadius: "18px", clipPath: "url(#detail-player-clip)" }}
-              >
-                {isDirectVideo ? (
-                  <HlsAutoplayVideo
-                    src={bgSource!}
-                    poster={backdropSrc}
-                    delayMs={5000}
-                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                  />
-                ) : youtubeId ? (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
-                    className="absolute inset-0 w-full h-full scale-[1.1]"
-                    allow="autoplay; encrypted-media"
-                    title={title}
-                  />
-                ) : isGenericEmbed ? (
-                  <iframe
-                    src={bgSource!}
-                    className="absolute inset-0 w-full h-full"
-                    allow="autoplay; encrypted-media; fullscreen"
-                    sandbox="allow-scripts allow-same-origin allow-presentation"
-                    referrerPolicy="no-referrer"
-                    title={title}
-                  />
-                ) : backdropSrc ? (
-                  <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-                )}
-              </div>
-              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path d="M2,0 H98 Q100,0 100,2 V100 C78,93.5 22,93.5 0,100 V2 Q0,0 2,0 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" vectorEffect="non-scaling-stroke" style={{ strokeWidth: '1px' }} />
-              </svg>
-            </div>
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+            {isDirectVideo ? (
+              <HlsAutoplayVideo
+                src={bgSource!}
+                poster={backdropSrc}
+                delayMs={5000}
+                showControls
+                className="absolute inset-0 w-full h-full object-cover rounded-xl"
+              />
+            ) : youtubeId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
+                className="absolute inset-0 w-full h-full rounded-xl"
+                allow="autoplay; encrypted-media"
+                title={title}
+              />
+            ) : isGenericEmbed ? (
+              <iframe
+                src={bgSource!}
+                className="absolute inset-0 w-full h-full rounded-xl"
+                allow="autoplay; encrypted-media; fullscreen"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="no-referrer"
+                title={title}
+              />
+            ) : backdropSrc ? (
+              <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f] rounded-xl" />
+            )}
+            {/* Bottom gradient fade */}
+            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none rounded-b-xl" />
           </div>
 
-          {/* Gradients */}
-          <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: `linear-gradient(180deg, transparent 65%, rgba(15,15,15,0.6) 85%, #0f0f0f 100%)` }} />
-          <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: `linear-gradient(90deg, #0f0f0f 0%, transparent 15%, transparent 85%, #0f0f0f 100%)` }} />
-
-          {/* Back arrow */}
-          <button onClick={() => navigate("/entretenimento")} className="absolute top-20 left-8 z-20 p-2.5 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 transition">
-            <ArrowLeft className="w-5 h-5 text-white" />
-          </button>
-
-          {/* Hero content */}
-          <div className="absolute inset-0 z-[4] flex flex-col justify-end px-14 pb-40">
-            <div className="max-w-2xl space-y-3">
-              {tag && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{TAG_EMOJIS[tag] || "🎬"}</span>
-                  <span className="text-xs font-bold text-[hsl(var(--player-accent))] uppercase tracking-widest">{tag}</span>
-                </div>
-              )}
-              <h1 className="text-5xl lg:text-6xl font-black text-white leading-[0.95] tracking-tight drop-shadow-2xl">{title}</h1>
-              {tmdb?.tagline && <p className="text-base text-white/60 italic drop-shadow-lg">"{tmdb.tagline}"</p>}
-              <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
-                {ratingPercent && <span className="text-green-400 font-bold text-sm">{ratingPercent}% relevante</span>}
-                {tmdb?.release_date && <span>{new Date(tmdb.release_date).getFullYear()}</span>}
-                {tmdb?.runtime && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{Math.floor(tmdb.runtime / 60)}h {tmdb.runtime % 60}min</span>}
-                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
-                {tmdb?.original_language && <span className="uppercase">{tmdb.original_language}</span>}
+          {/* Content below player */}
+          <div className="max-w-5xl mx-auto px-6 pb-8 pt-4 space-y-3">
+            {tag && (
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{TAG_EMOJIS[tag] || "🎬"}</span>
+                <span className="text-xs font-bold text-[hsl(var(--player-accent))] uppercase tracking-widest">{tag}</span>
               </div>
-              {tmdb?.genres && tmdb.genres.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {tmdb.genres.map((g) => (
-                    <span key={g} className="px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-sm text-[10px] font-medium text-white/70">{g}</span>
-                  ))}
-                </div>
-              )}
-              {plot && <p className="text-sm text-white/70 max-w-lg leading-relaxed line-clamp-3 drop-shadow">{plot}</p>}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  onClick={handleWatch}
-                  className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-8 py-3.5 rounded-md hover:brightness-110 transition-all text-base shadow-xl"
-                >
-                  <Play className="w-5 h-5 fill-white" />
-                  ASSISTIR
-                </button>
-                {hasTrailer && (
-                  <button onClick={() => setShowTrailerPlayer(true)} className="flex items-center gap-2.5 bg-red-600 text-white font-bold px-7 py-3.5 rounded-md hover:bg-red-700 transition-colors text-base shadow-xl">
-                    <Play className="w-5 h-5 fill-white" />
-                    Trailer HD
-                  </button>
-                )}
-                <button onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })} className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-7 py-3.5 rounded-md hover:bg-white/30 transition-colors text-base">
-                  <Info className="w-5 h-5" />
-                  Mais informações
-                </button>
+            )}
+            <h1 className="text-3xl lg:text-4xl font-black text-white leading-tight">{title}</h1>
+            {tmdb?.tagline && <p className="text-sm text-white/50 italic">"{tmdb.tagline}"</p>}
+            <div className="flex flex-wrap items-center gap-3 text-xs text-white/60">
+              {ratingPercent && <span className="text-green-400 font-bold text-sm">{ratingPercent}% relevante</span>}
+              {tmdb?.release_date && <span>{new Date(tmdb.release_date).getFullYear()}</span>}
+              {tmdb?.runtime && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{Math.floor(tmdb.runtime / 60)}h {tmdb.runtime % 60}min</span>}
+              <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
+            </div>
+            {tmdb?.genres && tmdb.genres.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tmdb.genres.map((g) => (
+                  <span key={g} className="px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-medium text-white/70">{g}</span>
+                ))}
               </div>
+            )}
+            {plot && <p className="text-sm text-white/70 max-w-xl leading-relaxed line-clamp-3">{plot}</p>}
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                onClick={handleWatch}
+                className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-8 py-3.5 rounded-md hover:brightness-110 transition-all text-base shadow-xl"
+              >
+                <Play className="w-5 h-5 fill-white" />
+                ASSISTIR
+              </button>
+              <button onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })} className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-7 py-3.5 rounded-md hover:bg-white/30 transition-colors text-base">
+                <Info className="w-5 h-5" />
+                Mais info
+              </button>
             </div>
           </div>
         </section>
