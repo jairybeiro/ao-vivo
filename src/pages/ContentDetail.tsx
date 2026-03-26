@@ -158,6 +158,7 @@ const ContentDetail = () => {
   const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
   const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
   const tag = dbItem?.category_tag;
+  const hasTrailer = !!(trailerMp4 || trailerUrl);
 
   // Check if content is playable
   const hasValidStream = type === "series"
