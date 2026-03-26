@@ -181,23 +181,45 @@ const Entertainment = () => {
       ) : (
         /* ===== DESKTOP: Compact player + content below (matching mobile) ===== */
         <section className="w-full bg-[#0f0f0f] pt-16">
-          {/* Player - constrained aspect-video, centered */}
-          <div className="relative w-full max-w-5xl mx-auto aspect-video">
-            {heroVideoUrl ? (
-              <HlsAutoplayVideo
-                src={heroVideoUrl}
-                poster={heroItem?.backdrop_url}
-                delayMs={5000}
-                showControls
-                className="absolute inset-0 w-full h-full object-cover rounded-xl"
-              />
-            ) : heroItem?.backdrop_url ? (
-              <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover rounded-xl" />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f] rounded-xl" />
-            )}
-            {/* Bottom gradient fade */}
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none rounded-b-xl" />
+          {/* Ambilight container - full width */}
+          <div className="relative w-full flex items-center justify-center" style={{ minHeight: "60vh" }}>
+            {/* Ambilight layer: duplicated video blurred behind the player */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+              {heroVideoUrl ? (
+                <HlsAutoplayVideo
+                  src={heroVideoUrl}
+                  poster={heroItem?.backdrop_url}
+                  delayMs={5000}
+                  className="w-full h-full object-cover scale-110 blur-3xl opacity-50"
+                />
+              ) : heroItem?.backdrop_url ? (
+                <img src={heroItem.backdrop_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+              )}
+              {/* Fade edges into background */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-70" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
+            </div>
+
+            {/* Main player - constrained, centered, above ambilight */}
+            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10">
+              {heroVideoUrl ? (
+                <HlsAutoplayVideo
+                  src={heroVideoUrl}
+                  poster={heroItem?.backdrop_url}
+                  delayMs={5000}
+                  showControls
+                  className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                />
+              ) : heroItem?.backdrop_url ? (
+                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f] rounded-xl" />
+              )}
+              {/* Bottom gradient fade */}
+              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none rounded-b-xl" />
+            </div>
           </div>
 
           {/* Content below player */}
