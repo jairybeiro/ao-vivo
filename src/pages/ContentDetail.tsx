@@ -362,24 +362,13 @@ const ContentDetail = () => {
 
             {/* CTA buttons */}
             <div className="flex items-center gap-3 pt-2">
-              {trailerMp4 && (
-                <button
-                  onClick={() => setShowTrailerPlayer(true)}
-                  className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:brightness-110 transition-all text-sm md:text-base shadow-xl"
-                >
-                  <Play className="w-5 h-5 fill-white" />
-                  Trailer HD
-                </button>
-              )}
-              {(hasValidStream || dbItem?.linked_content_id || dbItem?.tmdb_id) && (
-                <button
-                  onClick={handleWatch}
-                  className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
-                >
-                  <Play className="w-5 h-5 fill-black" />
-                  Assistir Completo
-                </button>
-              )}
+              <button
+                onClick={handleWatch}
+                className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
+              >
+                <Play className="w-5 h-5 fill-black" />
+                Assistir Completo
+              </button>
               <button
                 onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })}
                 className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
