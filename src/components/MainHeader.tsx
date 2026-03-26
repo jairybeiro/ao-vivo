@@ -5,6 +5,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
+interface MainHeaderProps {
+  transparent?: boolean;
+}
+
 interface GenreDropdownProps {
   label: string;
   path: string;
