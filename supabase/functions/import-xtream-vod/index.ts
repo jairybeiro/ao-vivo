@@ -89,6 +89,9 @@ Deno.serve(async (req) => {
 
     const baseUrl = dns.replace(/\/$/, '');
 
+    const ADULT_KEYWORDS = ['adult', 'adulto', 'xxx', 'porn', '18+', 'erotic', 'erótic'];
+    const isAdultCat = (cat: string) => ADULT_KEYWORDS.some(kw => cat.toLowerCase().includes(kw));
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
