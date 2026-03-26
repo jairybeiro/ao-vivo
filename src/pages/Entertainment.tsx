@@ -202,23 +202,26 @@ const Entertainment = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
             </div>
 
-            {/* Main player - constrained, centered, above ambilight */}
-            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10">
+            {/* Main player - constrained, centered, above ambilight, concave TV-screen bottom */}
+            <div
+              className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden"
+              style={{ clipPath: "ellipse(75% 100% at 50% 0%)" }}
+            >
               {heroVideoUrl ? (
                 <HlsAutoplayVideo
                   src={heroVideoUrl}
                   poster={heroItem?.backdrop_url}
                   delayMs={5000}
                   showControls
-                  className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : heroItem?.backdrop_url ? (
-                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f] rounded-xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
               {/* Bottom gradient fade */}
-              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none rounded-b-xl" />
+              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
             </div>
           </div>
 

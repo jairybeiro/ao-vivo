@@ -391,12 +391,15 @@ const ContentDetail = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
             </div>
 
-            {/* Main player - constrained, centered, above ambilight */}
-            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10">
+            {/* Main player - constrained, centered, above ambilight, concave TV-screen bottom */}
+            <div
+              className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden"
+              style={{ clipPath: "ellipse(75% 100% at 50% 0%)" }}
+            >
               {/* Back arrow */}
               <button
                 onClick={() => navigate("/entretenimento")}
-                className="absolute top-4 left-4 z-10 w-10 h-10 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition"
+                className="absolute top-4 left-4 z-20 w-10 h-10 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition"
               >
                 <ArrowLeft className="w-5 h-5 text-white" />
               </button>
@@ -406,31 +409,31 @@ const ContentDetail = () => {
                   poster={backdropSrc}
                   delayMs={5000}
                   showControls
-                  className="absolute inset-0 w-full h-full object-cover rounded-xl"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : youtubeId ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&modestbranding=1&loop=1&playlist=${youtubeId}`}
-                  className="absolute inset-0 w-full h-full rounded-xl"
+                  className="absolute inset-0 w-full h-full"
                   allow="autoplay; encrypted-media"
                   title={title}
                 />
               ) : isGenericEmbed ? (
                 <iframe
                   src={bgSource!}
-                  className="absolute inset-0 w-full h-full rounded-xl"
+                  className="absolute inset-0 w-full h-full"
                   allow="autoplay; encrypted-media; fullscreen"
                   sandbox="allow-scripts allow-same-origin allow-presentation"
                   referrerPolicy="no-referrer"
                   title={title}
                 />
               ) : backdropSrc ? (
-                <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover rounded-xl" />
+                <img src={backdropSrc} alt={title} className="absolute inset-0 w-full h-full object-cover" />
               ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f] rounded-xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
               {/* Bottom gradient fade */}
-              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none rounded-b-xl" />
+              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
             </div>
           </div>
 
