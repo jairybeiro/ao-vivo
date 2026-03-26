@@ -267,7 +267,7 @@ const ContentDetail = () => {
           />
         ) : isDirectVideo ? (
           <video
-            src={trailerUrl}
+            src={bgSource!}
             autoPlay
             muted
             loop
