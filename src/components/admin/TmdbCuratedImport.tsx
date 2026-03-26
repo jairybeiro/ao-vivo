@@ -621,6 +621,10 @@ const TmdbCuratedImport = () => {
                 <p className="text-[10px] text-muted-foreground">Link direto .mp4 ou .m3u8 para reprodução no player SDK</p>
               </div>
               <div className="space-y-2">
+                <Label>ID do Conteúdo Vinculado (override manual)</Label>
+                <Input placeholder="UUID do filme/série no catálogo VOD" value={editForm.linked_content_id} onChange={(e) => setEditForm(f => ({ ...f, linked_content_id: e.target.value }))} />
+                <p className="text-[10px] text-muted-foreground">Opcional — o sistema busca automaticamente pelo TMDB ID. Use para vincular manualmente a um conteúdo específico.</p>
+              </div>
                 <Label>Nota</Label>
                 <Input type="number" step="0.1" min="0" max="10" value={editForm.rating} onChange={(e) => setEditForm(f => ({ ...f, rating: e.target.value }))} />
               </div>
