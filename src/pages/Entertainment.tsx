@@ -102,62 +102,20 @@ const Entertainment = () => {
         <MainHeader transparent />
       </div>
 
-      {/* ===== FULL-SCREEN HERO WITH NETFLIX AMBILIGHT ===== */}
-      <section
-        className="relative w-full overflow-hidden"
-        style={{ background: "#0f0f0f", height: "85vh" }}
-      >
-        <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true" focusable="false">
-          <defs>
-            <clipPath id="hero-player-clip" clipPathUnits="objectBoundingBox">
-              <path d="M0,0 H1 V1 C0.78,0.935 0.22,0.935 0,1 Z" />
-            </clipPath>
-          </defs>
-        </svg>
-
-        {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
-        {(heroVideoUrl || heroItem?.backdrop_url) && (
-          <div
-            className="absolute inset-0 z-[1] hidden md:block"
-            style={{
-              filter: "blur(45px)",
-              opacity: 0.75,
-              transform: "scale(1.5)",
-            }}
-          >
-            {heroVideoUrl ? (
-              <HlsAutoplayVideo
-                src={heroVideoUrl}
-                poster={heroItem?.backdrop_url}
-                delayMs={5000}
-                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-              />
-            ) : (
-              <img
-                src={heroItem!.backdrop_url!}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            )}
-          </div>
-        )}
-
-        {/* === CAMADA 2: Player Principal === */}
-        <div className="absolute inset-0 z-[2] flex items-center justify-center md:pt-14">
-          <div className="relative w-full h-full md:w-[92vw] md:h-[80vh]">
-            <div
-              className="absolute inset-0 overflow-hidden"
-              style={{
-                borderRadius: isMobile ? "0px" : "18px",
-                clipPath: isMobile ? "none" : "url(#hero-player-clip)",
-              }}
-            >
+      {/* ===== HERO SECTION ===== */}
+      {isMobile ? (
+        /* ===== MOBILE: Netflix-style compact player + content below ===== */
+        <>
+          <section className="relative w-full bg-[#0f0f0f]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+            {/* Compact player - no text overlay */}
+            <div className="relative w-full aspect-video">
               {heroVideoUrl ? (
                 <HlsAutoplayVideo
                   src={heroVideoUrl}
                   poster={heroItem?.backdrop_url}
                   delayMs={5000}
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  showControls
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               ) : heroItem?.backdrop_url ? (
                 <img
@@ -168,74 +126,144 @@ const Entertainment = () => {
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
+              {/* Bottom gradient fade to dark */}
+              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
             </div>
-            <svg className="absolute inset-0 w-full h-full pointer-events-none hidden md:block" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <path d="M2,0 H98 Q100,0 100,2 V100 C78,93.5 22,93.5 0,100 V2 Q0,0 2,0 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" vectorEffect="non-scaling-stroke" style={{ strokeWidth: '1px' }} />
-            </svg>
-          </div>
-        </div>
 
-        {/* === CAMADA 3: Gradiente Perceptual === */}
-        <div
-          className="absolute inset-0 z-[3] pointer-events-none"
-          style={{
-            background: `linear-gradient(180deg, transparent 65%, rgba(15,15,15,0.6) 85%, #0f0f0f 100%)`,
-          }}
-        />
-        <div
-          className="absolute inset-0 z-[3] pointer-events-none hidden md:block"
-          style={{
-            background: `linear-gradient(90deg, #0f0f0f 0%, transparent 15%, transparent 85%, #0f0f0f 100%)`,
-          }}
-        />
+            {/* Content below player */}
+            <div className="px-4 pb-6 pt-2 space-y-3 bg-[#0f0f0f]">
+              {heroItem?.name && (
+                <h2 className="text-lg font-bold text-white leading-tight">
+                  {heroItem.name}
+                </h2>
+              )}
 
-        {/* === CAMADA 4: Conteúdo Hero === */}
-        <div className="absolute inset-0 z-[4] flex flex-col justify-end px-6 pb-32 md:px-14 md:pb-40">
-          <div className="max-w-2xl space-y-3">
-            <h1
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1] tracking-tight drop-shadow-2xl"
-              style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}
-            >
-              TRAILERS QUE
-              <br />
-              <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
-            </h1>
-
-            {heroItem?.name && (
-              <p className="text-base sm:text-lg md:text-xl font-semibold text-white/90 drop-shadow-lg">
-                {heroItem.name}
+              <p className="text-sm text-white/70 leading-relaxed line-clamp-2">
+                {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
               </p>
-            )}
 
-            <p className="text-sm sm:text-base md:text-lg text-white/75 max-w-lg leading-relaxed drop-shadow-lg line-clamp-3">
-              {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
-            </p>
+              <div className="flex items-center gap-2 text-xs text-white/50">
+                <span className="text-green-400 font-bold">98% Relevante</span>
+                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
+                <span>Curadoria Exclusiva</span>
+              </div>
 
-            <div className="flex items-center gap-3 text-xs text-white/60">
-              <span className="text-green-400 font-bold text-sm">98% Relevante</span>
-              <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
-              <span>Curadoria Exclusiva</span>
+              <div className="flex items-center gap-3 pt-1">
+                {heroItem && (
+                  <button
+                    onClick={() => handleClick(heroItem)}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[hsl(var(--player-accent))] text-white font-bold py-3 rounded-md text-sm shadow-lg active:scale-[0.97] transition-transform"
+                  >
+                    <Play className="w-4 h-4 fill-white" />
+                    ASSISTIR
+                  </button>
+                )}
+                <button
+                  onClick={scrollToContent}
+                  className="flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white font-semibold px-5 py-3 rounded-md text-sm active:scale-[0.97] transition-transform"
+                >
+                  <Film className="w-4 h-4" />
+                  Explorar
+                </button>
+              </div>
             </div>
+          </section>
+        </>
+      ) : (
+        /* ===== DESKTOP: Full hero with Ambilight ===== */
+        <section
+          className="relative w-full overflow-hidden"
+          style={{ background: "#0f0f0f", height: "85vh" }}
+        >
+          <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true" focusable="false">
+            <defs>
+              <clipPath id="hero-player-clip" clipPathUnits="objectBoundingBox">
+                <path d="M0,0 H1 V1 C0.78,0.935 0.22,0.935 0,1 Z" />
+              </clipPath>
+            </defs>
+          </svg>
 
-            <div className="flex items-center gap-3 pt-1">
-              <button
-                onClick={scrollToContent}
-                className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:brightness-110 transition-all text-sm md:text-base shadow-xl"
+          {/* Ambilight layer */}
+          {(heroVideoUrl || heroItem?.backdrop_url) && (
+            <div
+              className="absolute inset-0 z-[1]"
+              style={{ filter: "blur(45px)", opacity: 0.75, transform: "scale(1.5)" }}
+            >
+              {heroVideoUrl ? (
+                <HlsAutoplayVideo
+                  src={heroVideoUrl}
+                  poster={heroItem?.backdrop_url}
+                  delayMs={5000}
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                />
+              ) : (
+                <img src={heroItem!.backdrop_url!} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              )}
+            </div>
+          )}
+
+          {/* Main player */}
+          <div className="absolute inset-0 z-[2] flex items-center justify-center pt-14">
+            <div className="relative w-[92vw] h-[80vh]">
+              <div
+                className="absolute inset-0 overflow-hidden"
+                style={{ borderRadius: "18px", clipPath: "url(#hero-player-clip)" }}
               >
-                <Play className="w-5 h-5 fill-white" />
-                COMEÇAR AGORA
-              </button>
-              <button
-                onClick={scrollToContent}
-                className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
-              >
-                <Film className="w-5 h-5" />
-                Explorar
-              </button>
+                {heroVideoUrl ? (
+                  <HlsAutoplayVideo
+                    src={heroVideoUrl}
+                    poster={heroItem?.backdrop_url}
+                    delayMs={5000}
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                  />
+                ) : heroItem?.backdrop_url ? (
+                  <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+                )}
+              </div>
+              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M2,0 H98 Q100,0 100,2 V100 C78,93.5 22,93.5 0,100 V2 Q0,0 2,0 Z" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="0.3" vectorEffect="non-scaling-stroke" style={{ strokeWidth: '1px' }} />
+              </svg>
             </div>
           </div>
-        </div>
-      </section>
+
+          {/* Gradients */}
+          <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: `linear-gradient(180deg, transparent 65%, rgba(15,15,15,0.6) 85%, #0f0f0f 100%)` }} />
+          <div className="absolute inset-0 z-[3] pointer-events-none" style={{ background: `linear-gradient(90deg, #0f0f0f 0%, transparent 15%, transparent 85%, #0f0f0f 100%)` }} />
+
+          {/* Hero content */}
+          <div className="absolute inset-0 z-[4] flex flex-col justify-end px-14 pb-40">
+            <div className="max-w-2xl space-y-3">
+              <h1 className="text-5xl lg:text-6xl font-black text-white leading-[1] tracking-tight drop-shadow-2xl" style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}>
+                TRAILERS QUE<br />
+                <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
+              </h1>
+              {heroItem?.name && (
+                <p className="text-xl font-semibold text-white/90 drop-shadow-lg">{heroItem.name}</p>
+              )}
+              <p className="text-lg text-white/75 max-w-lg leading-relaxed drop-shadow-lg line-clamp-3">
+                {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
+              </p>
+              <div className="flex items-center gap-3 text-xs text-white/60">
+                <span className="text-green-400 font-bold text-sm">98% Relevante</span>
+                <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
+                <span>Curadoria Exclusiva</span>
+              </div>
+              <div className="flex items-center gap-3 pt-1">
+                <button onClick={scrollToContent} className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-8 py-3.5 rounded-md hover:brightness-110 transition-all text-base shadow-xl">
+                  <Play className="w-5 h-5 fill-white" />
+                  COMEÇAR AGORA
+                </button>
+                <button onClick={scrollToContent} className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-7 py-3.5 rounded-md hover:bg-white/30 transition-colors text-base">
+                  <Film className="w-5 h-5" />
+                  Explorar
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ===== COLLECTIONS ===== */}
       <main id="collections" className="container mx-auto px-4 py-8 space-y-10 -mt-8 relative z-20">
