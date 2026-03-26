@@ -363,13 +363,15 @@ const ContentDetail = () => {
 
             {/* CTA buttons */}
             <div className="flex items-center gap-3 pt-2">
-              <button
-                onClick={handleWatch}
-                className="flex items-center gap-2.5 bg-white text-black font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-white/90 transition-colors text-sm md:text-base shadow-xl"
-              >
-                <Play className="w-5 h-5 fill-black" />
-                Assistir Completo
-              </button>
+              {hasTrailer && (
+                <button
+                  onClick={() => setShowTrailerPlayer(true)}
+                  className="flex items-center gap-2.5 bg-red-600 text-white font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-md hover:bg-red-700 transition-colors text-sm md:text-base shadow-xl"
+                >
+                  <Play className="w-5 h-5 fill-white" />
+                  Trailer HD
+                </button>
+              )}
               <button
                 onClick={() => document.getElementById("details")?.scrollIntoView({ behavior: "smooth" })}
                 className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-5 py-3 md:px-7 md:py-3.5 rounded-md hover:bg-white/30 transition-colors text-sm md:text-base"
@@ -519,18 +521,41 @@ const ContentDetail = () => {
           </section>
         )}
 
-        {/* Bottom CTA */}
-        <div className="text-center py-6">
-          <button
-            onClick={handleWatch}
-            className="inline-flex items-center gap-2.5 px-8 py-3.5 rounded-lg bg-white text-black font-bold text-base shadow-xl hover:bg-white/90 transition-all"
-          >
-            <Play className="w-5 h-5 fill-black" />
-            Assistir agora: {title}
-          </button>
-        </div>
       </main>
 
+      {/* ===== TRAILER PLAYER OVERLAY ===== */}
+      {showTrailerPlayer && hasTrailer && (
+        <div className="fixed inset-0 z-[60] bg-black flex flex-col">
+          {/* Close button */}
+          <button
+            onClick={() => setShowTrailerPlayer(false)}
+            className="absolute top-4 right-4 z-[70] p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+
+          {/* Assistir Completo button inside trailer */}
+          <button
+            onClick={() => {
+              setShowTrailerPlayer(false);
+              handleWatch();
+            }}
+            className="absolute bottom-6 right-6 z-[70] flex items-center gap-2 bg-white text-black font-bold px-6 py-3 rounded-md hover:bg-white/90 transition-colors text-sm shadow-xl"
+          >
+            <Play className="w-5 h-5 fill-black" />
+            Assistir Completo
+          </button>
+
+          {/* Player */}
+          <div className="flex-1">
+            <VodPlayer
+              src={trailerMp4 || trailerUrl!}
+              title={`Trailer - ${title}`}
+              poster={backdropSrc || undefined}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
