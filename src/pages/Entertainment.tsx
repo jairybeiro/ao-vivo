@@ -120,7 +120,7 @@ const Entertainment = () => {
         </svg>
 
         {/* === CAMADA 1: Reflexo Desfocado (Ambilight) === */}
-        {(heroVideoId || heroItem?.backdrop_url) && (
+        {(heroVideoId || heroIsDirectVideo || heroItem?.backdrop_url) && (
           <div
             className="absolute inset-0 z-[1]"
             style={{
@@ -136,6 +136,15 @@ const Entertainment = () => {
                 style={{ border: 0, transform: "translate(-50%, -50%)" }}
                 allow="autoplay; encrypted-media"
                 title="Ambilight reflection"
+              />
+            ) : heroIsDirectVideo ? (
+              <video
+                src={heroItem!.trailer_url!}
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover pointer-events-none"
               />
             ) : (
               <img
