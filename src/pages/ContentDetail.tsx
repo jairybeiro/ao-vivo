@@ -544,10 +544,10 @@ const ContentDetail = () => {
               setShowTrailerPlayer(false);
               handleWatch();
             }}
-            className="absolute bottom-[calc(env(safe-area-inset-bottom)+18px)] right-4 z-[70] flex items-center gap-1.5 bg-white/90 text-black font-semibold px-3 py-1.5 rounded-md hover:bg-white transition-colors text-xs shadow-lg backdrop-blur-sm"
+            className="absolute bottom-[calc(env(safe-area-inset-bottom)+18px)] right-14 z-[70] flex items-center gap-1 bg-white/80 text-black font-semibold px-2.5 py-1 rounded hover:bg-white transition-colors text-[11px] shadow-md backdrop-blur-sm"
           >
-            <Play className="w-3.5 h-3.5 fill-black" />
-            Assistir Completo
+            <Play className="w-3 h-3 fill-black" />
+            {type === "series" ? "Veja Série" : "Veja Filme"}
           </button>
 
           {/* Player */}
