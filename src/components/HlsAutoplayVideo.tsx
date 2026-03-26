@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Hls from "hls.js";
+import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 
 interface HlsAutoplayVideoProps {
   src: string;
@@ -9,6 +10,8 @@ interface HlsAutoplayVideoProps {
   poster?: string | null;
   /** Delay in ms before video starts playing (default: 0). Only applies when poster is set. */
   delayMs?: number;
+  /** Show minimal pause/mute controls overlay */
+  showControls?: boolean;
 }
 
 /**
