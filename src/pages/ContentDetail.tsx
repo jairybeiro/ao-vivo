@@ -51,6 +51,7 @@ interface DbItem {
   plot?: string | null;
   xtream_id: number;
   tmdb_id: number | null;
+  linked_content_id?: string | null;
 }
 
 const TAG_EMOJIS: Record<string, string> = {
@@ -117,6 +118,7 @@ const ContentDetail = () => {
         plot: (data as any).plot,
         xtream_id: data.xtream_id,
         tmdb_id: (data as any).tmdb_id || null,
+        linked_content_id: (data as any).linked_content_id || null,
       };
       setDbItem(item);
 
