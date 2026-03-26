@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
       const existingIds = await getAllExistingXtreamIds(supabase, 'vod_movies');
       
       // Filter to only NEW items
-      const newItems = vodStreams.filter(s => !existingIds.has(s.stream_id));
+      const newItems = vodStreams.filter(s => !existingIds.has(s.stream_id) && !isAdultCat(vodCatMap.get(s.category_id) || ''));
       totalNew = newItems.length;
 
       console.log(`[import-vod] Movies: ${vodStreams.length} in API, ${existingIds.size} in DB, ${totalNew} new`);
@@ -236,7 +236,7 @@ Deno.serve(async (req) => {
       const existingIds = await getAllExistingXtreamIds(supabase, 'vod_series');
       
       // Filter to only NEW series
-      const newSeries = seriesList.filter(s => !existingIds.has(s.series_id));
+      const newSeries = seriesList.filter(s => !existingIds.has(s.series_id) && !isAdultCat(serCatMap.get(s.category_id) || ''));
       totalNew = newSeries.length;
 
       console.log(`[import-vod] Series: ${seriesList.length} in API, ${existingIds.size} in DB, ${totalNew} new`);
