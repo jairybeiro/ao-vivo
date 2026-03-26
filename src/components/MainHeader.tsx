@@ -75,7 +75,7 @@ const GenreDropdown = ({ label, path, icon, isActive, categories, onNavigate }: 
   );
 };
 
-const MainHeader = () => {
+const MainHeader = ({ transparent = false }: MainHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
