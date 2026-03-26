@@ -255,12 +255,12 @@ const Entertainment = () => {
                 {tag}
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </h2>
-              <div className="flex gap-3 overflow-x-auto pb-3 scrollbar-hide">
+              <div className="grid grid-cols-2 md:flex md:overflow-x-auto md:pb-3 md:scrollbar-hide gap-3">
                 {collections[tag].map((item) => (
                   <div
                     key={item.id}
                     onClick={() => handleClick(item)}
-                    className="flex-shrink-0 w-48 md:w-56 cursor-pointer group"
+                    className="md:flex-shrink-0 md:w-56 cursor-pointer group"
                   >
                     <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative">
                       {item.cover_url ? (
