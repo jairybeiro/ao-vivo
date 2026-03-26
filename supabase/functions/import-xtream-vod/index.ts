@@ -89,6 +89,9 @@ Deno.serve(async (req) => {
 
     const baseUrl = dns.replace(/\/$/, '');
 
+    const ADULT_KEYWORDS = ['adult', 'adulto', 'xxx', 'porn', '18+', 'erotic', 'erótic'];
+    const isAdultCat = (cat: string) => ADULT_KEYWORDS.some(kw => cat.toLowerCase().includes(kw));
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
@@ -167,7 +170,7 @@ Deno.serve(async (req) => {
       const existingIds = await getAllExistingXtreamIds(supabase, 'vod_movies');
       
       // Filter to only NEW items
-      const newItems = vodStreams.filter(s => !existingIds.has(s.stream_id));
+      const newItems = vodStreams.filter(s => !existingIds.has(s.stream_id) && !isAdultCat(vodCatMap.get(s.category_id) || ''));
       totalNew = newItems.length;
 
       console.log(`[import-vod] Movies: ${vodStreams.length} in API, ${existingIds.size} in DB, ${totalNew} new`);
@@ -233,7 +236,7 @@ Deno.serve(async (req) => {
       const existingIds = await getAllExistingXtreamIds(supabase, 'vod_series');
       
       // Filter to only NEW series
-      const newSeries = seriesList.filter(s => !existingIds.has(s.series_id));
+      const newSeries = seriesList.filter(s => !existingIds.has(s.series_id) && !isAdultCat(serCatMap.get(s.category_id) || ''));
       totalNew = newSeries.length;
 
       console.log(`[import-vod] Series: ${seriesList.length} in API, ${existingIds.size} in DB, ${totalNew} new`);

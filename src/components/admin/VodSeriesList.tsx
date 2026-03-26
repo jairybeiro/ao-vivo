@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Pencil, Trash2, Search, Clapperboard, Loader2, ChevronRight, ArrowLeft } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Clapperboard, Loader2, ChevronRight, ArrowLeft, ShieldX, X } from "lucide-react";
 import { toast } from "sonner";
 import { VodSeriesForm } from "./VodSeriesForm";
 import { VodEpisodeForm } from "./VodEpisodeForm";
 import { BulkUpdateTmdbButton } from "./BulkUpdateTmdbButton";
+
+const ADULT_KEYWORDS = ['adult', 'adulto', 'xxx', 'porn', '18+', 'erotic', 'erótic'];
+const isAdultCategory = (cat: string) => ADULT_KEYWORDS.some(kw => cat.toLowerCase().includes(kw));
 
 interface Series {
   id: string;
@@ -35,11 +38,12 @@ export const VodSeriesList = () => {
   const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [editingSeries, setEditingSeries] = useState<Series | null>(null);
-  const [isSeriesModalOpen, setIsSeriesModalOpen] = useState(false);
+  const [selectedSeries, setSelectedSeries] = useState<Series | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [deletingAdult, setDeletingAdult] = useState(false);
 
   // Episode management
-  const [selectedSeries, setSelectedSeries] = useState<Series | null>(null);
+  const [episodeViewSeries, setEpisodeViewSeries] = useState<Series | null>(null);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [episodesLoading, setEpisodesLoading] = useState(false);
   const [editingEpisode, setEditingEpisode] = useState<Episode | null>(null);
@@ -84,30 +88,46 @@ export const VodSeriesList = () => {
   const handleDeleteSeries = async (id: string) => {
     const { error } = await supabase.from("vod_series").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir série", { description: error.message });
-    else { toast.success("Série excluída!"); fetchSeries(); }
+    else { toast.success("Série excluída!"); fetchSeries(); if (selectedSeries?.id === id) setSelectedSeries(null); }
   };
 
   const handleDeleteEpisode = async (id: string) => {
     const { error } = await supabase.from("vod_episodes").delete().eq("id", id);
     if (error) toast.error("Erro ao excluir episódio", { description: error.message });
-    else { toast.success("Episódio excluído!"); if (selectedSeries) fetchEpisodes(selectedSeries.id); }
+    else { toast.success("Episódio excluído!"); if (episodeViewSeries) fetchEpisodes(episodeViewSeries.id); }
   };
 
   const handleSeriesSuccess = () => {
-    setEditingSeries(null);
-    setIsSeriesModalOpen(false);
+    setSelectedSeries(null);
+    setIsCreating(false);
     fetchSeries();
   };
 
   const handleEpisodeSuccess = () => {
     setEditingEpisode(null);
     setIsEpisodeModalOpen(false);
-    if (selectedSeries) fetchEpisodes(selectedSeries.id);
+    if (episodeViewSeries) fetchEpisodes(episodeViewSeries.id);
   };
 
-  const openSeriesEpisodes = (series: Series) => {
-    setSelectedSeries(series);
-    fetchEpisodes(series.id);
+  const handleDeleteAdult = async () => {
+    setDeletingAdult(true);
+    try {
+      const { data, error } = await supabase.from("vod_series").select("id, category").limit(10000);
+      if (error) throw error;
+      const adultIds = (data || []).filter(s => isAdultCategory(s.category)).map(s => s.id);
+      if (adultIds.length === 0) { toast.info("Nenhum conteúdo adulto encontrado"); return; }
+      for (let i = 0; i < adultIds.length; i += 500) {
+        const batch = adultIds.slice(i, i + 500);
+        const { error: delErr } = await supabase.from("vod_series").delete().in("id", batch);
+        if (delErr) throw delErr;
+      }
+      toast.success(`${adultIds.length} séries adultas removidas!`);
+      fetchSeries();
+    } catch (err: any) {
+      toast.error("Erro ao remover conteúdo adulto", { description: err.message });
+    } finally {
+      setDeletingAdult(false);
+    }
   };
 
   const getStreamFormat = (url: string) => {
@@ -120,15 +140,15 @@ export const VodSeriesList = () => {
   };
 
   // Episode view
-  if (selectedSeries) {
+  if (episodeViewSeries) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => setSelectedSeries(null)}>
+          <Button variant="ghost" size="icon" onClick={() => setEpisodeViewSeries(null)}>
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="flex-1">
-            <h3 className="font-semibold text-foreground">{selectedSeries.name}</h3>
+            <h3 className="font-semibold text-foreground">{episodeViewSeries.name}</h3>
             <p className="text-xs text-muted-foreground">Gerenciar episódios</p>
           </div>
           <Button onClick={() => { setEditingEpisode(null); setIsEpisodeModalOpen(true); }}>
@@ -183,86 +203,124 @@ export const VodSeriesList = () => {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>{editingEpisode ? "Editar Episódio" : "Adicionar Episódio"}</DialogTitle>
-              <DialogDescription>{selectedSeries.name}</DialogDescription>
+              <DialogDescription>{episodeViewSeries.name}</DialogDescription>
             </DialogHeader>
-            <VodEpisodeForm seriesId={selectedSeries.id} editingEpisode={editingEpisode} onSuccess={handleEpisodeSuccess} onCancel={() => { setEditingEpisode(null); setIsEpisodeModalOpen(false); }} />
+            <VodEpisodeForm seriesId={episodeViewSeries.id} editingEpisode={editingEpisode} onSuccess={handleEpisodeSuccess} onCancel={() => { setEditingEpisode(null); setIsEpisodeModalOpen(false); }} />
           </DialogContent>
         </Dialog>
       </div>
     );
   }
 
-  // Series list view
+  const showForm = selectedSeries || isCreating;
+
+  // Series list view with split panel
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input placeholder="Buscar série..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+    <div className="flex gap-4 h-[calc(100vh-220px)]">
+      {/* LEFT: List */}
+      <div className={`flex flex-col min-w-0 ${showForm ? 'w-1/2' : 'w-full'} transition-all`}>
+        <div className="flex items-center gap-2 flex-wrap mb-3">
+          <div className="relative flex-1 min-w-[160px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input placeholder="Buscar série..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+          </div>
+          <BulkUpdateTmdbButton type="series" onComplete={fetchSeries} />
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm" disabled={deletingAdult} className="text-destructive border-destructive/30 hover:bg-destructive/10">
+                {deletingAdult ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <ShieldX className="w-4 h-4 mr-1" />}
+                Remover Adultos
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remover todo conteúdo adulto?</AlertDialogTitle>
+                <AlertDialogDescription>Isso excluirá permanentemente todas as séries (e seus episódios) com categorias adultas.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAdult} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir Todos</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <Button size="sm" onClick={() => { setSelectedSeries(null); setIsCreating(true); }}>
+            <Plus className="w-4 h-4 mr-1" /> Adicionar
+          </Button>
         </div>
-        <BulkUpdateTmdbButton type="series" onComplete={fetchSeries} />
-        <Button onClick={() => { setEditingSeries(null); setIsSeriesModalOpen(true); }}>
-          <Plus className="w-4 h-4 mr-2" /> Adicionar Série
-        </Button>
+
+        <div className="flex-1 overflow-y-auto space-y-1.5 pr-1">
+          {loading ? (
+            <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+          ) : seriesList.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">Nenhuma série encontrada</div>
+          ) : (
+            seriesList.map((series) => (
+              <div
+                key={series.id}
+                className={`flex items-center gap-3 p-2.5 rounded-lg border transition-colors cursor-pointer ${selectedSeries?.id === series.id ? 'border-primary bg-primary/10' : 'border-border bg-card hover:bg-muted/50'}`}
+                onClick={() => { setSelectedSeries(series); setIsCreating(false); }}
+              >
+                {series.cover_url ? (
+                  <img src={series.cover_url} alt={series.name} className="w-10 h-14 object-cover rounded flex-shrink-0" />
+                ) : (
+                  <div className="w-10 h-14 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                    <Clapperboard className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{series.name}</p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="truncate">{series.category}</span>
+                    {series.rating && <span>⭐ {series.rating}</span>}
+                  </div>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setEpisodeViewSeries(series); fetchEpisodes(series.id); }}>
+                    <ChevronRight className="w-4 h-4 text-primary" />
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => e.stopPropagation()}>
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir "{series.name}"?</AlertDialogTitle>
+                        <AlertDialogDescription>Todos os episódios serão excluídos junto.</AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteSeries(series.id)}>Excluir</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-8"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
-      ) : seriesList.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">Nenhuma série encontrada</div>
-      ) : (
-        <div className="space-y-2">
-          {seriesList.map((series) => (
-            <div key={series.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors">
-              {series.cover_url ? (
-                <img src={series.cover_url} alt={series.name} className="w-12 h-16 object-cover rounded" />
-              ) : (
-                <div className="w-12 h-16 rounded bg-muted flex items-center justify-center">
-                  <Clapperboard className="w-5 h-5 text-muted-foreground" />
-                </div>
-              )}
-              <div className="flex-1 min-w-0 cursor-pointer" onClick={() => openSeriesEpisodes(series)}>
-                <p className="font-medium text-sm truncate">{series.name}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{series.category}</span>
-                  {series.rating && <span>⭐ {series.rating}</span>}
-                  <span className="flex items-center gap-1 text-primary">Episódios <ChevronRight className="w-3 h-3" /></span>
-                </div>
-              </div>
-              <div className="flex gap-1">
-                <Button variant="ghost" size="icon" onClick={() => { setEditingSeries(series); setIsSeriesModalOpen(true); }}>
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="ghost" size="icon"><Trash2 className="w-4 h-4 text-destructive" /></Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Excluir "{series.name}"?</AlertDialogTitle>
-                      <AlertDialogDescription>Todos os episódios serão excluídos junto.</AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteSeries(series.id)}>Excluir</AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-          ))}
+      {/* RIGHT: Form Panel */}
+      {showForm && (
+        <div className="w-1/2 border-l border-border pl-4 overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold text-foreground">
+              {isCreating ? "Adicionar Série" : `Editar: ${selectedSeries?.name}`}
+            </h3>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { setSelectedSeries(null); setIsCreating(false); }}>
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <VodSeriesForm
+            key={selectedSeries?.id || 'new'}
+            editingSeries={isCreating ? null : selectedSeries}
+            onSuccess={handleSeriesSuccess}
+            onCancel={() => { setSelectedSeries(null); setIsCreating(false); }}
+          />
         </div>
       )}
-
-      <Dialog open={isSeriesModalOpen} onOpenChange={setIsSeriesModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{editingSeries ? "Editar Série" : "Adicionar Série"}</DialogTitle>
-            <DialogDescription>{editingSeries ? "Atualize as informações da série" : "Preencha as informações da nova série"}</DialogDescription>
-          </DialogHeader>
-          <VodSeriesForm editingSeries={editingSeries} onSuccess={handleSeriesSuccess} onCancel={() => { setEditingSeries(null); setIsSeriesModalOpen(false); }} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
