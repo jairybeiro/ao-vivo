@@ -361,7 +361,7 @@ const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immer
                   setShowVolume(true);
                 }}
                 onMouseLeave={() => {
-                  volumeHideTimer.current = setTimeout(() => setShowVolume(false), 400);
+                  volumeHideTimer.current = setTimeout(() => setShowVolume(false), 1200);
                 }}
               >
                 <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="hover:text-[hsl(var(--player-contrast)/0.82)] transition">
@@ -385,7 +385,7 @@ const LivePlayer = ({ src, title, subtitle, extraControls, overlayContent, immer
                     setShowVolume(true);
                   }}
                   onMouseLeave={() => {
-                    volumeHideTimer.current = setTimeout(() => setShowVolume(false), 400);
+                    volumeHideTimer.current = setTimeout(() => setShowVolume(false), 1200);
                   }}
                 >
                   <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>

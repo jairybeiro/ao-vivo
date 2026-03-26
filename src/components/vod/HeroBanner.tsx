@@ -60,11 +60,13 @@ const HeroBanner = ({ movies, series, activeTab }: HeroBannerProps) => {
         return;
       }
 
+      const contentTypeFilter = activeTab === "movies" ? "movie" : "episode";
       const { data } = await supabase
         .from("user_watch_progress")
         .select("*")
         .eq("user_id", session.user.id)
         .eq("finished", false)
+        .eq("content_type", contentTypeFilter)
         .order("updated_at", { ascending: false })
         .limit(1)
         .maybeSingle();

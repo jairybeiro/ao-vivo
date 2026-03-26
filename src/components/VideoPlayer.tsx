@@ -266,7 +266,7 @@ const VideoPlayer = ({
   const handleVolumeAreaLeave = () => {
     hideVolumeTimeout.current = setTimeout(() => {
       setShowVolumeSlider(false);
-    }, 1000);
+    }, 1200);
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
