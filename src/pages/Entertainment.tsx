@@ -175,6 +175,15 @@ const Entertainment = () => {
                   allow="autoplay; encrypted-media"
                   title="Hero trailer"
                 />
+              ) : heroIsDirectVideo ? (
+                <video
+                  src={heroItem!.trailer_url!}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                />
               ) : heroItem?.backdrop_url ? (
                 <img
                   src={heroItem.backdrop_url}
