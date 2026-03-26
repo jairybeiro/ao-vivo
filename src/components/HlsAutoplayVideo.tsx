@@ -31,13 +31,43 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0 }: HlsAut
     return () => clearTimeout(timer);
   }, [poster, delayMs, src]);
 
+  // Force muted + playsInline imperatively (React bug on iOS Safari)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.setAttribute("webkit-playsinline", "");
+    video.setAttribute("muted", "");
+  }, [showPoster]);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !src || showPoster) return;
 
-    const isHls = /\.m3u8|\.m3u/i.test(src);
+    // Ensure muted before any source assignment (critical for iOS autoplay)
+    video.muted = true;
+    video.playsInline = true;
 
-    if (isHls && Hls.isSupported()) {
+    const isHls = /\.m3u8|\.m3u/i.test(src);
+    const isNativeHls = video.canPlayType("application/vnd.apple.mpegurl");
+
+    const tryPlay = () => {
+      const p = video.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          // Retry once after a short delay (iOS sometimes needs this)
+          setTimeout(() => {
+            video.muted = true;
+            video.play().catch(() => {});
+          }, 300);
+        });
+      }
+    };
+
+    if (isHls && !isNativeHls && Hls.isSupported()) {
+      // Desktop / Android – use hls.js
       const hls = new Hls({
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
@@ -45,16 +75,13 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0 }: HlsAut
       });
       hls.loadSource(src);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(() => {});
-      });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => tryPlay());
       hlsRef.current = hls;
-    } else if (isHls && video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
-      video.addEventListener("canplay", () => video.play().catch(() => {}), { once: true });
     } else {
+      // iOS native HLS or MP4
       video.src = src;
-      video.addEventListener("canplay", () => video.play().catch(() => {}), { once: true });
+      video.load(); // Explicit load() helps iOS pick up the source
+      video.addEventListener("canplay", () => tryPlay(), { once: true });
     }
 
     return () => {
@@ -80,6 +107,7 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0 }: HlsAut
       muted
       loop
       playsInline
+      autoPlay
       className={className}
       style={style}
     />
