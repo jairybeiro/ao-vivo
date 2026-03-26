@@ -132,11 +132,20 @@ const Entertainment = () => {
 
             {/* Content below player */}
             <div className="px-4 pb-6 pt-2 space-y-3 bg-[#0f0f0f]">
-              {heroItem?.name && (
-                <h2 className="text-lg font-bold text-white leading-tight">
-                  {heroItem.name}
-                </h2>
-              )}
+            <h1
+              className="text-2xl font-black text-white leading-[1] tracking-tight"
+              style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}
+            >
+              TRAILERS QUE
+              <br />
+              <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
+            </h1>
+
+            {heroItem?.name && (
+              <p className="text-base font-semibold text-white/90">
+                {heroItem.name}
+              </p>
+            )}
 
               <p className="text-sm text-white/70 leading-relaxed line-clamp-2">
                 {heroItem?.plot || "A curadoria definitiva para expandir sua visão e mentalidade através do cinema."}
