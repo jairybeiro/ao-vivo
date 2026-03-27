@@ -7,6 +7,7 @@ import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import VodPlayer from "@/components/VodPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+import { CheckoutModal } from "@/components/cinebusiness/CheckoutModal";
 
 interface CastMember {
   name: string;
@@ -54,6 +55,9 @@ interface DbItem {
   xtream_id: number;
   tmdb_id: number | null;
   linked_content_id?: string | null;
+  link_checkout?: string | null;
+  tempo_anuncio?: number | null;
+  url_imagem_anuncio?: string | null;
 }
 
 const TAG_EMOJIS: Record<string, string> = {
@@ -93,6 +97,18 @@ const ContentDetail = () => {
   const [galleryIdx, setGalleryIdx] = useState<number | null>(null);
   const [showTrailerPlayer, setShowTrailerPlayer] = useState(false);
   const [hasEpisodes, setHasEpisodes] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const checkoutTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Checkout modal timer
+  useEffect(() => {
+    if (dbItem?.link_checkout && dbItem.tempo_anuncio) {
+      checkoutTimerRef.current = setTimeout(() => {
+        setShowCheckoutModal(true);
+      }, (dbItem.tempo_anuncio || 30) * 1000);
+    }
+    return () => clearTimeout(checkoutTimerRef.current);
+  }, [dbItem?.link_checkout, dbItem?.tempo_anuncio]);
 
   useEffect(() => {
     if (!id || !type) return;
