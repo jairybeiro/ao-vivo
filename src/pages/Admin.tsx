@@ -36,6 +36,7 @@ const Admin = () => {
   const navigate = useNavigate();
   
   // Estados para canais
+  const [activeTab, setActiveTab] = useState("channels");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelsLoading, setChannelsLoading] = useState(true);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
