@@ -258,7 +258,7 @@ const Admin = () => {
             </TabsContent>
 
             {/* Tab de Importação Xtream - forceMount keeps worker alive across tab switches */}
-            <TabsContent value="import" className="space-y-6" forceMount style={{ display: undefined }} >
+            <TabsContent value="import" className="space-y-6 data-[state=inactive]:hidden" forceMount>
               <VodImport />
             </TabsContent>
 
