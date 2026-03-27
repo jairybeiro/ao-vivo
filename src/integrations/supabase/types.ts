@@ -466,14 +466,18 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          link_checkout: string | null
           linked_content_id: string | null
           name: string
           rating: number | null
+          sinopse: string | null
           stream_url: string
+          tempo_anuncio: number | null
           tmdb_id: number | null
           trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
+          url_imagem_anuncio: string | null
           xtream_id: number
         }
         Insert: {
@@ -484,14 +488,18 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          link_checkout?: string | null
           linked_content_id?: string | null
           name: string
           rating?: number | null
+          sinopse?: string | null
           stream_url: string
+          tempo_anuncio?: number | null
           tmdb_id?: number | null
           trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
+          url_imagem_anuncio?: string | null
           xtream_id: number
         }
         Update: {
@@ -502,14 +510,18 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          link_checkout?: string | null
           linked_content_id?: string | null
           name?: string
           rating?: number | null
+          sinopse?: string | null
           stream_url?: string
+          tempo_anuncio?: number | null
           tmdb_id?: number | null
           trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
+          url_imagem_anuncio?: string | null
           xtream_id?: number
         }
         Relationships: []
@@ -523,14 +535,17 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          link_checkout: string | null
           linked_content_id: string | null
           name: string
           plot: string | null
           rating: number | null
+          tempo_anuncio: number | null
           tmdb_id: number | null
           trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
+          url_imagem_anuncio: string | null
           xtream_id: number
         }
         Insert: {
@@ -541,14 +556,17 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          link_checkout?: string | null
           linked_content_id?: string | null
           name: string
           plot?: string | null
           rating?: number | null
+          tempo_anuncio?: number | null
           tmdb_id?: number | null
           trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
+          url_imagem_anuncio?: string | null
           xtream_id: number
         }
         Update: {
@@ -559,14 +577,17 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean | null
+          link_checkout?: string | null
           linked_content_id?: string | null
           name?: string
           plot?: string | null
           rating?: number | null
+          tempo_anuncio?: number | null
           tmdb_id?: number | null
           trailer_mp4_url?: string | null
           trailer_url?: string | null
           updated_at?: string
+          url_imagem_anuncio?: string | null
           xtream_id?: number
         }
         Relationships: []
@@ -593,14 +614,18 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          link_checkout: string | null
           linked_content_id: string | null
           name: string
           rating: number | null
+          sinopse: string | null
           stream_url: string
+          tempo_anuncio: number | null
           tmdb_id: number | null
           trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
+          url_imagem_anuncio: string | null
           xtream_id: number
         }[]
         SetofOptions: {
@@ -620,14 +645,18 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          link_checkout: string | null
           linked_content_id: string | null
           name: string
           rating: number | null
+          sinopse: string | null
           stream_url: string
+          tempo_anuncio: number | null
           tmdb_id: number | null
           trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
+          url_imagem_anuncio: string | null
           xtream_id: number
         }[]
         SetofOptions: {
@@ -647,14 +676,17 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          link_checkout: string | null
           linked_content_id: string | null
           name: string
           plot: string | null
           rating: number | null
+          tempo_anuncio: number | null
           tmdb_id: number | null
           trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
+          url_imagem_anuncio: string | null
           xtream_id: number
         }[]
         SetofOptions: {
@@ -674,14 +706,17 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean | null
+          link_checkout: string | null
           linked_content_id: string | null
           name: string
           plot: string | null
           rating: number | null
+          tempo_anuncio: number | null
           tmdb_id: number | null
           trailer_mp4_url: string | null
           trailer_url: string | null
           updated_at: string
+          url_imagem_anuncio: string | null
           xtream_id: number
         }[]
         SetofOptions: {
