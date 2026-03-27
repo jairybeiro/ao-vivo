@@ -22,7 +22,7 @@ function getYouTubeId(url: string): string | null {
 export const CineCard = ({ id, title, posterUrl, backdropUrl, trailerUrl, rating, category, sinopse }: CineCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const handleMouseEnter = () => {
     timeoutRef.current = setTimeout(() => setIsHovered(true), 600);
