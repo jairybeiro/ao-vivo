@@ -137,6 +137,9 @@ const ContentDetail = () => {
         xtream_id: data.xtream_id,
         tmdb_id: (data as any).tmdb_id || null,
         linked_content_id: (data as any).linked_content_id || null,
+        link_checkout: (data as any).link_checkout || null,
+        tempo_anuncio: (data as any).tempo_anuncio || null,
+        url_imagem_anuncio: (data as any).url_imagem_anuncio || null,
       };
       setDbItem(item);
 
@@ -671,6 +674,16 @@ const ContentDetail = () => {
             )}
           </div>
         </div>
+      )}
+      {/* Checkout Modal */}
+      {dbItem?.link_checkout && (
+        <CheckoutModal
+          isOpen={showCheckoutModal}
+          onClose={() => setShowCheckoutModal(false)}
+          linkCheckout={dbItem.link_checkout}
+          urlImagemAnuncio={dbItem.url_imagem_anuncio}
+          title={dbItem.name}
+        />
       )}
     </div>
   );
