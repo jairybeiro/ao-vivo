@@ -36,6 +36,7 @@ const Admin = () => {
   const navigate = useNavigate();
   
   // Estados para canais
+  const [activeTab, setActiveTab] = useState("channels");
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelsLoading, setChannelsLoading] = useState(true);
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null);
@@ -190,7 +191,7 @@ const Admin = () => {
 
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
-          <Tabs defaultValue="channels" className="space-y-6">
+          <Tabs defaultValue="channels" className="space-y-6" onValueChange={(v) => setActiveTab(v)} value={activeTab}>
             <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
               <TabsTrigger value="channels" className="flex items-center gap-1 text-xs md:text-sm">
                 <Tv className="w-3.5 h-3.5" />
@@ -257,10 +258,8 @@ const Admin = () => {
               <VodSeriesList />
             </TabsContent>
 
-            {/* Tab de Importação Xtream - forceMount keeps worker alive across tab switches */}
-            <TabsContent value="import" className="space-y-6 data-[state=inactive]:hidden" forceMount>
-              <VodImport />
-            </TabsContent>
+            {/* Import tab is rendered outside Tabs to persist worker */}
+            <TabsContent value="import" className="hidden" />
 
             {/* Tab de Anúncios */}
             <TabsContent value="ads" className="space-y-6">
@@ -294,6 +293,11 @@ const Admin = () => {
               <TmdbCuratedImport />
             </TabsContent>
           </Tabs>
+
+          {/* VodImport rendered outside Tabs so it never unmounts */}
+          <div className={activeTab === "import" ? "mt-6 space-y-6" : "hidden"}>
+            <VodImport />
+          </div>
         </div>
       </main>
 
