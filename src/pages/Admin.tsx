@@ -258,10 +258,8 @@ const Admin = () => {
               <VodSeriesList />
             </TabsContent>
 
-            {/* Tab de Importação Xtream - forceMount keeps worker alive across tab switches */}
-            <TabsContent value="import" className="space-y-6 data-[state=inactive]:hidden" forceMount>
-              <VodImport />
-            </TabsContent>
+            {/* Import tab is rendered outside Tabs to persist worker */}
+            <TabsContent value="import" className="hidden" />
 
             {/* Tab de Anúncios */}
             <TabsContent value="ads" className="space-y-6">
