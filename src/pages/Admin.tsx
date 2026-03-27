@@ -293,6 +293,11 @@ const Admin = () => {
               <TmdbCuratedImport />
             </TabsContent>
           </Tabs>
+
+          {/* VodImport rendered outside Tabs so it never unmounts */}
+          <div className={activeTab === "import" ? "mt-6 space-y-6" : "hidden"}>
+            <VodImport />
+          </div>
         </div>
       </main>
 
