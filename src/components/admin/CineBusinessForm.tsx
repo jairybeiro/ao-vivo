@@ -4,10 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search, X, CheckCircle2 } from "lucide-react";
+import { Loader2, X, CheckCircle2, Radar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 
 const BUSINESS_CATEGORIES = [
   "Negócios",
@@ -40,12 +39,11 @@ interface CineBusinessFormProps {
 }
 
 export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusinessFormProps) => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<TmdbResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [searchFilter, setSearchFilter] = useState("");
+  const [suggestions, setSuggestions] = useState<TmdbResult[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedResult, setSelectedResult] = useState<TmdbResult | null>(null);
 
-  // Form fields
   const [name, setName] = useState("");
   const [category, setCategory] = useState("Negócios");
   const [coverUrl, setCoverUrl] = useState("");
@@ -55,7 +53,6 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
   const [sinopse, setSinopse] = useState("");
   const [streamUrl, setStreamUrl] = useState("pending");
 
-  // Monetization fields
   const [linkCheckout, setLinkCheckout] = useState("");
   const [tempoAnuncio, setTempoAnuncio] = useState("30");
   const [urlImagemAnuncio, setUrlImagemAnuncio] = useState("");
@@ -79,32 +76,39 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
     }
   }, [editingMovie]);
 
-  const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim() || searchQuery.trim().length < 2) return;
-    setIsSearching(true);
+  // Discover por categoria — dispara automaticamente
+  const fetchDiscoverByCategory = useCallback(async (cat: string) => {
+    setIsLoading(true);
+    setSuggestions([]);
     try {
       const { data, error } = await supabase.functions.invoke("tmdb-search", {
-        body: { query: searchQuery.trim(), type: "movie" },
+        body: { mode: "discover", category: cat, type: "movie" },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      setSearchResults(data.results || []);
+      setSuggestions(data.results || []);
     } catch (err: any) {
-      toast.error("Erro na busca TMDB", { description: err.message });
+      toast.error("Erro ao buscar sugestões", { description: err.message });
     }
-    setIsSearching(false);
-  }, [searchQuery]);
+    setIsLoading(false);
+  }, []);
+
+  // Dispara ao mudar categoria
+  useEffect(() => {
+    if (!isEditing) {
+      fetchDiscoverByCategory(category);
+    }
+  }, [category, isEditing, fetchDiscoverByCategory]);
 
   const handleSelectResult = async (result: TmdbResult) => {
     setSelectedResult(result);
-    setSearchResults([]);
     setName(result.title);
     setCoverUrl(result.poster_url || "");
     setBackdropUrl(result.backdrop_url || "");
     setRating(result.rating?.toString() || "");
     setSinopse(result.overview || "");
 
-    // Fetch trailer
+    // Buscar trailer
     try {
       const { data } = await supabase.functions.invoke("tmdb-lookup", {
         body: { tmdb_id: result.tmdb_id, type: "movie" },
@@ -150,14 +154,25 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
     setIsSubmitting(false);
   };
 
+  // Filtro local sobre as sugestões
+  const filteredSuggestions = searchFilter.trim()
+    ? suggestions.filter(s =>
+        s.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
+        s.original_title?.toLowerCase().includes(searchFilter.toLowerCase())
+      )
+    : suggestions;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* TMDB Search */}
+      {/* Radar de Sugestões */}
       <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
-        <Label className="text-sm font-semibold text-primary">🔍 Buscar no TMDB</Label>
+        <Label className="text-sm font-semibold text-primary flex items-center gap-2">
+          <Radar className="w-4 h-4" /> Radar de Sugestões por Categoria
+        </Label>
+
         <div className="flex gap-2">
           <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="w-[200px] h-9 text-sm">
+            <SelectTrigger className="w-[220px] h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -166,24 +181,26 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
               ))}
             </SelectContent>
           </Select>
-          <div className="flex-1 flex gap-2">
-            <Input
-              placeholder="Buscar filme ou documentário..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleSearch())}
-              className="h-9 text-sm"
-            />
-            <Button type="button" size="sm" variant="secondary" onClick={handleSearch} disabled={isSearching}>
-              {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-            </Button>
-          </div>
+          <Input
+            placeholder="Filtrar sugestões..."
+            value={searchFilter}
+            onChange={(e) => setSearchFilter(e.target.value)}
+            className="h-9 text-sm flex-1"
+          />
         </div>
 
-        {/* Search Results */}
-        {searchResults.length > 0 && (
-          <div className="max-h-64 overflow-y-auto space-y-1 rounded-lg border border-border bg-card p-2">
-            {searchResults.map((r) => (
+        {/* Loading */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-6 gap-2 text-muted-foreground text-sm">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Buscando sugestões para "{category}"...
+          </div>
+        )}
+
+        {/* Lista de Sugestões */}
+        {!isLoading && filteredSuggestions.length > 0 && (
+          <div className="max-h-72 overflow-y-auto space-y-1 rounded-lg border border-border bg-card p-2">
+            {filteredSuggestions.map((r) => (
               <button
                 key={r.tmdb_id}
                 type="button"
@@ -206,6 +223,10 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
               </button>
             ))}
           </div>
+        )}
+
+        {!isLoading && filteredSuggestions.length === 0 && suggestions.length > 0 && (
+          <p className="text-xs text-muted-foreground text-center py-3">Nenhum resultado para o filtro "{searchFilter}"</p>
         )}
 
         {selectedResult && (
