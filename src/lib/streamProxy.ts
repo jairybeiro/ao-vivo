@@ -26,7 +26,8 @@ const buildProxyUrl = (url: string): string => {
   return `${SUPABASE_URL}${PROXY_PATH}?url=${encodeURIComponent(url)}`;
 };
 
-export const toProxyStreamUrl = (url: string): string => {
+export const toProxyStreamUrl = (url: string | undefined | null): string => {
+  if (!url) return "";
   const normalizedUrl = url.trim();
 
   if (!normalizedUrl || normalizedUrl === "placeholder") return normalizedUrl;
@@ -37,8 +38,8 @@ export const toProxyStreamUrl = (url: string): string => {
     : normalizedUrl;
 };
 
-export const toProxyEmbedUrl = (url: string): string => {
-  if (!url || !SUPABASE_URL) return url;
+export const toProxyEmbedUrl = (url: string | undefined | null): string => {
+  if (!url || !SUPABASE_URL) return url || "";
   const normalizedUrl = url.trim();
   if (!normalizedUrl) return normalizedUrl;
   if (isProxyUrl(normalizedUrl)) return normalizedUrl;
