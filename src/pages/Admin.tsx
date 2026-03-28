@@ -48,6 +48,10 @@ const Admin = () => {
   const [editingAd, setEditingAd] = useState<Ad | null>(null);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
 
+  // Estados para CineBusiness
+  const [editingCineBiz, setEditingCineBiz] = useState<any | null>(null);
+  const [isCineBizModalOpen, setIsCineBizModalOpen] = useState(false);
+
   const fetchChannels = useCallback(async () => {
     setChannelsLoading(true);
     const { data, error } = await supabase
