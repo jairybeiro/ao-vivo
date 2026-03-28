@@ -152,14 +152,24 @@ const ContentDetail = () => {
         setHasEpisodes((count ?? 0) > 0);
       }
 
-      const lookupId = item.tmdb_id || item.xtream_id;
+      const lookupId = item.tmdb_id;
 
       try {
-        const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
-          body: { tmdb_id: lookupId, type, full_details: true },
-        });
-        if (tmdbData && !tmdbData.error) {
-          setTmdb(tmdbData);
+        if (lookupId) {
+          const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
+            body: { tmdb_id: lookupId, type, full_details: true },
+          });
+          if (tmdbData && !tmdbData.error) {
+            setTmdb(tmdbData);
+          }
+        } else {
+          // Fallback: search by name
+          const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
+            body: { search_name: item.name, type },
+          });
+          if (tmdbData && !tmdbData.error) {
+            setTmdb(tmdbData);
+          }
         }
       } catch { /* silent */ }
 
