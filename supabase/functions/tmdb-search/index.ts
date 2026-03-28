@@ -5,18 +5,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Mapeamento de categorias CineBusiness → TMDB keyword IDs
-const CATEGORY_KEYWORDS: Record<string, string> = {
-  "Negócios": "159983",
-  "Empreendedorismo": "186456,159983",
-  "Mentalidade": "158957,9673",
-  "Liderança": "14990",
-  "Finanças": "3565,12554",
-  "Marketing": "6526",
-  "Produtividade": "180305",
-  "Tecnologia": "9672",
-  "Desenvolvimento Pessoal": "4613,9673",
-  "Startups": "220984,159983",
+// Mapeamento de categorias CineBusiness → TMDB keyword IDs (oficiais)
+const CATEGORY_CONFIG: Record<string, { keywords?: string; genres?: string }> = {
+  "Negócios": { keywords: "159983,186253" },
+  "Empreendedorismo": { keywords: "159983,186456" },
+  "Mentalidade": { keywords: "156214,235557" },
+  "Liderança": { keywords: "14990,156214" },
+  "Finanças": { keywords: "156441,211604" },
+  "Marketing": { keywords: "6526,186253" },
+  "Produtividade": { keywords: "156214,9673" },
+  "Tecnologia": { keywords: "210108,14544" },
+  "Desenvolvimento Pessoal": { keywords: "156214,4613,9673" },
+  "Startups": { keywords: "159983,186456,210108" },
+  "Documentários": { genres: "99" },
 };
 
 serve(async (req) => {
@@ -34,23 +35,26 @@ serve(async (req) => {
     let url: string;
 
     if (mode === "discover" && category) {
-      // Discover mode: busca por categoria/keywords
-      const keywords = CATEGORY_KEYWORDS[category] || "";
+      const config = CATEGORY_CONFIG[category];
       const params = new URLSearchParams({
         api_key: TMDB_API_KEY,
         language: "pt-BR",
-        sort_by: "vote_average.desc",
-        "vote_count.gte": "100",
+        sort_by: "popularity.desc",
+        "vote_count.gte": "50",
         page: String(page),
-        with_keywords: keywords,
       });
-      // Fallback: se não tem keyword mapeada, busca documentários de negócios
-      if (!keywords) {
-        params.set("with_genres", "99"); // Documentário
+
+      if (config?.genres) {
+        params.set("with_genres", config.genres);
+      } else if (config?.keywords) {
+        params.set("with_keywords", config.keywords);
+      } else {
+        // Fallback: documentários
+        params.set("with_genres", "99");
       }
+
       url = `https://api.themoviedb.org/3/discover/${mediaType}?${params.toString()}`;
     } else {
-      // Search mode: busca por texto
       if (!query || query.trim().length < 2) {
         throw new Error("Query deve ter pelo menos 2 caracteres");
       }
