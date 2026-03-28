@@ -16,7 +16,7 @@ const CATEGORY_SEARCH_TERMS: Record<string, string[]> = {
   "Finanças": ["finance", "money", "investment", "stock market"],
   "Marketing": ["advertising", "mad men", "social media", "marketing"],
   "Produtividade": ["productivity", "genius", "competition", "obsession"],
-  "Tecnologia": ["silicon valley", "hacker", "computer", "artificial intelligence"],
+  "Tecnologia": ["social network", "silicon valley", "hacker", "artificial intelligence"],
   "Desenvolvimento Pessoal": ["self discovery", "transformation", "redemption"],
   "Startups": ["startup", "silicon valley", "dot com", "tech company"],
 };
