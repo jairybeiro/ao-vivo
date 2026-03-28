@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard, Sparkles } from "lucide-react";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Film, Download, Clapperboard, Sparkles, Briefcase } from "lucide-react";
 import VodImport from "@/components/admin/VodImport";
 import SyncChannelsButton from "@/components/admin/SyncChannelsButton";
 
@@ -20,6 +20,7 @@ import { VodMovieList } from "@/components/admin/VodMovieList";
 import { VodSeriesList } from "@/components/admin/VodSeriesList";
 import { toProxyAssetUrl } from "@/lib/streamProxy";
 import TmdbCuratedImport from "@/components/admin/TmdbCuratedImport";
+import { CineBusinessForm } from "@/components/admin/CineBusinessForm";
 
 interface Channel {
   id: string;
@@ -46,6 +47,10 @@ const Admin = () => {
   const { ads, loading: adsLoading, refetch: refetchAds } = useAds();
   const [editingAd, setEditingAd] = useState<Ad | null>(null);
   const [isAdModalOpen, setIsAdModalOpen] = useState(false);
+
+  // Estados para CineBusiness
+  const [editingCineBiz, setEditingCineBiz] = useState<any | null>(null);
+  const [isCineBizModalOpen, setIsCineBizModalOpen] = useState(false);
 
   const fetchChannels = useCallback(async () => {
     setChannelsLoading(true);
@@ -192,7 +197,7 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="channels" className="space-y-6" onValueChange={(v) => setActiveTab(v)} value={activeTab}>
-            <TabsList className="grid w-full grid-cols-4 md:grid-cols-8">
+            <TabsList className="grid w-full grid-cols-4 md:grid-cols-9">
               <TabsTrigger value="channels" className="flex items-center gap-1 text-xs md:text-sm">
                 <Tv className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Canais</span>
@@ -227,6 +232,11 @@ const Admin = () => {
                 <Sparkles className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">Curadoria</span>
                 <span className="md:hidden">Curar</span>
+              </TabsTrigger>
+              <TabsTrigger value="cinebiz" className="flex items-center gap-1 text-xs md:text-sm">
+                <Briefcase className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">CineBusiness</span>
+                <span className="md:hidden">CineBiz</span>
               </TabsTrigger>
             </TabsList>
 
@@ -291,6 +301,34 @@ const Admin = () => {
             {/* Tab de Curadoria */}
             <TabsContent value="curated" className="space-y-6">
               <TmdbCuratedImport />
+            </TabsContent>
+            {/* Tab CineBusiness */}
+            <TabsContent value="cinebiz" className="space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Adicione conteúdos de negócios com busca TMDB e monetização integrada.
+                  </p>
+                </div>
+                <Button onClick={() => { setEditingCineBiz(null); setIsCineBizModalOpen(true); }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Conteúdo
+                </Button>
+              </div>
+              {isCineBizModalOpen && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{editingCineBiz ? "Editar Conteúdo" : "Adicionar Conteúdo CineBusiness"}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CineBusinessForm
+                      editingMovie={editingCineBiz}
+                      onSuccess={() => { setIsCineBizModalOpen(false); setEditingCineBiz(null); }}
+                      onCancel={() => { setIsCineBizModalOpen(false); setEditingCineBiz(null); }}
+                    />
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
 
