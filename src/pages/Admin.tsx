@@ -233,6 +233,11 @@ const Admin = () => {
                 <span className="hidden md:inline">Curadoria</span>
                 <span className="md:hidden">Curar</span>
               </TabsTrigger>
+              <TabsTrigger value="cinebiz" className="flex items-center gap-1 text-xs md:text-sm">
+                <Briefcase className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">CineBusiness</span>
+                <span className="md:hidden">CineBiz</span>
+              </TabsTrigger>
             </TabsList>
 
             {/* Tab de Canais */}
@@ -296,6 +301,34 @@ const Admin = () => {
             {/* Tab de Curadoria */}
             <TabsContent value="curated" className="space-y-6">
               <TmdbCuratedImport />
+            </TabsContent>
+            {/* Tab CineBusiness */}
+            <TabsContent value="cinebiz" className="space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Adicione conteúdos de negócios com busca TMDB e monetização integrada.
+                  </p>
+                </div>
+                <Button onClick={() => { setEditingCineBiz(null); setIsCineBizModalOpen(true); }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Novo Conteúdo
+                </Button>
+              </div>
+              {isCineBizModalOpen && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{editingCineBiz ? "Editar Conteúdo" : "Adicionar Conteúdo CineBusiness"}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CineBusinessForm
+                      editingMovie={editingCineBiz}
+                      onSuccess={() => { setIsCineBizModalOpen(false); setEditingCineBiz(null); }}
+                      onCancel={() => { setIsCineBizModalOpen(false); setEditingCineBiz(null); }}
+                    />
+                  </CardContent>
+                </Card>
+              )}
             </TabsContent>
           </Tabs>
 
