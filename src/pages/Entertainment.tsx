@@ -5,6 +5,7 @@ import { Film, Clapperboard, Star, PlayCircle, ChevronRight, Play, Briefcase } f
 import MainHeader from "@/components/MainHeader";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 import CineBusinessCard from "@/components/CineBusinessCard";
+import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CuratedItem {
@@ -48,6 +49,8 @@ const Entertainment = () => {
   const [cineBusinessItems, setCineBusinessItems] = useState<CineBusinessItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CuratedItem | null>(null);
+  const [isTrailerPlayerOpen, setIsTrailerPlayerOpen] = useState(false);
+  const [selectedTrailerUrl, setSelectedTrailerUrl] = useState<string | null>(null);
 
   const fetchCurated = useCallback(async () => {
     setLoading(true);
@@ -124,6 +127,13 @@ const Entertainment = () => {
 
   const scrollToContent = () => {
     document.getElementById("collections")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handlePlayTrailer = (trailerUrl: string | null) => {
+    if (trailerUrl) {
+      setSelectedTrailerUrl(trailerUrl);
+      setIsTrailerPlayerOpen(true);
+    }
   };
 
   const tags = Object.keys(collections);
@@ -273,7 +283,10 @@ const Entertainment = () => {
               <span>Curadoria Exclusiva</span>
             </div>
             <div className="flex items-center gap-3 pt-1">
-              <button onClick={scrollToContent} className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-8 py-3.5 rounded-md hover:brightness-110 transition-all text-base shadow-xl">
+              <button 
+                onClick={() => handlePlayTrailer(heroVideoUrl)}
+                className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-8 py-3.5 rounded-md hover:brightness-110 transition-all text-base shadow-xl"
+              >
                 <Play className="w-5 h-5 fill-white" />
                 COMEÇAR AGORA
               </button>
@@ -285,6 +298,14 @@ const Entertainment = () => {
           </div>
         </section>
       )}
+
+      {/* Fullscreen Trailer Player */}
+      <FullscreenTrailerPlayer
+        isOpen={isTrailerPlayerOpen}
+        onClose={() => setIsTrailerPlayerOpen(false)}
+        trailerUrl={selectedTrailerUrl}
+        title={heroItem?.name || "Trailer"}
+      />
 
       {/* ===== CINEBUSINESS SECTION ===== */}
       {cineBusinessItems.length > 0 && (
