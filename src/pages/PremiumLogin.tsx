@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,11 @@ const PremiumLogin = () => {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
 
   // Redirect if already logged in
-  if (user) {
-    navigate("/premium");
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      navigate("/premium", { replace: true });
+    }
+  }, [user, navigate]);
 
   const getLoginErrorMessage = (message: string) => {
     const lower = message.toLowerCase();

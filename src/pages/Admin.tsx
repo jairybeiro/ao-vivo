@@ -92,8 +92,13 @@ const Admin = () => {
     );
   }
 
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/admin/login", { replace: true });
+    }
+  }, [user, loading, navigate]);
+
   if (!user) {
-    navigate("/admin/login");
     return null;
   }
 
