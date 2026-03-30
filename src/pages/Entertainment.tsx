@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Film, Clapperboard, Star, PlayCircle, ChevronRight, Play } from "lucide-react";
+import { Film, Clapperboard, Star, PlayCircle, ChevronRight, Play, Briefcase } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -19,6 +19,16 @@ interface CuratedItem {
   plot?: string | null;
 }
 
+interface CineBusinessItem {
+  id: string;
+  name: string;
+  category: string;
+  cover_url: string | null;
+  backdrop_url: string | null;
+  rating: number | null;
+  sinopse: string | null;
+}
+
 const TAG_EMOJIS: Record<string, string> = {
   "Estratégia": "🎯",
   "Mentalidade": "🧠",
@@ -34,47 +44,65 @@ const Entertainment = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [collections, setCollections] = useState<Record<string, CuratedItem[]>>({});
+  const [cineBusinessItems, setCineBusinessItems] = useState<CineBusinessItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CuratedItem | null>(null);
 
   const fetchCurated = useCallback(async () => {
     setLoading(true);
 
-    const [{ data: movies }, { data: series }] = await Promise.all([
-      supabase
+    try {
+      // Fetch curated content
+      const [{ data: movies }, { data: series }] = await Promise.all([
+        supabase
+          .from("vod_movies")
+          .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag")
+          .not("category_tag", "is", null)
+          .eq("is_active", true)
+          .order("name"),
+        supabase
+          .from("vod_series")
+          .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, plot")
+          .not("category_tag", "is", null)
+          .eq("is_active", true)
+          .order("name"),
+      ]);
+
+      const items: CuratedItem[] = [
+        ...(movies || []).map((m: any) => ({ ...m, type: "movie" as const })),
+        ...(series || []).map((s: any) => ({ ...s, type: "series" as const })),
+      ];
+
+      const grouped: Record<string, CuratedItem[]> = {};
+      items.forEach((item) => {
+        if (!item.category_tag) return;
+        if (!grouped[item.category_tag]) grouped[item.category_tag] = [];
+        grouped[item.category_tag].push(item);
+      });
+
+      setCollections(grouped);
+
+      // Pick hero: prefer items with trailer_mp4_url, then backdrop
+      const withVideo = items.filter((i) => i.trailer_mp4_url);
+      const withBackdrop = items.filter((i) => i.backdrop_url);
+      const candidates = withVideo.length > 0 ? withVideo : withBackdrop;
+      if (candidates.length > 0) {
+        setHeroItem(candidates[Math.floor(Math.random() * candidates.length)]);
+      }
+
+      // Fetch CineBusiness content
+      const { data: cineBizData } = await supabase
         .from("vod_movies")
-        .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag")
-        .not("category_tag", "is", null)
+        .select("id, name, category, cover_url, backdrop_url, rating, sinopse")
+        .in("category", ["Negócios", "Empreendedorismo", "Mentalidade", "Liderança", "Finanças", "Marketing", "Produtividade", "Tecnologia", "Desenvolvimento Pessoal", "Startups"])
         .eq("is_active", true)
-        .order("name"),
-      supabase
-        .from("vod_series")
-        .select("id, name, cover_url, backdrop_url, rating, trailer_url, trailer_mp4_url, category_tag, plot")
-        .not("category_tag", "is", null)
-        .eq("is_active", true)
-        .order("name"),
-    ]);
+        .order("created_at", { ascending: false });
 
-    const items: CuratedItem[] = [
-      ...(movies || []).map((m: any) => ({ ...m, type: "movie" as const })),
-      ...(series || []).map((s: any) => ({ ...s, type: "series" as const })),
-    ];
-
-    const grouped: Record<string, CuratedItem[]> = {};
-    items.forEach((item) => {
-      if (!item.category_tag) return;
-      if (!grouped[item.category_tag]) grouped[item.category_tag] = [];
-      grouped[item.category_tag].push(item);
-    });
-
-    setCollections(grouped);
-
-    // Pick hero: prefer items with trailer_mp4_url, then backdrop
-    const withVideo = items.filter((i) => i.trailer_mp4_url);
-    const withBackdrop = items.filter((i) => i.backdrop_url);
-    const candidates = withVideo.length > 0 ? withVideo : withBackdrop;
-    if (candidates.length > 0) {
-      setHeroItem(candidates[Math.floor(Math.random() * candidates.length)]);
+      if (cineBizData) {
+        setCineBusinessItems(cineBizData as CineBusinessItem[]);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar conteúdo:", error);
     }
 
     setLoading(false);
@@ -87,6 +115,10 @@ const Entertainment = () => {
 
   const handleClick = (item: CuratedItem) => {
     navigate(`/entretenimento/${item.type}/${item.id}`);
+  };
+
+  const handleCineBusinessClick = (item: CineBusinessItem) => {
+    navigate(`/cinebusiness/${item.id}`);
   };
 
   const scrollToContent = () => {
@@ -249,6 +281,54 @@ const Entertainment = () => {
                 Explorar
               </button>
             </div>
+          </div>
+        </section>
+      )}
+
+      {/* ===== CINEBUSINESS SECTION ===== */}
+      {cineBusinessItems.length > 0 && (
+        <section className="container mx-auto px-4 py-12 space-y-6 relative z-20">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Briefcase className="w-6 h-6 text-amber-500" />
+              💼 CineBusiness
+            </h2>
+            <p className="text-sm text-muted-foreground">Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal</p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+            {cineBusinessItems.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => handleCineBusinessClick(item)}
+                className="cursor-pointer group"
+              >
+                <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative">
+                  {item.cover_url ? (
+                    <img
+                      src={item.cover_url}
+                      alt={item.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-amber-600/20">
+                      <Briefcase className="w-8 h-8 text-amber-500" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <PlayCircle className="w-10 h-10 text-white" />
+                  </div>
+                  {item.rating && item.rating > 0 && (
+                    <div className="absolute top-1.5 right-1.5 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                      {item.rating}
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs font-medium truncate mt-1.5">{item.name}</p>
+                <p className="text-[10px] text-muted-foreground">{item.category}</p>
+              </div>
+            ))}
           </div>
         </section>
       )}
