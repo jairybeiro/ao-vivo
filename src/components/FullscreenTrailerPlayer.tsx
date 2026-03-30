@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { StreamPlayer } from "@/sdk/StreamPlayerSDK";
+import VodPlayer from "@/components/VodPlayer";
 
 interface FullscreenTrailerPlayerProps {
   isOpen: boolean;
   onClose: () => void;
   trailerUrl: string | null;
   title: string;
+  poster?: string;
 }
 
 const FullscreenTrailerPlayer = ({
@@ -14,54 +15,16 @@ const FullscreenTrailerPlayer = ({
   onClose,
   trailerUrl,
   title,
+  poster,
 }: FullscreenTrailerPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<StreamPlayer | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !trailerUrl || !containerRef.current) return;
-
-    // Initialize the StreamPlayer SDK
-    const initPlayer = async () => {
-      try {
-        // Create a player container
-        const playerContainer = document.createElement("div");
-        playerContainer.id = "stream-player-container";
-        playerContainer.style.cssText = "width:100%;height:100%;";
-        containerRef.current!.appendChild(playerContainer);
-
-        // Initialize StreamPlayer
-        const player = new StreamPlayer({
-          container: playerContainer,
-          source: trailerUrl,
-          autoplay: true,
-          title: title,
-          debug: false,
-          onPlay: () => console.log("Player: Playing"),
-          onError: (error) => console.error("Player Error:", error),
-          onBuffer: () => console.log("Player: Buffering"),
-        });
-
-        await player.init();
-        playerRef.current = player;
-        setIsInitialized(true);
-      } catch (error) {
-        console.error("Failed to initialize StreamPlayer:", error);
-      }
-    };
-
-    initPlayer();
-
-    return () => {
-      // Cleanup
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-      setIsInitialized(false);
-    };
-  }, [isOpen, trailerUrl, title]);
+    if (isOpen) {
+      setIsInitialized(true);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handleEscapeKey = (e: KeyboardEvent) => {
@@ -97,14 +60,18 @@ const FullscreenTrailerPlayer = ({
         <X className="w-6 h-6" />
       </button>
 
-      {/* Player Container - Will be populated by StreamPlayer SDK */}
-      <div
-        id="stream-player-container"
-        className="w-full h-full"
-        style={{
-          backgroundColor: "#000",
-        }}
-      />
+      {/* VodPlayer Container */}
+      {isInitialized && (
+        <div className="w-full h-full">
+          <VodPlayer
+            src={trailerUrl}
+            title={title}
+            poster={poster || undefined}
+            contentType="movie"
+            onBack={onClose}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Film, ChevronRight, Play, Briefcase } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
-import CineBusinessCard from "@/components/CineBusinessCard";
+import CineBusinessCardPopover from "@/components/CineBusinessCardPopover";
 import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -257,7 +257,7 @@ const Entertainment = () => {
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
                 {cineBusinessByCategory[category].map((item) => (
-                  <CineBusinessCard
+                  <CineBusinessCardPopover
                     key={item.id}
                     id={item.id}
                     name={item.name}
@@ -266,7 +266,9 @@ const Entertainment = () => {
                     backdrop_url={item.backdrop_url}
                     rating={item.rating}
                     trailer_url={item.trailer_url}
+                    sinopse={item.sinopse}
                     onClick={() => handleCineBusinessClick(item)}
+                    onPlayTrailer={handlePlayTrailer}
                   />
                 ))}
               </div>
