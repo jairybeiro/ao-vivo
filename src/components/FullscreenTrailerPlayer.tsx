@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Maximize2 } from "lucide-react";
-import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+import { X } from "lucide-react";
+import { StreamPlayer } from "@/sdk/StreamPlayerSDK";
 
 interface FullscreenTrailerPlayerProps {
   isOpen: boolean;
@@ -15,16 +15,53 @@ const FullscreenTrailerPlayer = ({
   trailerUrl,
   title,
 }: FullscreenTrailerPlayerProps) => {
-  const [isFullscreen, setIsFullscreen] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<StreamPlayer | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (isOpen && isFullscreen && containerRef.current) {
-      containerRef.current.requestFullscreen().catch(() => {
-        // Fullscreen request failed, continue anyway
-      });
-    }
-  }, [isOpen, isFullscreen]);
+    if (!isOpen || !trailerUrl || !containerRef.current) return;
+
+    // Initialize the StreamPlayer SDK
+    const initPlayer = async () => {
+      try {
+        // Create a player container
+        const playerContainer = document.createElement("div");
+        playerContainer.id = "stream-player-container";
+        playerContainer.style.cssText = "width:100%;height:100%;";
+        containerRef.current!.appendChild(playerContainer);
+
+        // Initialize StreamPlayer
+        const player = new StreamPlayer({
+          container: playerContainer,
+          source: trailerUrl,
+          autoplay: true,
+          title: title,
+          debug: false,
+          onPlay: () => console.log("Player: Playing"),
+          onError: (error) => console.error("Player Error:", error),
+          onBuffer: () => console.log("Player: Buffering"),
+        });
+
+        await player.init();
+        playerRef.current = player;
+        setIsInitialized(true);
+      } catch (error) {
+        console.error("Failed to initialize StreamPlayer:", error);
+      }
+    };
+
+    initPlayer();
+
+    return () => {
+      // Cleanup
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+      setIsInitialized(false);
+    };
+  }, [isOpen, trailerUrl, title]);
 
   useEffect(() => {
     const handleEscapeKey = (e: KeyboardEvent) => {
@@ -46,12 +83,6 @@ const FullscreenTrailerPlayer = ({
 
   if (!isOpen || !trailerUrl) return null;
 
-  const isYouTube = trailerUrl.includes("youtube") || trailerUrl.includes("youtu.be");
-  const getYouTubeId = (url: string) => {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    return match ? match[1] : null;
-  };
-
   return (
     <div
       ref={containerRef}
@@ -66,32 +97,14 @@ const FullscreenTrailerPlayer = ({
         <X className="w-6 h-6" />
       </button>
 
-      {/* Player Container */}
-      <div className="w-full h-full flex items-center justify-center bg-black">
-        {isYouTube ? (
-          // YouTube Player
-          <iframe
-            src={`https://www.youtube.com/embed/${getYouTubeId(trailerUrl)}?autoplay=1&controls=1&modestbranding=1&fs=1`}
-            className="w-full h-full"
-            allow="autoplay; fullscreen"
-            allowFullScreen
-          />
-        ) : (
-          // MP4 / M3U8 Player
-          <div className="w-full h-full flex items-center justify-center">
-            <HlsAutoplayVideo
-              src={trailerUrl}
-              className="w-full h-full object-contain"
-              showControls={true}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Title Overlay */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 z-40">
-        <h2 className="text-2xl font-bold text-white">{title}</h2>
-      </div>
+      {/* Player Container - Will be populated by StreamPlayer SDK */}
+      <div
+        id="stream-player-container"
+        className="w-full h-full"
+        style={{
+          backgroundColor: "#000",
+        }}
+      />
     </div>
   );
 };

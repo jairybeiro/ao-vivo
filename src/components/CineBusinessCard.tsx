@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Star, PlayCircle } from "lucide-react";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 import { Briefcase } from "lucide-react";
@@ -35,14 +35,22 @@ const CineBusinessCard = ({
       ref={containerRef}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
-      className="cursor-pointer group h-full"
+      className="cursor-pointer h-full"
+      style={{
+        perspective: "1000px",
+      }}
     >
-      <div className={`aspect-[2/3] bg-muted rounded-lg overflow-hidden relative transition-all duration-300 ${
-        isHovering ? "scale-105 shadow-2xl" : "scale-100 shadow-lg"
-      }`}>
+      <div 
+        className={`aspect-[2/3] bg-muted rounded-lg overflow-visible relative transition-all duration-300 ease-out shadow-lg ${
+          isHovering ? "scale-110 shadow-2xl z-50" : "scale-100 z-10"
+        }`}
+        style={{
+          transformOrigin: "center",
+        }}
+      >
         {/* Background Image ou Trailer */}
         {isHovering && hasTrailer ? (
-          <div className="absolute inset-0 w-full h-full">
+          <div className="absolute inset-0 w-full h-full rounded-lg overflow-hidden">
             {trailer_url?.includes("youtube") || trailer_url?.includes("youtu.be") ? (
               // YouTube Embed
               <iframe
@@ -71,11 +79,11 @@ const CineBusinessCard = ({
               <img
                 src={cover_url}
                 alt={name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-cover transition-transform duration-300 rounded-lg"
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-amber-600/20">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-amber-600/20 rounded-lg">
                 <Briefcase className="w-8 h-8 text-amber-500" />
               </div>
             )}
@@ -83,20 +91,20 @@ const CineBusinessCard = ({
         )}
 
         {/* Overlay Gradient */}
-        <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+        <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 rounded-lg ${
           isHovering ? "opacity-100" : "opacity-0"
         }`} />
 
         {/* Play Button - Aparece no Hover */}
         {isHovering && hasTrailer && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
+          <div className="absolute inset-0 flex items-center justify-center z-20">
             <PlayCircle className="w-12 h-12 text-white opacity-90 hover:opacity-100 transition-opacity" />
           </div>
         )}
 
         {/* Rating Badge */}
         {rating && rating > 0 && (
-          <div className="absolute top-1.5 right-1.5 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5 z-20">
+          <div className="absolute top-1.5 right-1.5 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5 z-30">
             <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
             {rating}
           </div>
@@ -104,7 +112,7 @@ const CineBusinessCard = ({
 
         {/* Action Buttons - Aparecem no Hover */}
         {isHovering && (
-          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent z-20 flex gap-2 rounded-b-lg">
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -118,7 +126,7 @@ const CineBusinessCard = ({
         )}
       </div>
 
-      {/* Card Info */}
+      {/* Card Info - Sempre Visível */}
       <div className="mt-2">
         <p className="text-xs font-medium truncate text-foreground">{name}</p>
         <p className="text-[10px] text-muted-foreground truncate">{category}</p>
