@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Film, Clapperboard, Star, PlayCircle, ChevronRight, Play, Briefcase } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+import CineBusinessCard from "@/components/CineBusinessCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CuratedItem {
@@ -295,39 +296,19 @@ const Entertainment = () => {
             </h2>
             <p className="text-sm text-muted-foreground">Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
             {cineBusinessItems.map((item) => (
-              <div
+              <CineBusinessCard
                 key={item.id}
+                id={item.id}
+                name={item.name}
+                category={item.category}
+                cover_url={item.cover_url}
+                backdrop_url={item.backdrop_url}
+                rating={item.rating}
+                trailer_url={item.trailer_url}
                 onClick={() => handleCineBusinessClick(item)}
-                className="cursor-pointer group"
-              >
-                <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative">
-                  {item.cover_url ? (
-                    <img
-                      src={item.cover_url}
-                      alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-500/20 to-amber-600/20">
-                      <Briefcase className="w-8 h-8 text-amber-500" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <PlayCircle className="w-10 h-10 text-white" />
-                  </div>
-                  {item.rating && item.rating > 0 && (
-                    <div className="absolute top-1.5 right-1.5 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                      {item.rating}
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs font-medium truncate mt-1.5">{item.name}</p>
-                <p className="text-[10px] text-muted-foreground">{item.category}</p>
-              </div>
+              />
             ))}
           </div>
         </section>
@@ -351,7 +332,7 @@ const Entertainment = () => {
                 {tag}
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
                 {collections[tag].map((item) => (
                   <div
                     key={item.id}

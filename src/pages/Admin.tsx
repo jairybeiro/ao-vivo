@@ -19,7 +19,6 @@ import PremiumContentList from "@/components/admin/PremiumContentList";
 import { VodMovieList } from "@/components/admin/VodMovieList";
 import { VodSeriesList } from "@/components/admin/VodSeriesList";
 import { toProxyAssetUrl } from "@/lib/streamProxy";
-import TmdbCuratedImport from "@/components/admin/TmdbCuratedImport";
 import { CineBusinessForm } from "@/components/admin/CineBusinessForm";
 
 interface Channel {
@@ -51,6 +50,29 @@ const Admin = () => {
   // Estados para CineBusiness
   const [editingCineBiz, setEditingCineBiz] = useState<any | null>(null);
   const [isCineBizModalOpen, setIsCineBizModalOpen] = useState(false);
+  const [cineBizItems, setCineBizItems] = useState<any[]>([]);
+  const [cineBizLoading, setCineBizLoading] = useState(true);
+
+  const fetchCineBusiness = useCallback(async () => {
+    setCineBizLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("vod_movies")
+        .select("*")
+        .in("category", ["Negócios", "Empreendedorismo", "Mentalidade", "Liderança", "Finanças", "Marketing", "Produtividade", "Tecnologia", "Desenvolvimento Pessoal", "Startups"])
+        .order("created_at", { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching CineBusiness:", error);
+        setCineBizItems([]);
+      } else {
+        setCineBizItems(data || []);
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    }
+    setCineBizLoading(false);
+  }, []);
 
   const fetchChannels = useCallback(async () => {
     setChannelsLoading(true);
@@ -81,8 +103,9 @@ const Admin = () => {
   useEffect(() => {
     if (user && isAdmin) {
       fetchChannels();
+      fetchCineBusiness();
     }
-  }, [user, isAdmin, fetchChannels]);
+  }, [user, isAdmin, fetchChannels, fetchCineBusiness]);
 
   if (loading || (user && adminCheckLoading)) {
     return (
@@ -233,11 +256,6 @@ const Admin = () => {
                 <span className="hidden md:inline">Premium</span>
                 <span className="md:hidden">VIP</span>
               </TabsTrigger>
-              <TabsTrigger value="curated" className="flex items-center gap-1 text-xs md:text-sm">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Curadoria</span>
-                <span className="md:hidden">Curar</span>
-              </TabsTrigger>
               <TabsTrigger value="cinebiz" className="flex items-center gap-1 text-xs md:text-sm">
                 <Briefcase className="w-3.5 h-3.5" />
                 <span className="hidden md:inline">CineBusiness</span>
@@ -303,10 +321,6 @@ const Admin = () => {
               <PremiumContentList />
             </TabsContent>
 
-            {/* Tab de Curadoria */}
-            <TabsContent value="curated" className="space-y-6">
-              <TmdbCuratedImport />
-            </TabsContent>
             {/* Tab CineBusiness */}
             <TabsContent value="cinebiz" className="space-y-6">
               <div className="flex justify-between items-start">
@@ -328,12 +342,77 @@ const Admin = () => {
                   <CardContent>
                     <CineBusinessForm
                       editingMovie={editingCineBiz}
-                      onSuccess={() => { setIsCineBizModalOpen(false); setEditingCineBiz(null); }}
+                      onSuccess={() => { setIsCineBizModalOpen(false); setEditingCineBiz(null); fetchCineBusiness(); }}
                       onCancel={() => { setIsCineBizModalOpen(false); setEditingCineBiz(null); }}
                     />
                   </CardContent>
                 </Card>
               )}
+              
+              {/* Tabela de Conteúdos Cadastrados */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Conteúdos Cadastrados</CardTitle>
+                  <CardDescription>Gerencie os conteúdos do CineBusiness</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {cineBizLoading ? (
+                    <div className="text-center text-muted-foreground py-8">Carregando...</div>
+                  ) : cineBizItems.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">Nenhum conteúdo cadastrado</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-2">Título</th>
+                            <th className="text-left py-2 px-2">Categoria</th>
+                            <th className="text-left py-2 px-2">Nota</th>
+                            <th className="text-left py-2 px-2">Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cineBizItems.map((item) => (
+                            <tr key={item.id} className="border-b hover:bg-muted/50">
+                              <td className="py-2 px-2 font-medium">{item.name}</td>
+                              <td className="py-2 px-2 text-muted-foreground">{item.category}</td>
+                              <td className="py-2 px-2">{item.rating ? `${item.rating.toFixed(1)}/10` : '-'}</td>
+                              <td className="py-2 px-2 flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setEditingCineBiz(item);
+                                    setIsCineBizModalOpen(true);
+                                  }}
+                                >
+                                  Editar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={async () => {
+                                    if (confirm(`Tem certeza que deseja excluir "${item.name}"?`)) {
+                                      const { error } = await supabase.from("vod_movies").delete().eq("id", item.id);
+                                      if (error) {
+                                        alert("Erro ao excluir: " + error.message);
+                                      } else {
+                                        fetchCineBusiness();
+                                      }
+                                    }
+                                  }}
+                                >
+                                  Excluir
+                                </Button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 
