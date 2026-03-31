@@ -115,6 +115,7 @@ const CineBusinessDetail = () => {
         rating: data.rating,
         sinopse: data.sinopse || null,
         trailer_url: data.trailer_url || null,
+        trailer_mp4_url: (data as any).trailer_mp4_url || null,
         stream_url: (data as any).stream_url || null,
         tmdb_id: (data as any).tmdb_id || null,
         link_checkout: (data as any).link_checkout || null,
