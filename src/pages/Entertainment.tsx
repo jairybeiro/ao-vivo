@@ -95,8 +95,8 @@ const Entertainment = () => {
   };
 
   const categories = Object.keys(cineBusinessByCategory);
-  // Prioridade: stream_url (MP4/M3U8) > trailer_url (YouTube)
-  const heroVideoUrl = (heroItem as any)?.stream_url || heroItem?.trailer_url || null;
+  // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
+  const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
 
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
