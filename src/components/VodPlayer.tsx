@@ -541,7 +541,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         {/* TOP BAR — Back arrow (left) */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4 pl-6 pt-[calc(env(safe-area-inset-top)+20px)] md:p-6 pointer-events-auto">
           <button
-            onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate(-1); }}
+            onClick={(e) => { e.stopPropagation(); doSave(); onBack ? onBack() : navigate("/entretenimento"); }}
             className="text-[hsl(var(--player-contrast))] hover:scale-110 transition active:scale-95"
           >
             <ArrowLeft className="w-8 h-8 md:w-10 md:h-10" strokeWidth={2.5} />
