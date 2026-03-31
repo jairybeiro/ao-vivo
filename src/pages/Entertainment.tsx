@@ -120,12 +120,21 @@ const Entertainment = () => {
           <section className="relative w-full bg-[#0f0f0f] pt-16">
 	            {/* Compact player */}
 	            <div className="relative w-full aspect-video">
-	              {heroVideoUrl ? (
+	              {heroIsDirectVideo ? (
 	                <HlsAutoplayVideo
-	                  src={heroVideoUrl}
+	                  src={heroVideoUrl!}
 	                  poster={heroItem?.backdrop_url}
 	                  delayMs={3000}
 	                  className="absolute inset-0 w-full h-full object-cover"
+	                />
+	              ) : heroYoutubeId ? (
+	                <iframe
+	                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
+	                  className="absolute inset-0 w-full h-full object-cover scale-110"
+	                  allow="autoplay; encrypted-media"
+	                  frameBorder="0"
+	                  style={{ pointerEvents: "none" }}
+	                  title={heroItem?.name || ""}
 	                />
 	              ) : heroItem?.backdrop_url ? (
 	                <img
