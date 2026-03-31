@@ -64,6 +64,7 @@ const CineBusinessCardPopover = ({
       {/* Card Original */}
       <div
         ref={cardRef}
+        onClick={onClick}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
         className="cursor-pointer h-full"
@@ -93,7 +94,7 @@ const CineBusinessCardPopover = ({
         </div>
 
         {/* Card Info */}
-        <div className="mt-2">
+        <div className="mt-2 cursor-pointer" onClick={onClick}>
           <p className="text-xs font-medium truncate text-foreground">{name}</p>
           <p className="text-[10px] text-muted-foreground truncate">{category}</p>
         </div>
