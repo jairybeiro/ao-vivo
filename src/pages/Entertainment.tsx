@@ -213,12 +213,21 @@ const Entertainment = () => {
 
 	            {/* Main player */}
 	            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden rounded-xl border border-white/10">
-	              {heroVideoUrl ? (
+	              {heroIsDirectVideo ? (
 	                <HlsAutoplayVideo
-	                  src={heroVideoUrl}
+	                  src={heroVideoUrl!}
 	                  poster={heroItem?.backdrop_url}
 	                  delayMs={3000}
 	                  className="absolute inset-0 w-full h-full object-cover"
+	                />
+	              ) : heroYoutubeId ? (
+	                <iframe
+	                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
+	                  className="absolute inset-0 w-full h-full object-cover scale-110"
+	                  allow="autoplay; encrypted-media"
+	                  frameBorder="0"
+	                  style={{ pointerEvents: "none" }}
+	                  title={heroItem?.name || ""}
 	                />
 	              ) : heroItem?.backdrop_url ? (
 	                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
