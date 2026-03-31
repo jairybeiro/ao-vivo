@@ -16,6 +16,7 @@ interface CineBusinessItem {
   backdrop_url: string | null;
   rating: number | null;
   trailer_url: string | null;
+  trailer_mp4_url: string | null;
   sinopse: string | null;
 }
 
@@ -36,7 +37,7 @@ const Entertainment = () => {
       // Fetch ONLY CineBusiness content
       const { data: cineBizData, error } = await supabase
         .from("vod_movies")
-        .select("id, name, category, cover_url, backdrop_url, rating, sinopse, trailer_url")
+        .select("id, name, category, cover_url, backdrop_url, rating, sinopse, trailer_url, trailer_mp4_url")
         .in("category", ["Negócios", "Empreendedorismo", "Mentalidade", "Liderança", "Finanças", "Marketing", "Produtividade", "Tecnologia", "Desenvolvimento Pessoal", "Startups"])
         .eq("is_active", true)
         .order("created_at", { ascending: false });
@@ -58,8 +59,8 @@ const Entertainment = () => {
         });
         setCineBusinessByCategory(grouped);
 
-        // Pick hero: prefer items with trailer_url
-        const withTrailer = items.filter((i) => i.trailer_url);
+        // Pick hero: prefer items with trailer_mp4_url or trailer_url
+        const withTrailer = items.filter((i) => i.trailer_mp4_url || i.trailer_url);
         const candidates = withTrailer.length > 0 ? withTrailer : items;
         if (candidates.length > 0) {
           setHeroItem(candidates[Math.floor(Math.random() * candidates.length)]);
@@ -94,8 +95,8 @@ const Entertainment = () => {
   };
 
   const categories = Object.keys(cineBusinessByCategory);
-  // Prioridade: stream_url (MP4/M3U8) > trailer_url (YouTube)
-  const heroVideoUrl = (heroItem as any)?.stream_url || heroItem?.trailer_url || null;
+  // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
+  const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
 
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
@@ -281,7 +282,7 @@ const Entertainment = () => {
                     cover_url={item.cover_url}
                     backdrop_url={item.backdrop_url}
                     rating={item.rating}
-                    trailer_url={item.trailer_url}
+                    trailer_url={item.trailer_mp4_url || item.trailer_url}
                     sinopse={item.sinopse}
                     onClick={() => handleCineBusinessClick(item)}
                     onPlayTrailer={handlePlayTrailer}
