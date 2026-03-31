@@ -37,7 +37,7 @@ const Entertainment = () => {
       // Fetch ONLY CineBusiness content
       const { data: cineBizData, error } = await supabase
         .from("vod_movies")
-        .select("id, name, category, cover_url, backdrop_url, rating, sinopse, trailer_url")
+        .select("id, name, category, cover_url, backdrop_url, rating, sinopse, trailer_url, trailer_mp4_url")
         .in("category", ["Negócios", "Empreendedorismo", "Mentalidade", "Liderança", "Finanças", "Marketing", "Produtividade", "Tecnologia", "Desenvolvimento Pessoal", "Startups"])
         .eq("is_active", true)
         .order("created_at", { ascending: false });
