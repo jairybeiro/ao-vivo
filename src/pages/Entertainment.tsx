@@ -282,7 +282,7 @@ const Entertainment = () => {
                     cover_url={item.cover_url}
                     backdrop_url={item.backdrop_url}
                     rating={item.rating}
-                    trailer_url={item.trailer_url}
+                    trailer_url={item.trailer_mp4_url || item.trailer_url}
                     sinopse={item.sinopse}
                     onClick={() => handleCineBusinessClick(item)}
                     onPlayTrailer={handlePlayTrailer}
