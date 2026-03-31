@@ -190,30 +190,37 @@ const CineBusinessDetail = () => {
       <section className="relative w-full pt-16">
         {/* Background */}
         <div className="relative w-full aspect-video bg-black overflow-hidden">
-          {isDirectVideo ? (
-            <HlsAutoplayVideo
-              src={bgSource}
-              poster={item.backdrop_url}
-              className="w-full h-full object-cover"
-            />
-          ) : youtubeId ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&controls=0`}
-              className="w-full h-full"
-              allow="autoplay"
-            />
-          ) : item.backdrop_url ? (
-            <img
-              src={item.backdrop_url}
-              alt={item.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
-          )}
+          <div className="flex items-center justify-center w-full h-full p-4 md:p-8">
+            <div className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10">
+              {isDirectVideo ? (
+                <HlsAutoplayVideo
+                  src={bgSource}
+                  poster={item.backdrop_url}
+                  delayMs={3000}
+                  className="w-full h-full object-cover"
+                />
+              ) : youtubeId ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${youtubeId}&modestbranding=1&rel=0`}
+                  className="w-full h-full scale-105 pointer-events-none"
+                  allow="autoplay"
+                />
+              ) : item.backdrop_url ? (
+                <img
+                  src={item.backdrop_url}
+                  alt={item.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
+              )}
+              {/* Inner Gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+            </div>
+          </div>
 
           {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
 
           {/* Back Button */}
           <button
@@ -222,16 +229,6 @@ const CineBusinessDetail = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-
-          {/* Play Button */}
-          {hasTrailer && (
-            <button
-              onClick={() => setShowTrailerPlayer(true)}
-              className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors group"
-            >
-              <Play className="w-16 h-16 text-white opacity-0 group-hover:opacity-100 transition-opacity fill-white" />
-            </button>
-          )}
         </div>
 
         {/* Content Info */}

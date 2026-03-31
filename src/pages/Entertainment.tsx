@@ -93,7 +93,8 @@ const Entertainment = () => {
   };
 
   const categories = Object.keys(cineBusinessByCategory);
-  const heroVideoUrl = heroItem?.trailer_url || null;
+  // Prioridade: stream_url (MP4/M3U8) > trailer_url (YouTube)
+  const heroVideoUrl = (heroItem as any)?.stream_url || heroItem?.trailer_url || null;
 
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
@@ -107,19 +108,26 @@ const Entertainment = () => {
         /* ===== MOBILE: Compact player + content below ===== */
         <>
           <section className="relative w-full bg-[#0f0f0f] pt-16">
-            {/* Compact player */}
-            <div className="relative w-full aspect-video">
-              {heroItem?.backdrop_url ? (
-                <img
-                  src={heroItem.backdrop_url}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-              )}
-              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
-            </div>
+	            {/* Compact player */}
+	            <div className="relative w-full aspect-video">
+	              {heroVideoUrl ? (
+	                <HlsAutoplayVideo
+	                  src={heroVideoUrl}
+	                  poster={heroItem?.backdrop_url}
+	                  delayMs={3000}
+	                  className="absolute inset-0 w-full h-full object-cover"
+	                />
+	              ) : heroItem?.backdrop_url ? (
+	                <img
+	                  src={heroItem.backdrop_url}
+	                  alt=""
+	                  className="absolute inset-0 w-full h-full object-cover"
+	                />
+	              ) : (
+	                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+	              )}
+	              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
+	            </div>
 
             {/* Content below player */}
             <div className="px-4 pb-6 pt-2 space-y-3 bg-[#0f0f0f]">
@@ -184,15 +192,22 @@ const Entertainment = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
             </div>
 
-            {/* Main player */}
-            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden rounded-xl border border-white/10">
-              {heroItem?.backdrop_url ? (
-                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-              )}
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
-            </div>
+	            {/* Main player */}
+	            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden rounded-xl border border-white/10">
+	              {heroVideoUrl ? (
+	                <HlsAutoplayVideo
+	                  src={heroVideoUrl}
+	                  poster={heroItem?.backdrop_url}
+	                  delayMs={3000}
+	                  className="absolute inset-0 w-full h-full object-cover"
+	                />
+	              ) : heroItem?.backdrop_url ? (
+	                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+	              ) : (
+	                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+	              )}
+	              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
+	            </div>
           </div>
 
           {/* Content below player */}
