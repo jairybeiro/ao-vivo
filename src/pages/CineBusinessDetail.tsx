@@ -17,6 +17,7 @@ interface CineBusinessItem {
   rating: number | null;
   sinopse: string | null;
   trailer_url: string | null;
+  trailer_mp4_url: string | null;
   stream_url: string | null;
   tmdb_id: number | null;
   link_checkout?: string | null;
