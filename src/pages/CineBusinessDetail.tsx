@@ -375,7 +375,7 @@ const CineBusinessDetail = () => {
           </button>
           <div className="w-full h-full">
             <VodPlayer
-              src={streamUrl || trailerUrl || ""}
+              src={trailerMp4 || trailerUrl || ""}
               title={item.name}
               poster={item.cover_url || item.backdrop_url || undefined}
               contentType="movie"
