@@ -10,6 +10,11 @@ interface FullscreenTrailerPlayerProps {
   poster?: string;
 }
 
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(/(?:v=|\/embed\/|youtu\.be\/)([^&?#]+)/);
+  return match ? match[1] : null;
+}
+
 const FullscreenTrailerPlayer = ({
   isOpen,
   onClose,
@@ -46,6 +51,9 @@ const FullscreenTrailerPlayer = ({
 
   if (!isOpen || !trailerUrl) return null;
 
+  const youtubeId = extractYouTubeId(trailerUrl);
+  const isDirectVideo = !youtubeId && /\.(mp4|m3u8|m3u)/i.test(trailerUrl);
+
   return (
     <div
       ref={containerRef}
@@ -60,16 +68,36 @@ const FullscreenTrailerPlayer = ({
         <X className="w-6 h-6" />
       </button>
 
-      {/* VodPlayer Container */}
+      {/* Player */}
       {isInitialized && (
         <div className="w-full h-full">
-          <VodPlayer
-            src={trailerUrl}
-            title={title}
-            poster={poster || undefined}
-            contentType="movie"
-            onBack={onClose}
-          />
+          {isDirectVideo ? (
+            <VodPlayer
+              src={trailerUrl}
+              title={title}
+              poster={poster || undefined}
+              contentType="movie"
+              onBack={onClose}
+            />
+          ) : youtubeId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1`}
+              className="w-full h-full"
+              allow="autoplay; encrypted-media; fullscreen"
+              allowFullScreen
+              title={title}
+            />
+          ) : (
+            <iframe
+              src={trailerUrl}
+              className="w-full h-full"
+              allow="autoplay; encrypted-media; fullscreen"
+              allowFullScreen
+              sandbox="allow-scripts allow-same-origin allow-presentation"
+              referrerPolicy="no-referrer"
+              title={title}
+            />
+          )}
         </div>
       )}
     </div>

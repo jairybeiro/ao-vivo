@@ -98,6 +98,14 @@ const Entertainment = () => {
   // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
   const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
 
+  // Detect video type for hero
+  const extractYouTubeId = (url: string): string | null => {
+    const match = url.match(/(?:v=|\/embed\/|youtu\.be\/)([^&?#]+)/);
+    return match ? match[1] : null;
+  };
+  const heroYoutubeId = heroVideoUrl ? extractYouTubeId(heroVideoUrl) : null;
+  const heroIsDirectVideo = heroVideoUrl && !heroYoutubeId && /\.(mp4|m3u8|m3u)/i.test(heroVideoUrl);
+
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
       {/* Header */}
@@ -112,12 +120,21 @@ const Entertainment = () => {
           <section className="relative w-full bg-[#0f0f0f] pt-16">
 	            {/* Compact player */}
 	            <div className="relative w-full aspect-video">
-	              {heroVideoUrl ? (
+	              {heroIsDirectVideo ? (
 	                <HlsAutoplayVideo
-	                  src={heroVideoUrl}
+	                  src={heroVideoUrl!}
 	                  poster={heroItem?.backdrop_url}
 	                  delayMs={3000}
 	                  className="absolute inset-0 w-full h-full object-cover"
+	                />
+	              ) : heroYoutubeId ? (
+	                <iframe
+	                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
+	                  className="absolute inset-0 w-full h-full object-cover scale-110"
+	                  allow="autoplay; encrypted-media"
+	                  frameBorder="0"
+	                  style={{ pointerEvents: "none" }}
+	                  title={heroItem?.name || ""}
 	                />
 	              ) : heroItem?.backdrop_url ? (
 	                <img
@@ -196,12 +213,21 @@ const Entertainment = () => {
 
 	            {/* Main player */}
 	            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden rounded-xl border border-white/10">
-	              {heroVideoUrl ? (
+	              {heroIsDirectVideo ? (
 	                <HlsAutoplayVideo
-	                  src={heroVideoUrl}
+	                  src={heroVideoUrl!}
 	                  poster={heroItem?.backdrop_url}
 	                  delayMs={3000}
 	                  className="absolute inset-0 w-full h-full object-cover"
+	                />
+	              ) : heroYoutubeId ? (
+	                <iframe
+	                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
+	                  className="absolute inset-0 w-full h-full object-cover scale-110"
+	                  allow="autoplay; encrypted-media"
+	                  frameBorder="0"
+	                  style={{ pointerEvents: "none" }}
+	                  title={heroItem?.name || ""}
 	                />
 	              ) : heroItem?.backdrop_url ? (
 	                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
