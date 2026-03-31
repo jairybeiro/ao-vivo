@@ -16,6 +16,7 @@ interface CineBusinessItem {
   backdrop_url: string | null;
   rating: number | null;
   trailer_url: string | null;
+  trailer_mp4_url: string | null;
   sinopse: string | null;
 }
 
