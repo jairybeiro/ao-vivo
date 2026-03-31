@@ -29,7 +29,10 @@ const CineBusinessCardPopover = ({
   onPlayTrailer,
 }: CineBusinessCardPopoverProps) => {
   const [isHovering, setIsHovering] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
+  const [showPlayIcon, setShowPlayIcon] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const popoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
   // Determinar se há trailer disponível
@@ -37,7 +40,7 @@ const CineBusinessCardPopover = ({
 
   // Calcular posição do popover para sobrepor o card original
   useEffect(() => {
-    if (isHovering && cardRef.current) {
+    if (showPopover && cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
       
       // O popover começa na mesma posição do card, mas cresce (scale)
@@ -48,19 +51,57 @@ const CineBusinessCardPopover = ({
         height: rect.height
       });
     }
-  }, [isHovering]);
+  }, [showPopover]);
+
+  // Lógica de hover: mostrar popover por 3 segundos
+  const handleMouseEnter = () => {
+    setIsHovering(true);
+    setShowPopover(true);
+    setShowPlayIcon(false);
+
+    // Limpar timeout anterior se existir
+    if (popoverTimeoutRef.current) {
+      clearTimeout(popoverTimeoutRef.current);
+    }
+
+    // Fechar popover após 3 segundos
+    popoverTimeoutRef.current = setTimeout(() => {
+      setShowPopover(false);
+      setShowPlayIcon(true); // Mostrar ícone Play após fechar popover
+    }, 3000);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovering(false);
+    setShowPopover(false);
+    setShowPlayIcon(false);
+
+    // Limpar timeout
+    if (popoverTimeoutRef.current) {
+      clearTimeout(popoverTimeoutRef.current);
+    }
+  };
+
+  // Limpar timeout ao desmontar
+  useEffect(() => {
+    return () => {
+      if (popoverTimeoutRef.current) {
+        clearTimeout(popoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
-      {/* Card Original (Âncora) */}
+      {/* Card Original (Âncora) - Aumentado em 2/3 */}
       <div
         ref={cardRef}
         onClick={onClick}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className="cursor-pointer h-full relative"
       >
-        <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative transition-all duration-300 shadow-lg hover:shadow-xl">
+        <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative transition-all duration-300 shadow-lg hover:shadow-2xl">
           {cover_url ? (
             <img
               src={cover_url}
@@ -80,6 +121,15 @@ const CineBusinessCardPopover = ({
               {rating}
             </div>
           )}
+
+          {/* Efeito de Zoom + Ícone Play (Após popover fechar) */}
+          {showPlayIcon && isHovering && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-all duration-300">
+              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all scale-100 hover:scale-110">
+                <Play className="w-8 h-8 text-white fill-white ml-1" />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Card Info (Sempre visível abaixo do card original) */}
@@ -89,8 +139,8 @@ const CineBusinessCardPopover = ({
         </div>
       </div>
 
-      {/* Popover Modal Netflix Style */}
-      {isHovering &&
+      {/* Popover Modal Netflix Style - Aumentado e com animação de surgimento */}
+      {showPopover &&
         createPortal(
           <div
             className="fixed z-[9998] transition-all duration-300 ease-out"
@@ -98,14 +148,43 @@ const CineBusinessCardPopover = ({
               top: `${popoverPosition.top}px`,
               left: `${popoverPosition.left}px`,
               width: `${popoverPosition.width}px`,
-              transform: "scale(1.3)", // O modal cresce a partir do centro do card
+              transform: "scale(1.65)", // Aumentado em 2/3 (de 1.3 para 1.65)
               transformOrigin: "center center",
+              opacity: 1,
+              animation: "scaleIn 0.3s ease-out forwards", // Animação de surgimento (scale in)
             }}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
+            onMouseEnter={() => {
+              // Se o mouse entrar no popover, resetar o timer
+              if (popoverTimeoutRef.current) {
+                clearTimeout(popoverTimeoutRef.current);
+              }
+              popoverTimeoutRef.current = setTimeout(() => {
+                setShowPopover(false);
+                setShowPlayIcon(true);
+              }, 3000);
+            }}
+            onMouseLeave={() => {
+              setShowPopover(false);
+              setShowPlayIcon(false);
+              if (popoverTimeoutRef.current) {
+                clearTimeout(popoverTimeoutRef.current);
+              }
+            }}
           >
+            <style>{`
+              @keyframes scaleIn {
+                from {
+                  opacity: 0;
+                  transform: scale(0.8);
+                }
+                to {
+                  opacity: 1;
+                  transform: scale(1.65);
+                }
+              }
+            `}</style>
             <div 
-              className="bg-[#181818] rounded-lg overflow-hidden shadow-[0_0_20px_rgba(0,0,0,0.8)] border border-white/5 pointer-events-auto cursor-pointer"
+              className="bg-[#181818] rounded-lg overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.95)] border border-white/5 pointer-events-auto cursor-pointer"
               onClick={onClick}
             >
               {/* Video Preview Section */}
@@ -135,7 +214,7 @@ const CineBusinessCardPopover = ({
                   <img src={backdrop_url || cover_url || ""} className="w-full h-full object-cover" alt="" />
                 )}
                 
-                {/* Mute/Unmute indicator or title overlay could go here */}
+                {/* Title overlay */}
                 <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
                    <h3 className="text-[10px] font-bold text-white truncate drop-shadow-md">{name}</h3>
                 </div>
