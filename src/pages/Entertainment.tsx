@@ -298,7 +298,7 @@ const Entertainment = () => {
                 {category}
                 <ChevronRight className="w-4 h-4 text-muted-foreground" />
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {cineBusinessByCategory[category].map((item) => (
                   <CineBusinessCardPopover
                     key={item.id}

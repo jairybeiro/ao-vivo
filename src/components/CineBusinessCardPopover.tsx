@@ -93,7 +93,7 @@ const CineBusinessCardPopover = ({
 
   return (
     <>
-      {/* Card Original (Âncora) - Aumentado em 2/3 */}
+      {/* Card Original (Âncora) */}
       <div
         ref={cardRef}
         onClick={onClick}
@@ -139,43 +139,22 @@ const CineBusinessCardPopover = ({
         </div>
       </div>
 
-      {/* Popover Modal Netflix Style - Aumentado e com animação de surgimento */}
+      {/* Popover Modal Netflix Style - Com animação de surgimento suave (scale in) */}
       {showPopover &&
         createPortal(
           <div
-            className="fixed z-[9998] transition-all duration-300 ease-out"
+            className="fixed z-[9998] pointer-events-none"
             style={{
               top: `${popoverPosition.top}px`,
               left: `${popoverPosition.left}px`,
               width: `${popoverPosition.width}px`,
-              transform: "scale(1.65)", // Aumentado em 2/3 (de 1.3 para 1.65)
-              transformOrigin: "center center",
-              opacity: 1,
-              animation: "scaleIn 0.3s ease-out forwards", // Animação de surgimento (scale in)
-            }}
-            onMouseEnter={() => {
-              // Se o mouse entrar no popover, resetar o timer
-              if (popoverTimeoutRef.current) {
-                clearTimeout(popoverTimeoutRef.current);
-              }
-              popoverTimeoutRef.current = setTimeout(() => {
-                setShowPopover(false);
-                setShowPlayIcon(true);
-              }, 3000);
-            }}
-            onMouseLeave={() => {
-              setShowPopover(false);
-              setShowPlayIcon(false);
-              if (popoverTimeoutRef.current) {
-                clearTimeout(popoverTimeoutRef.current);
-              }
             }}
           >
             <style>{`
-              @keyframes scaleIn {
+              @keyframes scaleInSmooth {
                 from {
                   opacity: 0;
-                  transform: scale(0.8);
+                  transform: scale(0.9);
                 }
                 to {
                   opacity: 1;
@@ -183,89 +162,113 @@ const CineBusinessCardPopover = ({
                 }
               }
             `}</style>
-            <div 
-              className="bg-[#181818] rounded-lg overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.95)] border border-white/5 pointer-events-auto cursor-pointer"
-              onClick={onClick}
+            <div
+              className="origin-center"
+              style={{
+                animation: "scaleInSmooth 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+              }}
             >
-              {/* Video Preview Section */}
-              <div className="aspect-video bg-black relative overflow-hidden">
-                {hasTrailer ? (
-                  <div className="w-full h-full">
-                    {trailer_url?.includes("youtube") || trailer_url?.includes("youtu.be") ? (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${
-                          trailer_url.includes("v=")
-                            ? trailer_url.split("v=")[1]
-                            : trailer_url.split("/").pop()
-                        }?autoplay=1&mute=1&controls=0&loop=1&modestbranding=1&rel=0`}
-                        className="w-full h-full pointer-events-none"
-                        allow="autoplay"
-                      />
-                    ) : (
-                      <HlsAutoplayVideo
-                        src={trailer_url}
-                        poster={backdrop_url}
-                        delayMs={0}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
+              <div 
+                className="bg-[#181818] rounded-lg overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.95)] border border-white/5 pointer-events-auto cursor-pointer"
+                onClick={onClick}
+                onMouseEnter={() => {
+                  // Se o mouse entrar no popover, resetar o timer
+                  if (popoverTimeoutRef.current) {
+                    clearTimeout(popoverTimeoutRef.current);
+                  }
+                  popoverTimeoutRef.current = setTimeout(() => {
+                    setShowPopover(false);
+                    setShowPlayIcon(true);
+                  }, 3000);
+                }}
+                onMouseLeave={() => {
+                  setShowPopover(false);
+                  setShowPlayIcon(false);
+                  if (popoverTimeoutRef.current) {
+                    clearTimeout(popoverTimeoutRef.current);
+                  }
+                }}
+              >
+                {/* Video Preview Section */}
+                <div className="aspect-video bg-black relative overflow-hidden">
+                  {hasTrailer ? (
+                    <div className="w-full h-full">
+                      {trailer_url?.includes("youtube") || trailer_url?.includes("youtu.be") ? (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${
+                            trailer_url.includes("v=")
+                              ? trailer_url.split("v=")[1]
+                              : trailer_url.split("/").pop()
+                          }?autoplay=1&mute=1&controls=0&loop=1&modestbranding=1&rel=0`}
+                          className="w-full h-full pointer-events-none"
+                          allow="autoplay"
+                        />
+                      ) : (
+                        <HlsAutoplayVideo
+                          src={trailer_url}
+                          poster={backdrop_url}
+                          delayMs={0}
+                          className="w-full h-full object-cover"
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <img src={backdrop_url || cover_url || ""} className="w-full h-full object-cover" alt="" />
+                  )}
+                  
+                  {/* Title overlay */}
+                  <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
+                     <h3 className="text-[10px] font-bold text-white truncate drop-shadow-md">{name}</h3>
                   </div>
-                ) : (
-                  <img src={backdrop_url || cover_url || ""} className="w-full h-full object-cover" alt="" />
-                )}
-                
-                {/* Title overlay */}
-                <div className="absolute bottom-2 left-2 right-2 flex justify-between items-center">
-                   <h3 className="text-[10px] font-bold text-white truncate drop-shadow-md">{name}</h3>
                 </div>
-              </div>
 
-              {/* Action Buttons & Info Section */}
-              <div className="p-3 space-y-2 bg-[#181818]">
-                {/* Netflix Style Quick Actions */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {/* Play Button */}
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); onPlayTrailer(trailer_url!); }}
-                      className="w-8 h-8 flex items-center justify-center bg-white rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                      <Play className="w-4 h-4 text-black fill-black ml-0.5" />
-                    </button>
-                    {/* Plus Button */}
+                {/* Action Buttons & Info Section */}
+                <div className="p-3 space-y-2 bg-[#181818]">
+                  {/* Netflix Style Quick Actions */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {/* Play Button */}
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); onPlayTrailer(trailer_url!); }}
+                        className="w-8 h-8 flex items-center justify-center bg-white rounded-full hover:bg-gray-200 transition-colors"
+                      >
+                        <Play className="w-4 h-4 text-black fill-black ml-0.5" />
+                      </button>
+                      {/* Plus Button */}
+                      <button className="w-8 h-8 flex items-center justify-center border-2 border-gray-500 rounded-full hover:border-white transition-colors">
+                        <Plus className="w-4 h-4 text-white" />
+                      </button>
+                      {/* Like Button */}
+                      <button className="w-8 h-8 flex items-center justify-center border-2 border-gray-500 rounded-full hover:border-white transition-colors">
+                        <ThumbsUp className="w-3.5 h-3.5 text-white" />
+                      </button>
+                    </div>
+                    {/* Expand/Detail Button */}
                     <button className="w-8 h-8 flex items-center justify-center border-2 border-gray-500 rounded-full hover:border-white transition-colors">
-                      <Plus className="w-4 h-4 text-white" />
-                    </button>
-                    {/* Like Button */}
-                    <button className="w-8 h-8 flex items-center justify-center border-2 border-gray-500 rounded-full hover:border-white transition-colors">
-                      <ThumbsUp className="w-3.5 h-3.5 text-white" />
+                      <ChevronDown className="w-4 h-4 text-white" />
                     </button>
                   </div>
-                  {/* Expand/Detail Button */}
-                  <button className="w-8 h-8 flex items-center justify-center border-2 border-gray-500 rounded-full hover:border-white transition-colors">
-                    <ChevronDown className="w-4 h-4 text-white" />
-                  </button>
-                </div>
 
-                {/* Metadata */}
-                <div className="flex items-center gap-2 text-[10px]">
-                  <span className="text-green-500 font-bold">98% relevante</span>
-                  <span className="border border-gray-500 px-1 rounded text-white">16+</span>
-                  <span className="text-white">1h 45min</span>
-                  <span className="border border-gray-500 px-0.5 rounded text-[8px] text-white">HD</span>
-                </div>
+                  {/* Metadata */}
+                  <div className="flex items-center gap-2 text-[10px]">
+                    <span className="text-green-500 font-bold">98% relevante</span>
+                    <span className="border border-gray-500 px-1 rounded text-white">16+</span>
+                    <span className="text-white">1h 45min</span>
+                    <span className="border border-gray-500 px-0.5 rounded text-[8px] text-white">HD</span>
+                  </div>
 
-                {/* Tags/Category */}
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="text-[9px] text-white font-medium">• {category}</span>
-                </div>
+                  {/* Tags/Category */}
+                  <div className="flex flex-wrap gap-1.5">
+                    <span className="text-[9px] text-white font-medium">• {category}</span>
+                  </div>
 
-                {/* Sinopse Curta */}
-                {sinopse && (
-                  <p className="text-[9px] text-gray-300 line-clamp-2 leading-tight">
-                    {sinopse}
-                  </p>
-                )}
+                  {/* Sinopse Curta */}
+                  {sinopse && (
+                    <p className="text-[9px] text-gray-300 line-clamp-2 leading-tight">
+                      {sinopse}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>,
