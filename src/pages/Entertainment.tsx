@@ -98,6 +98,14 @@ const Entertainment = () => {
   // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
   const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
 
+  // Detect video type for hero
+  const extractYouTubeId = (url: string): string | null => {
+    const match = url.match(/(?:v=|\/embed\/|youtu\.be\/)([^&?#]+)/);
+    return match ? match[1] : null;
+  };
+  const heroYoutubeId = heroVideoUrl ? extractYouTubeId(heroVideoUrl) : null;
+  const heroIsDirectVideo = heroVideoUrl && !heroYoutubeId && /\.(mp4|m3u8|m3u)/i.test(heroVideoUrl);
+
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
       {/* Header */}
