@@ -153,17 +153,17 @@ const CineBusinessDetail = () => {
     fetchData();
   }, [id, navigate]);
 
-  // Priority: stream_url (MP4/M3U8) > trailer_url (YouTube) > tmdb.trailer_url
-  const streamUrl = item?.stream_url;
+  // Priority: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube) > tmdb.trailer_url
+  const trailerMp4 = item?.trailer_mp4_url;
   const trailerUrl = item?.trailer_url || tmdb?.trailer_url;
   
   // For display: prefer direct video (mp4/m3u8) over YouTube
-  const bgSource = streamUrl || trailerUrl;
+  const bgSource = trailerMp4 || trailerUrl;
   const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
   const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
   
   const tag = item?.category;
-  const hasTrailer = !!(streamUrl || trailerUrl);
+  const hasTrailer = !!(trailerMp4 || trailerUrl);
 
   if (loading) {
     return (
