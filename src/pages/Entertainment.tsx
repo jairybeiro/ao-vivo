@@ -59,8 +59,8 @@ const Entertainment = () => {
         });
         setCineBusinessByCategory(grouped);
 
-        // Pick hero: prefer items with trailer_url
-        const withTrailer = items.filter((i) => i.trailer_url);
+        // Pick hero: prefer items with trailer_mp4_url or trailer_url
+        const withTrailer = items.filter((i) => i.trailer_mp4_url || i.trailer_url);
         const candidates = withTrailer.length > 0 ? withTrailer : items;
         if (candidates.length > 0) {
           setHeroItem(candidates[Math.floor(Math.random() * candidates.length)]);
