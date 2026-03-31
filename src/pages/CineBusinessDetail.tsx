@@ -1,0 +1,392 @@
+import { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { ArrowLeft, Star, Play, Clock, Calendar, Globe, Users, ChevronRight, Info, X } from "lucide-react";
+import MainHeader from "@/components/MainHeader";
+import { useIsMobile } from "@/hooks/use-mobile";
+import VodPlayer from "@/components/VodPlayer";
+import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+
+interface CineBusinessItem {
+  id: string;
+  name: string;
+  category: string;
+  cover_url: string | null;
+  backdrop_url: string | null;
+  rating: number | null;
+  sinopse: string | null;
+  trailer_url: string | null;
+  stream_url: string | null;
+  tmdb_id: number | null;
+  link_checkout?: string | null;
+  tempo_anuncio?: number | null;
+  url_imagem_anuncio?: string | null;
+}
+
+interface TmdbDetails {
+  name: string;
+  plot: string | null;
+  backdrop_url: string | null;
+  cover_url: string | null;
+  rating: number | null;
+  trailer_url: string | null;
+  original_language?: string | null;
+  genres: string[];
+  runtime: number | null;
+  release_date: string | null;
+  tagline: string | null;
+  vote_count: number;
+  credits: {
+    cast: Array<{ name: string; character: string | null; profile_path: string | null }>;
+    director: { name: string; profile_path: string | null } | null;
+  };
+  images: string[];
+  recommendations: Array<{
+    tmdb_id: number;
+    name: string;
+    poster_path: string | null;
+    vote_average: number | null;
+  }>;
+}
+
+const TAG_EMOJIS: Record<string, string> = {
+  "Estratégia": "🎯",
+  "Mentalidade": "🧠",
+  "Liderança": "👑",
+  "Empreendedorismo": "🚀",
+  "Superação": "💪",
+  "Criatividade": "🎨",
+  "Negociação": "🤝",
+  "Motivação": "🔥",
+};
+
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : null;
+}
+
+const CineBusinessDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [item, setItem] = useState<CineBusinessItem | null>(null);
+  const [tmdb, setTmdb] = useState<TmdbDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showTrailerPlayer, setShowTrailerPlayer] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const checkoutTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  // Checkout modal timer
+  useEffect(() => {
+    if (item?.link_checkout && item.tempo_anuncio) {
+      checkoutTimerRef.current = setTimeout(() => {
+        setShowCheckoutModal(true);
+      }, (item.tempo_anuncio || 30) * 1000);
+    }
+    return () => clearTimeout(checkoutTimerRef.current);
+  }, [item?.link_checkout, item?.tempo_anuncio]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from("vod_movies")
+        .select("*")
+        .eq("id", id)
+        .in("category", ["Negócios", "Empreendedorismo", "Mentalidade", "Liderança", "Finanças", "Marketing", "Produtividade", "Tecnologia", "Desenvolvimento Pessoal", "Startups"])
+        .single();
+
+      if (!data) {
+        setLoading(false);
+        navigate("/entretenimento");
+        return;
+      }
+
+      const cineItem: CineBusinessItem = {
+        id: data.id,
+        name: data.name,
+        category: data.category,
+        cover_url: data.cover_url,
+        backdrop_url: data.backdrop_url,
+        rating: data.rating,
+        sinopse: data.sinopse || null,
+        trailer_url: data.trailer_url || null,
+        stream_url: (data as any).stream_url || null,
+        tmdb_id: (data as any).tmdb_id || null,
+        link_checkout: (data as any).link_checkout || null,
+        tempo_anuncio: (data as any).tempo_anuncio || null,
+        url_imagem_anuncio: (data as any).url_imagem_anuncio || null,
+      };
+      setItem(cineItem);
+
+      // Fetch TMDB details if available
+      const lookupId = cineItem.tmdb_id;
+      try {
+        if (lookupId) {
+          const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
+            body: { tmdb_id: lookupId, type: "movie", full_details: true },
+          });
+          if (tmdbData && !tmdbData.error) {
+            setTmdb(tmdbData);
+          }
+        } else {
+          // Fallback: search by name
+          const { data: tmdbData } = await supabase.functions.invoke("tmdb-lookup", {
+            body: { search_name: cineItem.name, type: "movie" },
+          });
+          if (tmdbData && !tmdbData.error) {
+            setTmdb(tmdbData);
+          }
+        }
+      } catch {
+        // silent fail
+      }
+
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [id, navigate]);
+
+  // Priority: stream_url (MP4/M3U8) > trailer_url (YouTube) > tmdb.trailer_url
+  const streamUrl = item?.stream_url;
+  const trailerUrl = item?.trailer_url || tmdb?.trailer_url;
+  
+  // For display: prefer direct video (mp4/m3u8) over YouTube
+  const bgSource = streamUrl || trailerUrl;
+  const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
+  const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
+  
+  const tag = item?.category;
+  const hasTrailer = !!(streamUrl || trailerUrl);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-muted-foreground">Conteúdo não encontrado</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background overflow-y-auto">
+      {/* Header */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <MainHeader transparent={true} />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative w-full pt-16">
+        {/* Background */}
+        <div className="relative w-full aspect-video bg-black overflow-hidden">
+          {isDirectVideo ? (
+            <HlsAutoplayVideo
+              src={bgSource}
+              poster={item.backdrop_url}
+              className="w-full h-full object-cover"
+            />
+          ) : youtubeId ? (
+            <iframe
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&controls=0`}
+              className="w-full h-full"
+              allow="autoplay"
+            />
+          ) : item.backdrop_url ? (
+            <img
+              src={item.backdrop_url}
+              alt={item.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
+          )}
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+
+          {/* Play Button */}
+          {hasTrailer && (
+            <button
+              onClick={() => setShowTrailerPlayer(true)}
+              className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/50 transition-colors group"
+            >
+              <Play className="w-16 h-16 text-white opacity-0 group-hover:opacity-100 transition-opacity fill-white" />
+            </button>
+          )}
+        </div>
+
+        {/* Content Info */}
+        <div className="max-w-5xl mx-auto px-4 md:px-6 -mt-20 relative z-10 pb-8">
+          <div className="bg-background/95 backdrop-blur rounded-lg p-6 space-y-4">
+            {/* Title and Rating */}
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <h1 className="text-3xl md:text-4xl font-bold text-foreground">{item.name}</h1>
+                {tag && (
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {TAG_EMOJIS[tag] || "📌"} {tag}
+                  </p>
+                )}
+              </div>
+              {item.rating && item.rating > 0 && (
+                <div className="flex items-center gap-2 bg-primary/20 px-4 py-2 rounded-lg">
+                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                  <span className="text-lg font-bold text-foreground">{item.rating}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Sinopse */}
+            {(item.sinopse || tmdb?.plot) && (
+              <p className="text-base text-foreground/80 leading-relaxed">
+                {item.sinopse || tmdb?.plot}
+              </p>
+            )}
+
+            {/* Meta Info */}
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+              {tmdb?.release_date && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  {new Date(tmdb.release_date).getFullYear()}
+                </div>
+              )}
+              {tmdb?.runtime && (
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  {tmdb.runtime} min
+                </div>
+              )}
+              {tmdb?.original_language && (
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4" />
+                  {tmdb.original_language.toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-2">
+              {hasTrailer && (
+                <button
+                  onClick={() => setShowTrailerPlayer(true)}
+                  className="flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+                >
+                  <Play className="w-5 h-5 fill-current" />
+                  Assistir Trailer
+                </button>
+              )}
+              {item.link_checkout && (
+                <button
+                  onClick={() => window.open(item.link_checkout, "_blank")}
+                  className="flex items-center gap-2 bg-secondary text-secondary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors"
+                >
+                  Comprar Acesso
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TMDB Details */}
+      {tmdb && (
+        <section className="max-w-5xl mx-auto px-4 md:px-6 py-12 space-y-12">
+          {/* Genres */}
+          {tmdb.genres && tmdb.genres.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-foreground mb-4">Gêneros</h2>
+              <div className="flex flex-wrap gap-2">
+                {tmdb.genres.map((genre) => (
+                  <span
+                    key={genre}
+                    className="bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-medium"
+                  >
+                    {genre}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Cast */}
+          {tmdb.credits?.cast && tmdb.credits.cast.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                Elenco
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {tmdb.credits.cast.slice(0, 12).map((member, idx) => (
+                  <div key={idx} className="text-center">
+                    {member.profile_path && (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w185${member.profile_path}`}
+                        alt={member.name}
+                        className="w-full aspect-[2/3] object-cover rounded-lg mb-2"
+                      />
+                    )}
+                    <p className="text-sm font-semibold text-foreground line-clamp-1">{member.name}</p>
+                    {member.character && (
+                      <p className="text-xs text-muted-foreground line-clamp-1">{member.character}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Director */}
+          {tmdb.credits?.director && (
+            <div>
+              <h2 className="text-xl font-bold text-foreground mb-2">Diretor</h2>
+              <p className="text-foreground">{tmdb.credits.director.name}</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Trailer Player Modal */}
+      {showTrailerPlayer && (
+        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
+          <button
+            onClick={() => setShowTrailerPlayer(false)}
+            className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="w-full h-full">
+            <VodPlayer
+              src={streamUrl || trailerUrl || ""}
+              title={item.name}
+              poster={item.cover_url || item.backdrop_url || undefined}
+              contentType="movie"
+              onBack={() => setShowTrailerPlayer(false)}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CineBusinessDetail;
