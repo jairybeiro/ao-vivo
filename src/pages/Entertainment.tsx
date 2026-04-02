@@ -30,7 +30,6 @@ const Entertainment = () => {
   const [heroItem, setHeroItem] = useState<CineBusinessItem | null>(null);
   const [isTrailerPlayerOpen, setIsTrailerPlayerOpen] = useState(false);
   const [selectedTrailerUrl, setSelectedTrailerUrl] = useState<string | null>(null);
-  const isMobile = useIsMobile();
 
   const fetchCineBusinessContent = useCallback(async () => {
     setLoading(true);
