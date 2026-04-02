@@ -32,7 +32,7 @@ const CineBusinessCardPopover = ({
   const [showPopover, setShowPopover] = useState(false);
   const [showPlayIcon, setShowPlayIcon] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const popoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const popoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
   // Determinar se há trailer disponível
