@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Film, ChevronRight, Play, Briefcase } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import CineBusinessCardPopover from "@/components/CineBusinessCardPopover";
+import CineBusinessCard from "@/components/CineBusinessCard";
+import { useIsMobile } from "@/hooks/use-mobile";
 import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CineBusinessItem {
   id: string;
@@ -300,19 +301,33 @@ const Entertainment = () => {
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {cineBusinessByCategory[category].map((item) => (
-                  <CineBusinessCardPopover
-                    key={item.id}
-                    id={item.id}
-                    name={item.name}
-                    category={item.category}
-                    cover_url={item.cover_url}
-                    backdrop_url={item.backdrop_url}
-                    rating={item.rating}
-                    trailer_url={item.trailer_mp4_url || item.trailer_url}
-                    sinopse={item.sinopse}
-                    onClick={() => handleCineBusinessClick(item)}
-                    onPlayTrailer={handlePlayTrailer}
-                  />
+                  isMobile ? (
+                    <CineBusinessCard
+                      key={item.id}
+                      id={item.id}
+                      name={item.name}
+                      category={item.category}
+                      cover_url={item.cover_url}
+                      backdrop_url={item.backdrop_url}
+                      rating={item.rating}
+                      trailer_url={item.trailer_mp4_url || item.trailer_url}
+                      onClick={() => handleCineBusinessClick(item)}
+                    />
+                  ) : (
+                    <CineBusinessCardPopover
+                      key={item.id}
+                      id={item.id}
+                      name={item.name}
+                      category={item.category}
+                      cover_url={item.cover_url}
+                      backdrop_url={item.backdrop_url}
+                      rating={item.rating}
+                      trailer_url={item.trailer_mp4_url || item.trailer_url}
+                      sinopse={item.sinopse}
+                      onClick={() => handleCineBusinessClick(item)}
+                      onPlayTrailer={handlePlayTrailer}
+                    />
+                  )
                 ))}
               </div>
             </section>
