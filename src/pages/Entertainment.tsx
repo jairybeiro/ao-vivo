@@ -8,7 +8,6 @@ import CineBusinessCard from "@/components/CineBusinessCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CineBusinessItem {
   id: string;
