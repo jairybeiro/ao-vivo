@@ -154,18 +154,18 @@ const CineBusinessCardPopover = ({
               @keyframes scaleInSmooth {
                 from {
                   opacity: 0;
-                  transform: scale(0.9);
+                  transform: scale(0.95);
                 }
                 to {
                   opacity: 1;
-                  transform: scale(1.65);
+                  transform: scale(1.5);
                 }
               }
             `}</style>
             <div
               className="origin-center"
               style={{
-                animation: "scaleInSmooth 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+                animation: "scaleInSmooth 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards",
               }}
             >
               <div 
