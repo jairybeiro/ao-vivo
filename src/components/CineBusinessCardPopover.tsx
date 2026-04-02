@@ -178,7 +178,7 @@ const CineBusinessCardPopover = ({
                 className="bg-[#181818] rounded-lg overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.95)] border border-white/5 pointer-events-auto cursor-pointer"
                 onClick={onClick}
                 onMouseEnter={() => {
-                  // Se o mouse entrar no popover, resetar o timer
+                  cancelLeave();
                   if (popoverTimeoutRef.current) {
                     clearTimeout(popoverTimeoutRef.current);
                   }
@@ -188,6 +188,7 @@ const CineBusinessCardPopover = ({
                   }, 3000);
                 }}
                 onMouseLeave={() => {
+                  setIsHovering(false);
                   setShowPopover(false);
                   setShowPlayIcon(false);
                   if (popoverTimeoutRef.current) {
