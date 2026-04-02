@@ -99,7 +99,8 @@ const CineBusinessCardPopover = ({
         onClick={onClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="cursor-pointer h-full relative"
+        className="cursor-pointer h-full relative group"
+        style={{ padding: 0 }}
       >
         <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative transition-all duration-300 shadow-lg hover:shadow-2xl">
           {cover_url ? (
