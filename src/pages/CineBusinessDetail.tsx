@@ -185,27 +185,29 @@ const CineBusinessDetail = () => {
     <div className="min-h-screen bg-background overflow-y-auto">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <MainHeader transparent={true} />
+        <MainHeader transparent={!isMobile} />
       </div>
 
       {/* Hero Section */}
       <section className="relative w-full">
-        {/* Ambilight Background */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          {item.backdrop_url && (
-            <img
-              src={item.backdrop_url}
-              alt=""
-              className="w-full h-full object-cover scale-110 blur-3xl opacity-30"
-            />
-          )}
-          <div className="absolute inset-0 bg-background/80" />
-        </div>
+        {/* Ambilight Background - desktop only */}
+        {!isMobile && (
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            {item.backdrop_url && (
+              <img
+                src={item.backdrop_url}
+                alt=""
+                className="w-full h-full object-cover scale-110 blur-3xl opacity-30"
+              />
+            )}
+            <div className="absolute inset-0 bg-background/80" />
+          </div>
+        )}
 
         {/* Player Area */}
-        <div className="relative z-10 pt-[60px] md:pt-[68px]">
-          <div className="max-w-5xl mx-auto px-2 md:px-6">
-            <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.6)] border border-white/10">
+        <div className={`relative z-10 ${isMobile ? 'pt-14' : 'pt-[68px]'}`}>
+          <div className={`max-w-5xl mx-auto ${isMobile ? 'px-0' : 'px-6'}`}>
+            <div className={`relative w-full aspect-video overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.6)] border border-white/10'}`}>
               {isDirectVideo ? (
                 <HlsAutoplayVideo
                   src={bgSource}
@@ -243,70 +245,70 @@ const CineBusinessDetail = () => {
         </div>
 
         {/* Content Info */}
-        <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-6 pb-8">
-          <div className="space-y-4">
+        <div className={`relative z-10 max-w-5xl mx-auto px-4 md:px-6 ${isMobile ? 'pt-4 pb-6' : 'pt-6 pb-8'}`}>
+          <div className={`space-y-3 ${isMobile ? '' : 'space-y-4'}`}>
             {/* Title and Rating */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="text-3xl md:text-4xl font-bold text-foreground">{item.name}</h1>
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <h1 className={`font-bold text-foreground ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'}`}>{item.name}</h1>
                 {tag && (
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-xs md:text-sm text-muted-foreground mt-1">
                     {TAG_EMOJIS[tag] || "📌"} {tag}
                   </p>
                 )}
               </div>
               {item.rating && item.rating > 0 && (
-                <div className="flex items-center gap-2 bg-primary/20 px-4 py-2 rounded-lg">
-                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                  <span className="text-lg font-bold text-foreground">{item.rating}</span>
+                <div className={`flex items-center gap-1.5 bg-primary/20 rounded-lg shrink-0 ${isMobile ? 'px-2.5 py-1.5' : 'px-4 py-2'}`}>
+                  <Star className={`text-yellow-500 fill-yellow-500 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                  <span className={`font-bold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>{item.rating}</span>
+                </div>
+              )}
+            </div>
+
+            {/* Meta Info - moved above sinopse on mobile */}
+            <div className="flex flex-wrap gap-3 text-xs md:text-sm text-muted-foreground">
+              {tmdb?.release_date && (
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" />
+                  {new Date(tmdb.release_date).getFullYear()}
+                </div>
+              )}
+              {tmdb?.runtime && (
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  {tmdb.runtime} min
+                </div>
+              )}
+              {tmdb?.original_language && (
+                <div className="flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5" />
+                  {tmdb.original_language.toUpperCase()}
                 </div>
               )}
             </div>
 
             {/* Sinopse */}
             {(item.sinopse || tmdb?.plot) && (
-              <p className="text-base text-foreground/80 leading-relaxed">
+              <p className={`text-foreground/80 leading-relaxed ${isMobile ? 'text-sm line-clamp-4' : 'text-base'}`}>
                 {item.sinopse || tmdb?.plot}
               </p>
             )}
 
-            {/* Meta Info */}
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-              {tmdb?.release_date && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  {new Date(tmdb.release_date).getFullYear()}
-                </div>
-              )}
-              {tmdb?.runtime && (
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  {tmdb.runtime} min
-                </div>
-              )}
-              {tmdb?.original_language && (
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4" />
-                  {tmdb.original_language.toUpperCase()}
-                </div>
-              )}
-            </div>
-
             {/* Action Buttons */}
-            <div className="flex gap-3 pt-2">
+            <div className={`flex gap-2.5 ${isMobile ? 'pt-1' : 'pt-2'}`}>
               {hasTrailer && (
                 <button
                   onClick={() => setShowTrailerPlayer(true)}
-                  className="flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+                  className={`flex items-center gap-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors ${isMobile ? 'px-4 py-2.5 text-sm flex-1' : 'px-6 py-3'}`}
                 >
-                  <Play className="w-5 h-5 fill-current" />
+                  <Play className={`fill-current ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
                   Assistir Trailer
                 </button>
               )}
               {item.link_checkout && (
                 <button
                   onClick={() => window.open(item.link_checkout, "_blank")}
-                  className="flex items-center gap-2 bg-secondary text-secondary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-secondary/90 transition-colors"
+                  className={`flex items-center justify-center gap-2 bg-secondary text-secondary-foreground font-semibold rounded-lg hover:bg-secondary/90 transition-colors ${isMobile ? 'px-4 py-2.5 text-sm flex-1' : 'px-6 py-3'}`}
                 >
                   Comprar Acesso
                 </button>
