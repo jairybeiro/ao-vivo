@@ -54,41 +54,45 @@ const CineBusinessCardPopover = ({
     }
   }, [showPopover]);
 
-  // Lógica de hover: mostrar popover por 3 segundos
+  const cancelLeave = () => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  };
+
   const handleMouseEnter = () => {
+    cancelLeave();
     setIsHovering(true);
     setShowPopover(true);
     setShowPlayIcon(false);
 
-    // Limpar timeout anterior se existir
     if (popoverTimeoutRef.current) {
       clearTimeout(popoverTimeoutRef.current);
     }
 
-    // Fechar popover após 3 segundos
     popoverTimeoutRef.current = setTimeout(() => {
       setShowPopover(false);
-      setShowPlayIcon(true); // Mostrar ícone Play após fechar popover
+      setShowPlayIcon(true);
     }, 3000);
   };
 
   const handleMouseLeave = () => {
-    setIsHovering(false);
-    setShowPopover(false);
-    setShowPlayIcon(false);
-
-    // Limpar timeout
-    if (popoverTimeoutRef.current) {
-      clearTimeout(popoverTimeoutRef.current);
-    }
-  };
-
-  // Limpar timeout ao desmontar
-  useEffect(() => {
-    return () => {
+    // Delay to allow mouse to move to popover
+    leaveTimeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
+      setShowPopover(false);
+      setShowPlayIcon(false);
       if (popoverTimeoutRef.current) {
         clearTimeout(popoverTimeoutRef.current);
       }
+    }, 100);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (popoverTimeoutRef.current) clearTimeout(popoverTimeoutRef.current);
+      if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
     };
   }, []);
 
