@@ -189,11 +189,23 @@ const CineBusinessDetail = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative w-full pt-16">
-        {/* Background */}
-        <div className="relative w-full aspect-video bg-black overflow-hidden">
-          <div className="flex items-center justify-center w-full h-full p-4 md:p-8">
-            <div className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10">
+      <section className="relative w-full">
+        {/* Ambilight Background */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          {item.backdrop_url && (
+            <img
+              src={item.backdrop_url}
+              alt=""
+              className="w-full h-full object-cover scale-110 blur-3xl opacity-30"
+            />
+          )}
+          <div className="absolute inset-0 bg-background/80" />
+        </div>
+
+        {/* Player Area */}
+        <div className="relative z-10 pt-[60px] md:pt-[68px]">
+          <div className="max-w-5xl mx-auto px-2 md:px-6">
+            <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-[0_8px_40px_rgba(0,0,0,0.6)] border border-white/10">
               {isDirectVideo ? (
                 <HlsAutoplayVideo
                   src={bgSource}
@@ -217,25 +229,22 @@ const CineBusinessDetail = () => {
                 <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
               )}
               {/* Inner Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+
+              {/* Back Button inside player */}
+              <button
+                onClick={() => navigate(-1)}
+                className="absolute top-3 left-3 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white transition-all duration-200"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
             </div>
           </div>
-
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
-
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 z-20 w-10 h-10 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
         </div>
 
         {/* Content Info */}
-        <div className="max-w-5xl mx-auto px-4 md:px-6 -mt-20 relative z-10 pb-8">
-          <div className="bg-background/95 backdrop-blur rounded-lg p-6 space-y-4">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-6 pb-8">
+          <div className="space-y-4">
             {/* Title and Rating */}
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
