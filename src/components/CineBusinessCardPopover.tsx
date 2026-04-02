@@ -33,6 +33,7 @@ const CineBusinessCardPopover = ({
   const [showPlayIcon, setShowPlayIcon] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const popoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const leaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
 
   // Determinar se há trailer disponível
@@ -53,41 +54,45 @@ const CineBusinessCardPopover = ({
     }
   }, [showPopover]);
 
-  // Lógica de hover: mostrar popover por 3 segundos
+  const cancelLeave = () => {
+    if (leaveTimeoutRef.current) {
+      clearTimeout(leaveTimeoutRef.current);
+      leaveTimeoutRef.current = null;
+    }
+  };
+
   const handleMouseEnter = () => {
+    cancelLeave();
     setIsHovering(true);
     setShowPopover(true);
     setShowPlayIcon(false);
 
-    // Limpar timeout anterior se existir
     if (popoverTimeoutRef.current) {
       clearTimeout(popoverTimeoutRef.current);
     }
 
-    // Fechar popover após 3 segundos
     popoverTimeoutRef.current = setTimeout(() => {
       setShowPopover(false);
-      setShowPlayIcon(true); // Mostrar ícone Play após fechar popover
+      setShowPlayIcon(true);
     }, 3000);
   };
 
   const handleMouseLeave = () => {
-    setIsHovering(false);
-    setShowPopover(false);
-    setShowPlayIcon(false);
-
-    // Limpar timeout
-    if (popoverTimeoutRef.current) {
-      clearTimeout(popoverTimeoutRef.current);
-    }
-  };
-
-  // Limpar timeout ao desmontar
-  useEffect(() => {
-    return () => {
+    // Delay to allow mouse to move to popover
+    leaveTimeoutRef.current = setTimeout(() => {
+      setIsHovering(false);
+      setShowPopover(false);
+      setShowPlayIcon(false);
       if (popoverTimeoutRef.current) {
         clearTimeout(popoverTimeoutRef.current);
       }
+    }, 100);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (popoverTimeoutRef.current) clearTimeout(popoverTimeoutRef.current);
+      if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
     };
   }, []);
 
@@ -99,7 +104,8 @@ const CineBusinessCardPopover = ({
         onClick={onClick}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className="cursor-pointer h-full relative"
+        className="cursor-pointer h-full relative group"
+        style={{ padding: 0 }}
       >
         <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative transition-all duration-300 shadow-lg hover:shadow-2xl">
           {cover_url ? (
@@ -172,7 +178,7 @@ const CineBusinessCardPopover = ({
                 className="bg-[#181818] rounded-lg overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.95)] border border-white/5 pointer-events-auto cursor-pointer"
                 onClick={onClick}
                 onMouseEnter={() => {
-                  // Se o mouse entrar no popover, resetar o timer
+                  cancelLeave();
                   if (popoverTimeoutRef.current) {
                     clearTimeout(popoverTimeoutRef.current);
                   }
@@ -182,6 +188,7 @@ const CineBusinessCardPopover = ({
                   }, 3000);
                 }}
                 onMouseLeave={() => {
+                  setIsHovering(false);
                   setShowPopover(false);
                   setShowPlayIcon(false);
                   if (popoverTimeoutRef.current) {
