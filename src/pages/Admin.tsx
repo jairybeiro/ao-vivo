@@ -45,6 +45,10 @@ const Admin = () => {
     if (user && isAdmin) fetchCineBusiness();
   }, [user, isAdmin, fetchCineBusiness]);
 
+  useEffect(() => {
+    if (!loading && !user) navigate("/admin/login", { replace: true });
+  }, [user, loading, navigate]);
+
   if (loading || (user && adminCheckLoading)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -52,10 +56,6 @@ const Admin = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!loading && !user) navigate("/admin/login", { replace: true });
-  }, [user, loading, navigate]);
 
   if (!user) return null;
 
