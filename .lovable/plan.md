@@ -1,144 +1,97 @@
 
-# Plano de Implementação
+# 📱 Plano: App Store Ready — Cursos + CineBusiness + Player Premium
 
-## Resumo
-Implementar duas melhorias: (1) proteger todas as rotas do aplicativo exigindo login e (2) garantir compatibilidade dos links m3u8 da Globo com os players existentes.
+## Fase 1: Limpeza — Remover conteúdo não-licenciado
+Remover todas as funcionalidades de IPTV/streaming não-licenciado para conformidade com as políticas das App Stores.
 
----
+**Páginas/Rotas a remover:**
+- `/` (Home com canais ao vivo) → Substituir por landing page dos Cursos + CineBusiness
+- `/entertainment` (Entretenimento/canais ao vivo)
+- `/movies`, `/series`, `/vod-browse` (catálogo VOD pirata)
+- `/vod-movie/:id`, `/vod-series/:id` (players VOD)
+- `/premium`, `/premium-login`, `/premium-watch` (conteúdo premium IPTV)
+- `/content/:id` (detalhe de conteúdo genérico)
 
-## Parte 1: Proteção de Todas as Rotas com Autenticação
+**Componentes a remover:**
+- `ChannelCard`, `ChannelList`, `VirtualChannelList`, `CategoryTabs`, `ScrollableCategories`
+- `LivePlayer`, `StreamPlayer`, `DirectStreamPlayer`, `DetectStreamModal`
+- `LiveIndicator`, `PlayerContainer`
+- Catálogos: `DesktopChannelCatalog`, `MobileChannelCatalog`
+- VOD: `DesktopMovieCatalog`, `MobileMovieCatalog`, `HeroBanner`, `EpisodesSheet`, etc.
+- Ads: `PreRollAd`, `BelowPlayerAd`, `SidebarAd` (se não usar ads próprios)
 
-### Abordagem
-Criar um componente `ProtectedRoute` que envolve todas as rotas (exceto login e install) e redireciona usuários não autenticados para a página de login.
+**Edge Functions a remover:**
+- `proxy-stream` (proxy IPTV)
+- `resolve-stream` (resolver embeds)
+- `resolve-txt-stream` (resolver .txt)
+- `scrape-channels` (scraping)
+- `import-xtream-vod` (importação Xtream)
+- `verify-vod-links` (verificação links VOD)
 
-### Arquivos a Criar/Modificar
+**Hooks/SDK a remover:**
+- `useChannels`, `useVod`, `usePremiumContent`, `useStreamPlayer`, `useResolveStream`
+- `StreamPlayerSDK/` (SDK inteiro)
+- `lib/streamProxy.ts`, `lib/hlsUtils.ts`
 
-**1. Criar componente `ProtectedRoute`** (`src/components/ProtectedRoute.tsx`)
-- Verifica se o usuário está autenticado via `useAuth()`
-- Exibe loading enquanto verifica autenticação
-- Redireciona para `/premium/login` se não autenticado
-- Renderiza o conteúdo se autenticado
-
-**2. Modificar `src/App.tsx`**
-- Importar `ProtectedRoute`
-- Envolver as seguintes rotas com proteção:
-  - `/` (Index)
-  - `/premium` 
-  - `/premium/watch/:id`
-  - `/course/:courseId`
-  - `/admin`
-- Manter SEM proteção:
-  - `/premium/login` (página de login)
-  - `/admin/login` (página de login admin)
-  - `/install` (instruções de instalação PWA)
-
-**3. Modificar `src/pages/Index.tsx`**
-- Remover lógica de redirecionamento (já feita pelo ProtectedRoute)
-
-**4. Simplificar páginas protegidas**
-- `src/pages/Premium.tsx` - remover useEffect de redirecionamento
-- `src/pages/PremiumWatch.tsx` - remover useEffect de redirecionamento
-- `src/pages/CourseView.tsx` - remover useEffect de redirecionamento
-- `src/pages/Admin.tsx` - manter verificação de isAdmin (além de autenticado)
+**Admin a simplificar:**
+- Remover: `ChannelForm`, `ChannelList` (admin), `SyncChannelsButton`, `VodImport`, `VodMovieForm`, `VodMovieList`, `VodSeriesForm`, `VodSeriesList`, `VodEpisodeForm`, `PremiumContentForm`, `PremiumContentList`
+- Manter: `CineBusinessForm`, `CourseManager`, `AdForm/AdList` (se usar ads próprios)
 
 ---
 
-## Parte 2: Compatibilidade com Links m3u8 da Globo
-
-### Análise dos Links
-Os links fornecidos seguem o padrão:
-```
-https://vod-01.edge-vtal-cwb-pr.video.globo.com/j/{JWT_TOKEN}/{path}.m3u8
-```
-
-**Observações:**
-- São URLs m3u8 válidas que terminam em `.m3u8`
-- Contêm tokens JWT com expiração (campo `exp` no JWT)
-- O VideoPlayer atual já suporta URLs m3u8
-
-### Ajustes Necessários
-
-**1. Modificar validação de URL m3u8** (`src/pages/Index.tsx`, `src/pages/PremiumWatch.tsx`, `src/components/courses/LessonPlayer.tsx`)
-- Atualizar a função `hasValidStreamUrls` para aceitar URLs m3u8 mais flexivelmente
-- Algumas URLs m3u8 válidas contêm parâmetros após `.m3u8` (como `-audio_por=...`)
-- Modificar a verificação de `.includes('.m3u8')` em vez de `.endsWith('.m3u8')`
-
-**2. Atualizar filtros de URLs** em vários componentes
-- Trocar `.endsWith(".m3u8")` por `.includes(".m3u8")` para capturar URLs como:
-  ```
-  ...manifest.ism/11015233-oiAjXxR-manifest-audio_por=128211-video_por=629000.m3u8
-  ```
+## Fase 2: Nova Home — Landing Cursos + CineBusiness
+- Criar nova página Home com seções:
+  - **Hero** com destaque rotativo (cursos + filmes CineBusiness)
+  - **Continuar assistindo** (progresso do usuário)
+  - **Cursos em destaque**
+  - **CineBusiness — Filmes que inspiram**
+- Navegação simplificada: Home | Cursos | CineBusiness | Perfil
 
 ---
 
-## Fluxo de Navegação Após Implementação
-
-```text
-Usuário não logado
-        │
-        ▼
-   Qualquer rota
-        │
-        ▼
-  ProtectedRoute
-        │
-        ▼
- Redireciona para
-  /premium/login
-        │
-        ▼
-  Faz login/signup
-        │
-        ▼
-  Acesso liberado
-```
+## Fase 3: Player Premium Netflix — Rotação Forçada
+- Criar `PremiumPlayer` dedicado com:
+  - **Rotação forçada para paisagem** via Capacitor Screen Orientation plugin (`@capacitor/screen-orientation`)
+  - Lock em `landscape` ao entrar no player, unlock ao sair
+  - Layout imersivo 100vw/100vh sem barras de status
+  - Controles Netflix-style existentes (volume, progresso, velocidade, skip ±10s)
+  - Suporte a `hls.js` para streams .m3u8 e MP4 direto
+  - Picture-in-Picture (PiP) via Capacitor plugin
+  - **Prevenir sleep** da tela durante reprodução (`@capacitor/keep-awake`)
+- Integrar com sistema de progresso existente (`user_watch_progress`)
 
 ---
 
-## Seção Técnica
-
-### Componente ProtectedRoute
-```typescript
-// Estrutura básica
-const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  
-  if (loading) return <LoadingScreen />;
-  if (!user) return <Navigate to="/premium/login" replace />;
-  
-  return children;
-};
-```
-
-### Modificação de App.tsx
-```typescript
-// Rotas protegidas
-<Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-<Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
-
-// Rotas públicas (login)
-<Route path="/premium/login" element={<PremiumLogin />} />
-```
-
-### Validação de URLs m3u8 (ajuste)
-```typescript
-// De:
-url.endsWith(".m3u8")
-
-// Para:
-url.includes(".m3u8")
-```
+## Fase 4: Setup Capacitor — App Nativo
+- Instalar dependências Capacitor (`@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`, `@capacitor/android`)
+- Instalar plugins nativos:
+  - `@capacitor/screen-orientation` (rotação forçada)
+  - `@capacitor/status-bar` (esconder barra de status no player)
+  - `@capacitor/splash-screen` (tela de splash personalizada)
+  - `@capacitor/haptics` (feedback tátil)
+- Configurar `capacitor.config.ts` com appId e appName
+- Gerar ícones e splash screens para iOS e Android
+- Testar em emuladores/dispositivos
 
 ---
 
-## Resumo das Alterações
+## Fase 5: Preparação App Store
+- **Apple App Store:**
+  - Screenshots em todos os tamanhos obrigatórios (iPhone 6.7", 6.5", 5.5"; iPad 12.9")
+  - Descrição, keywords, categoria (Educação ou Entretenimento)
+  - Política de privacidade (obrigatória)
+  - Review Guidelines compliance check
+- **Google Play:**
+  - Feature graphic (1024x500)
+  - Screenshots
+  - Classificação de conteúdo (IARC)
+  - Política de privacidade
 
-| Arquivo | Ação |
-|---------|------|
-| `src/components/ProtectedRoute.tsx` | Criar novo |
-| `src/App.tsx` | Modificar rotas |
-| `src/pages/Index.tsx` | Ajustar validação m3u8 |
-| `src/pages/Premium.tsx` | Remover redirect manual |
-| `src/pages/PremiumWatch.tsx` | Remover redirect manual + ajustar validação |
-| `src/pages/CourseView.tsx` | Remover redirect manual |
-| `src/components/courses/LessonPlayer.tsx` | Ajustar validação m3u8 |
+---
+
+## Ordem de execução sugerida
+1. **Fase 1** → Limpeza (remover IPTV) — ~2-3 sessões
+2. **Fase 2** → Nova Home — ~1-2 sessões
+3. **Fase 3** → Player Premium — ~2 sessões
+4. **Fase 4** → Setup Capacitor — ~1 sessão
+5. **Fase 5** → Assets e submissão — manual pelo desenvolvedor
