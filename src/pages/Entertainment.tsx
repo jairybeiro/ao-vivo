@@ -115,163 +115,102 @@ const Entertainment = () => {
       </div>
 
       {/* ===== HERO SECTION ===== */}
-      {isMobile ? (
-        /* ===== MOBILE: Compact player + content below ===== */
-        <>
-          <section className="relative w-full bg-[#0f0f0f] pt-16">
-	            {/* Compact player */}
-	            <div className="relative w-full aspect-video">
-	              {heroIsDirectVideo ? (
-	                <HlsAutoplayVideo
-	                  src={heroVideoUrl!}
-	                  poster={heroItem?.backdrop_url}
-	                  delayMs={3000}
-	                  className="absolute inset-0 w-full h-full object-cover"
-	                />
-	              ) : heroYoutubeId ? (
-	                <iframe
-	                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
-	                  className="absolute inset-0 w-full h-full object-cover scale-110"
-	                  allow="autoplay; encrypted-media"
-	                  frameBorder="0"
-	                  style={{ pointerEvents: "none" }}
-	                  title={heroItem?.name || ""}
-	                />
-	              ) : heroItem?.backdrop_url ? (
-	                <img
-	                  src={heroItem.backdrop_url}
-	                  alt=""
-	                  className="absolute inset-0 w-full h-full object-cover"
-	                />
-	              ) : (
-	                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-	              )}
-	              <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
-	            </div>
+      <section className={`relative w-full ${isMobile ? 'bg-[#0f0f0f] pt-14' : 'bg-[#0f0f0f] pt-16'}`}>
+        {/* Ambilight layer - desktop only */}
+        {!isMobile && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+            {heroItem?.backdrop_url ? (
+              <img src={heroItem.backdrop_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-70" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
+          </div>
+        )}
 
-            {/* Content below player */}
-            <div className="px-4 pb-6 pt-2 space-y-3 bg-[#0f0f0f]">
+        {/* Player container */}
+        <div className={`relative z-10 ${isMobile ? '' : 'flex items-center justify-center'}`} style={isMobile ? {} : { minHeight: "70vh" }}>
+          <div className={`relative w-full ${isMobile ? 'aspect-video' : 'max-w-5xl mx-auto aspect-video overflow-hidden rounded-xl border border-white/10'}`}>
+            {/* Video/Image */}
+            {heroIsDirectVideo ? (
+              <HlsAutoplayVideo
+                src={heroVideoUrl!}
+                poster={heroItem?.backdrop_url}
+                delayMs={3000}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : heroYoutubeId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
+                className="absolute inset-0 w-full h-full object-cover scale-110"
+                allow="autoplay; encrypted-media"
+                frameBorder="0"
+                style={{ pointerEvents: "none" }}
+                title={heroItem?.name || ""}
+              />
+            ) : heroItem?.backdrop_url ? (
+              <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+            )}
+
+            {/* Netflix-style gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent pointer-events-none" />
+
+            {/* Overlay Content */}
+            <div className={`absolute bottom-0 left-0 right-0 z-20 ${isMobile ? 'p-4 pb-5' : 'p-8 pb-10'}`}>
               <h1
-                className="text-2xl font-black text-white leading-[1] tracking-tight"
+                className={`font-black text-white leading-[1.05] tracking-tight ${isMobile ? 'text-xl' : 'text-3xl lg:text-4xl'}`}
                 style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}
               >
-                CONTEÚDOS QUE
-                <br />
+                CONTEÚDOS QUE{" "}
                 <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
               </h1>
 
               {heroItem?.name && (
-                <p className="text-base font-semibold text-white/90">
+                <p className={`font-semibold text-white/90 mt-1.5 ${isMobile ? 'text-sm' : 'text-lg'}`}>
                   {heroItem.name}
                 </p>
               )}
 
-              <p className="text-sm text-white/70 leading-relaxed line-clamp-2">
+              <p className={`text-white/70 leading-relaxed mt-1 ${isMobile ? 'text-xs line-clamp-2' : 'text-sm max-w-lg line-clamp-3'}`}>
                 {heroItem?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
               </p>
 
-              <div className="flex items-center gap-2 text-xs text-white/50">
+              <div className={`flex items-center gap-2 text-white/50 mt-1.5 ${isMobile ? 'text-[10px]' : 'text-xs'}`}>
                 <span className="text-green-400 font-bold">Premium</span>
                 <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
                 <span>Curadoria Exclusiva</span>
               </div>
 
-              <div className="flex items-center gap-3 pt-1">
+              <div className={`flex items-center gap-2.5 ${isMobile ? 'mt-3' : 'mt-4'}`}>
                 {heroItem && (
                   <button
                     onClick={() => handlePlayTrailer(heroVideoUrl)}
-                    className="flex-1 flex items-center justify-center gap-2 bg-[hsl(var(--player-accent))] text-white font-bold py-3 rounded-md text-sm shadow-lg active:scale-[0.97] transition-transform"
+                    className={`flex items-center justify-center gap-2 bg-[hsl(var(--player-accent))] text-white font-bold rounded-md shadow-lg active:scale-[0.97] transition-transform ${isMobile ? 'flex-1 py-2.5 text-xs' : 'px-7 py-3 text-sm hover:brightness-110'}`}
                   >
-                    <Play className="w-4 h-4 fill-white" />
+                    <Play className={`fill-white ${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} />
                     COMEÇAR AGORA
                   </button>
                 )}
                 <button
                   onClick={scrollToContent}
-                  className="flex items-center gap-2 bg-white/15 backdrop-blur-sm text-white font-semibold px-5 py-3 rounded-md text-sm active:scale-[0.97] transition-transform"
+                  className={`flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-md active:scale-[0.97] transition-all ${isMobile ? 'px-4 py-2.5 text-xs' : 'px-6 py-3 text-sm hover:bg-white/30'}`}
                 >
-                  <Film className="w-4 h-4" />
+                  <Film className={`${isMobile ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} />
                   Explorar
                 </button>
               </div>
             </div>
-          </section>
-        </>
-      ) : (
-        /* ===== DESKTOP: Player + content below ===== */
-        <section className="w-full bg-[#0f0f0f] pt-16">
-          <div className="relative w-full flex items-center justify-center" style={{ minHeight: "60vh" }}>
-            {/* Ambilight layer */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-              {heroItem?.backdrop_url ? (
-                <img src={heroItem.backdrop_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-70" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-transparent to-[#0f0f0f] opacity-50" />
-            </div>
-
-	            {/* Main player */}
-	            <div className="relative w-full max-w-5xl mx-auto aspect-video z-10 overflow-hidden rounded-xl border border-white/10">
-	              {heroIsDirectVideo ? (
-	                <HlsAutoplayVideo
-	                  src={heroVideoUrl!}
-	                  poster={heroItem?.backdrop_url}
-	                  delayMs={3000}
-	                  className="absolute inset-0 w-full h-full object-cover"
-	                />
-	              ) : heroYoutubeId ? (
-	                <iframe
-	                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
-	                  className="absolute inset-0 w-full h-full object-cover scale-110"
-	                  allow="autoplay; encrypted-media"
-	                  frameBorder="0"
-	                  style={{ pointerEvents: "none" }}
-	                  title={heroItem?.name || ""}
-	                />
-	              ) : heroItem?.backdrop_url ? (
-	                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-	              ) : (
-	                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
-	              )}
-	              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[#0f0f0f] to-transparent pointer-events-none" />
-	            </div>
           </div>
+        </div>
 
-          {/* Content below player */}
-          <div className="max-w-5xl mx-auto px-6 pb-8 pt-4 space-y-3">
-            <h1 className="text-4xl lg:text-5xl font-black text-white leading-[1] tracking-tight" style={{ fontFamily: "'Helvetica Neue', 'Arial Black', 'Inter', sans-serif" }}>
-              CONTEÚDOS QUE<br />
-              <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
-            </h1>
-            {heroItem?.name && (
-              <p className="text-xl font-semibold text-white/90">{heroItem.name}</p>
-            )}
-            <p className="text-base text-white/70 max-w-lg leading-relaxed line-clamp-3">
-              {heroItem?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
-            </p>
-            <div className="flex items-center gap-3 text-xs text-white/60">
-              <span className="text-green-400 font-bold text-sm">Premium</span>
-              <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-bold">HD</span>
-              <span>Curadoria Exclusiva</span>
-            </div>
-            <div className="flex items-center gap-3 pt-1">
-              <button 
-                onClick={() => handlePlayTrailer(heroVideoUrl)}
-                className="flex items-center gap-2.5 bg-[hsl(var(--player-accent))] text-white font-bold px-8 py-3.5 rounded-md hover:brightness-110 transition-all text-base shadow-xl"
-              >
-                <Play className="w-5 h-5 fill-white" />
-                COMEÇAR AGORA
-              </button>
-              <button onClick={scrollToContent} className="flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold px-7 py-3.5 rounded-md hover:bg-white/30 transition-colors text-base">
-                <Film className="w-5 h-5" />
-                Explorar
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
+        {/* Bottom fade into collections */}
+        {!isMobile && <div className="h-16 bg-gradient-to-b from-transparent to-[#0f0f0f] relative z-10" />}
+      </section>
+
 
       {/* Fullscreen Trailer Player */}
       <FullscreenTrailerPlayer
