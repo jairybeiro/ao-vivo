@@ -189,7 +189,7 @@ const CineBusinessDetail = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative w-full">
+      <section className={`relative w-full ${isMobile ? 'bg-[#0f0f0f] pt-14' : 'bg-[#0f0f0f] pt-16'}`}>
         {/* Ambilight Background - desktop only */}
         {!isMobile && (
           <div className="absolute inset-0 z-0 overflow-hidden">
@@ -205,117 +205,118 @@ const CineBusinessDetail = () => {
         )}
 
         {/* Player Area */}
-        <div className={`relative z-10 ${isMobile ? 'pt-14' : 'pt-[68px]'}`}>
-          <div className={`max-w-5xl mx-auto ${isMobile ? 'px-0' : 'px-6'}`}>
-            <div className={`relative w-full aspect-video overflow-hidden ${isMobile ? 'rounded-none' : 'rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.6)] border border-white/10'}`}>
-              {isDirectVideo ? (
-                <HlsAutoplayVideo
-                  src={bgSource}
-                  poster={item.backdrop_url}
-                  delayMs={3000}
-                  className="w-full h-full object-cover"
-                />
-              ) : youtubeId ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${youtubeId}&modestbranding=1&rel=0`}
-                  className="w-full h-full scale-105 pointer-events-none"
-                  allow="autoplay"
-                />
-              ) : item.backdrop_url ? (
-                <img
-                  src={item.backdrop_url}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
-              )}
-              {/* Inner Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
-
-              {/* Back Button inside player */}
-              <button
-                onClick={() => navigate(-1)}
-                className="absolute top-3 left-3 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white transition-all duration-200"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Info */}
-        <div className={`relative z-10 max-w-5xl mx-auto px-4 md:px-6 ${isMobile ? 'pt-4 pb-6' : 'pt-6 pb-8'}`}>
-          <div className={`space-y-3 ${isMobile ? '' : 'space-y-4'}`}>
-            {/* Title and Rating */}
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <h1 className={`font-bold text-foreground ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'}`}>{item.name}</h1>
-                {tag && (
-                  <p className="text-xs md:text-sm text-muted-foreground mt-1">
-                    {TAG_EMOJIS[tag] || "📌"} {tag}
-                  </p>
-                )}
-              </div>
-              {item.rating && item.rating > 0 && (
-                <div className={`flex items-center gap-1.5 bg-primary/20 rounded-lg shrink-0 ${isMobile ? 'px-2.5 py-1.5' : 'px-4 py-2'}`}>
-                  <Star className={`text-yellow-500 fill-yellow-500 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                  <span className={`font-bold text-foreground ${isMobile ? 'text-sm' : 'text-lg'}`}>{item.rating}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Meta Info - moved above sinopse on mobile */}
-            <div className="flex flex-wrap gap-3 text-xs md:text-sm text-muted-foreground">
-              {tmdb?.release_date && (
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" />
-                  {new Date(tmdb.release_date).getFullYear()}
-                </div>
-              )}
-              {tmdb?.runtime && (
-                <div className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" />
-                  {tmdb.runtime} min
-                </div>
-              )}
-              {tmdb?.original_language && (
-                <div className="flex items-center gap-1.5">
-                  <Globe className="w-3.5 h-3.5" />
-                  {tmdb.original_language.toUpperCase()}
-                </div>
-              )}
-            </div>
-
-            {/* Sinopse */}
-            {(item.sinopse || tmdb?.plot) && (
-              <p className={`text-foreground/80 leading-relaxed ${isMobile ? 'text-sm line-clamp-4' : 'text-base'}`}>
-                {item.sinopse || tmdb?.plot}
-              </p>
+        <div className={`relative z-10 ${isMobile ? '' : 'flex items-center justify-center'}`} style={isMobile ? {} : { minHeight: "70vh" }}>
+          <div className={`relative w-full ${isMobile ? 'aspect-video' : 'max-w-5xl mx-auto aspect-video overflow-hidden rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.6)] border border-white/10'}`}>
+            {isDirectVideo ? (
+              <HlsAutoplayVideo
+                src={bgSource}
+                poster={item.backdrop_url}
+                delayMs={3000}
+                className="w-full h-full object-cover"
+              />
+            ) : youtubeId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${youtubeId}&modestbranding=1&rel=0`}
+                className="w-full h-full scale-105 pointer-events-none"
+                allow="autoplay"
+              />
+            ) : item.backdrop_url ? (
+              <img
+                src={item.backdrop_url}
+                alt={item.name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-slate-700 to-slate-900" />
             )}
 
-            {/* Action Buttons */}
-            <div className={`flex gap-2.5 ${isMobile ? 'pt-1' : 'pt-2'}`}>
-              {hasTrailer && (
-                <button
-                  onClick={() => setShowTrailerPlayer(true)}
-                  className={`flex items-center gap-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors ${isMobile ? 'px-4 py-2.5 text-sm flex-1' : 'px-6 py-3'}`}
-                >
-                  <Play className={`fill-current ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
-                  Assistir Trailer
-                </button>
+            {/* Netflix-style gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-transparent to-transparent pointer-events-none" />
+
+            {/* Back Button */}
+            <button
+              onClick={() => navigate(-1)}
+              className="absolute top-3 left-3 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white transition-all duration-200"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+
+            {/* Overlay Content */}
+            <div className={`absolute bottom-0 left-0 right-0 z-20 ${isMobile ? 'p-4 pb-5' : 'p-8 pb-10'}`}>
+              {/* Title and Rating */}
+              <div className="flex items-end justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h1 className={`font-bold text-white ${isMobile ? 'text-xl' : 'text-3xl md:text-4xl'}`}>{item.name}</h1>
+                  {tag && (
+                    <p className="text-xs md:text-sm text-white/60 mt-1">
+                      {TAG_EMOJIS[tag] || "📌"} {tag}
+                    </p>
+                  )}
+                </div>
+                {item.rating && item.rating > 0 && (
+                  <div className={`flex items-center gap-1.5 bg-white/15 backdrop-blur-sm rounded-lg shrink-0 ${isMobile ? 'px-2.5 py-1.5' : 'px-4 py-2'}`}>
+                    <Star className={`text-yellow-500 fill-yellow-500 ${isMobile ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                    <span className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-lg'}`}>{item.rating}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Meta Info */}
+              <div className="flex flex-wrap gap-3 text-xs md:text-sm text-white/60 mt-2">
+                {tmdb?.release_date && (
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5" />
+                    {new Date(tmdb.release_date).getFullYear()}
+                  </div>
+                )}
+                {tmdb?.runtime && (
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    {tmdb.runtime} min
+                  </div>
+                )}
+                {tmdb?.original_language && (
+                  <div className="flex items-center gap-1.5">
+                    <Globe className="w-3.5 h-3.5" />
+                    {tmdb.original_language.toUpperCase()}
+                  </div>
+                )}
+              </div>
+
+              {/* Sinopse */}
+              {(item.sinopse || tmdb?.plot) && (
+                <p className={`text-white/70 leading-relaxed mt-2 ${isMobile ? 'text-xs line-clamp-2' : 'text-sm max-w-lg line-clamp-3'}`}>
+                  {item.sinopse || tmdb?.plot}
+                </p>
               )}
-              {item.link_checkout && (
-                <button
-                  onClick={() => window.open(item.link_checkout, "_blank")}
-                  className={`flex items-center justify-center gap-2 bg-secondary text-secondary-foreground font-semibold rounded-lg hover:bg-secondary/90 transition-colors ${isMobile ? 'px-4 py-2.5 text-sm flex-1' : 'px-6 py-3'}`}
-                >
-                  Comprar Acesso
-                </button>
-              )}
+
+              {/* Action Buttons */}
+              <div className={`flex gap-2.5 ${isMobile ? 'mt-3' : 'mt-4'}`}>
+                {hasTrailer && (
+                  <button
+                    onClick={() => setShowTrailerPlayer(true)}
+                    className={`flex items-center gap-2 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-colors ${isMobile ? 'px-4 py-2.5 text-xs flex-1' : 'px-6 py-3 text-sm'}`}
+                  >
+                    <Play className={`fill-current ${isMobile ? 'w-3.5 h-3.5' : 'w-5 h-5'}`} />
+                    Assistir Trailer
+                  </button>
+                )}
+                {item.link_checkout && (
+                  <button
+                    onClick={() => window.open(item.link_checkout, "_blank")}
+                    className={`flex items-center justify-center gap-2 bg-white/20 backdrop-blur-sm text-white font-semibold rounded-lg hover:bg-white/30 transition-colors ${isMobile ? 'px-4 py-2.5 text-xs flex-1' : 'px-6 py-3 text-sm'}`}
+                  >
+                    Comprar Acesso
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Bottom fade */}
+        {!isMobile && <div className="h-12 bg-gradient-to-b from-transparent to-background relative z-10" />}
       </section>
 
       {/* TMDB Details */}
