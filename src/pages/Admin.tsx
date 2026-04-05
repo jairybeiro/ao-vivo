@@ -12,6 +12,7 @@ import { AdForm } from "@/components/admin/AdForm";
 import { AdList } from "@/components/admin/AdList";
 import { CineBusinessForm } from "@/components/admin/CineBusinessForm";
 import { CourseManager } from "@/components/courses/CourseManager";
+import { XtreamSearch } from "@/components/admin/XtreamSearch";
 
 const Admin = () => {
   const { user, isAdmin, loading, adminCheckLoading, signOut } = useAuth();
