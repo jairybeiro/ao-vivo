@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toProxyStreamUrl } from "@/lib/streamProxy";
-import { isHlsUrl } from "@/lib/hlsUtils";
+import { isHlsUrl, isStreamUrl } from "@/lib/hlsUtils";
 import { useSaveWatchProgress, useGetWatchProgress } from "@/hooks/useWatchProgress";
 import { NetflixLoader } from "@/components/NetflixLoader";
 import Hls from "hls.js";
