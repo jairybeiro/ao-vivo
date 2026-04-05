@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Star, Play, Clock, Calendar, Globe, Users, ChevronRight, Info, X } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
-import VodPlayer from "@/components/VodPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 
 interface CineBusinessItem {
   id: string;
