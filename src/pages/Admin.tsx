@@ -12,6 +12,7 @@ import { AdForm } from "@/components/admin/AdForm";
 import { AdList } from "@/components/admin/AdList";
 import { CineBusinessForm } from "@/components/admin/CineBusinessForm";
 import { CourseManager } from "@/components/courses/CourseManager";
+import { XtreamSearch } from "@/components/admin/XtreamSearch";
 
 const Admin = () => {
   const { user, isAdmin, loading, adminCheckLoading, signOut } = useAuth();
@@ -126,6 +127,7 @@ const Admin = () => {
 
             {/* CineBusiness */}
             <TabsContent value="cinebiz" className="space-y-6">
+              <XtreamSearch />
               <div className="flex justify-between items-start">
                 <p className="text-sm text-muted-foreground">
                   Adicione conteúdos de negócios com busca TMDB e monetização integrada.
