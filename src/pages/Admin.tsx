@@ -127,6 +127,7 @@ const Admin = () => {
 
             {/* CineBusiness */}
             <TabsContent value="cinebiz" className="space-y-6">
+              <XtreamSearch />
               <div className="flex justify-between items-start">
                 <p className="text-sm text-muted-foreground">
                   Adicione conteúdos de negócios com busca TMDB e monetização integrada.
