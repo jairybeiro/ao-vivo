@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Star, Play, Clock, Calendar, Globe, Users, ChevronRight, Info, X } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
-import VodPlayer from "@/components/VodPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 
 interface CineBusinessItem {
   id: string;
@@ -377,25 +377,13 @@ const CineBusinessDetail = () => {
       )}
 
       {/* Trailer Player Modal */}
-      {showTrailerPlayer && (
-        <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
-          <button
-            onClick={() => setShowTrailerPlayer(false)}
-            className="absolute top-4 right-4 z-50 w-10 h-10 flex items-center justify-center rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <div className="w-full h-full">
-            <VodPlayer
-              src={trailerMp4 || trailerUrl || ""}
-              title={item.name}
-              poster={item.cover_url || item.backdrop_url || undefined}
-              contentType="movie"
-              onBack={() => setShowTrailerPlayer(false)}
-            />
-          </div>
-        </div>
-      )}
+      <FullscreenTrailerPlayer
+        isOpen={showTrailerPlayer}
+        onClose={() => setShowTrailerPlayer(false)}
+        trailerUrl={trailerMp4 || trailerUrl || null}
+        title={item.name}
+        poster={item.cover_url || item.backdrop_url || undefined}
+      />
     </div>
   );
 };
