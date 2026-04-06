@@ -7,6 +7,7 @@ import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
+import { extractYouTubeId, isDirectVideoUrl } from "@/lib/videoSource";
 
 interface CineBusinessItem {
   id: string;
@@ -62,11 +63,6 @@ const TAG_EMOJIS: Record<string, string> = {
   "Negociação": "🤝",
   "Motivação": "🔥",
 };
-
-function extractYouTubeId(url: string): string | null {
-  const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  return match ? match[1] : null;
-}
 
 const CineBusinessDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -155,15 +151,16 @@ const CineBusinessDetail = () => {
     fetchData();
   }, [id, navigate]);
 
-  // Priority: trailer_mp4_url (MP4/M3U8) > embed_url (iframe) > trailer_url (YouTube) > tmdb.trailer_url
+  // Priority: trailer_mp4_url (MP4/M3U8) > embed_url (iframe) > trailer_url (YouTube manual)
   const trailerMp4 = item?.trailer_mp4_url;
   const embedUrl = item?.embed_url;
   const trailerUrl = item?.trailer_url || null;
+  const hasFullContent = isDirectVideoUrl(item?.stream_url);
   
   // For display: prefer direct video (mp4/m3u8) over embed over YouTube
   const bgSource = trailerMp4 || trailerUrl;
-  const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
-  const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
+  const youtubeId = extractYouTubeId(bgSource);
+  const isDirectVideo = isDirectVideoUrl(bgSource);
   
   const tag = item?.category;
   const hasTrailer = !!(trailerMp4 || embedUrl || trailerUrl);
@@ -385,6 +382,7 @@ const CineBusinessDetail = () => {
         onClose={() => setShowTrailerPlayer(false)}
         trailerUrl={trailerMp4 || trailerUrl || null}
         embedUrl={embedUrl || null}
+        contentUrl={hasFullContent ? item.stream_url : null}
         title={item.name}
         poster={item.cover_url || item.backdrop_url || undefined}
       />
