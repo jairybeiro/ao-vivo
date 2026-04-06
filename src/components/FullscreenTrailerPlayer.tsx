@@ -6,6 +6,7 @@ interface FullscreenTrailerPlayerProps {
   isOpen: boolean;
   onClose: () => void;
   trailerUrl: string | null;
+  embedUrl?: string | null;
   title: string;
   poster?: string;
 }
@@ -19,6 +20,7 @@ const FullscreenTrailerPlayer = ({
   isOpen,
   onClose,
   trailerUrl,
+  embedUrl,
   title,
   poster,
 }: FullscreenTrailerPlayerProps) => {
@@ -49,10 +51,12 @@ const FullscreenTrailerPlayer = ({
     };
   }, [isOpen, onClose]);
 
-  if (!isOpen || !trailerUrl) return null;
+  if (!isOpen || (!trailerUrl && !embedUrl)) return null;
 
-  const youtubeId = extractYouTubeId(trailerUrl);
-  const isDirectVideo = !youtubeId && /\.(mp4|m3u8|m3u)/i.test(trailerUrl);
+  const effectiveUrl = trailerUrl || embedUrl || "";
+  const youtubeId = extractYouTubeId(effectiveUrl);
+  const isDirectVideo = !youtubeId && /\.(mp4|m3u8|m3u)/i.test(effectiveUrl);
+  const isEmbed = !!embedUrl && !trailerUrl;
 
   return (
     <div
@@ -73,7 +77,7 @@ const FullscreenTrailerPlayer = ({
         <div className="w-full h-full">
           {isDirectVideo ? (
             <VodPlayer
-              src={trailerUrl}
+              src={effectiveUrl}
               title={title}
               poster={poster || undefined}
               contentType="movie"
@@ -89,7 +93,7 @@ const FullscreenTrailerPlayer = ({
             />
           ) : (
             <iframe
-              src={trailerUrl}
+              src={effectiveUrl}
               className="w-full h-full"
               allow="autoplay; encrypted-media; fullscreen"
               allowFullScreen
