@@ -53,6 +53,7 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
   const [sinopse, setSinopse] = useState("");
   const [streamUrl, setStreamUrl] = useState("pending");
 
+  const [embedUrl, setEmbedUrl] = useState("");
   const [linkCheckout, setLinkCheckout] = useState("");
   const [tempoAnuncio, setTempoAnuncio] = useState("30");
   const [urlImagemAnuncio, setUrlImagemAnuncio] = useState("");
@@ -70,6 +71,7 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
       setTrailerUrl(editingMovie.trailer_url || "");
       setRating(editingMovie.rating?.toString() || "");
       setSinopse(editingMovie.sinopse || "");
+      setEmbedUrl(editingMovie.embed_url || "");
       setLinkCheckout(editingMovie.link_checkout || "");
       setTempoAnuncio(editingMovie.tempo_anuncio?.toString() || "30");
       setUrlImagemAnuncio(editingMovie.url_imagem_anuncio || "");
@@ -133,6 +135,7 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
       trailer_url: trailerUrl.trim() || null,
       rating: rating ? parseFloat(rating) : null,
       sinopse: sinopse.trim() || null,
+      embed_url: embedUrl.trim() || null,
       link_checkout: linkCheckout.trim() || null,
       tempo_anuncio: tempoAnuncio ? parseInt(tempoAnuncio) : 30,
       url_imagem_anuncio: urlImagemAnuncio.trim() || null,
@@ -271,6 +274,12 @@ export const CineBusinessForm = ({ editingMovie, onSuccess, onCancel }: CineBusi
       <div className="space-y-2">
         <Label>URL do Trailer (YouTube)</Label>
         <Input value={trailerUrl} onChange={(e) => setTrailerUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Embed iframe (Vimeo, Apple TV, etc.)</Label>
+        <Input value={embedUrl} onChange={(e) => setEmbedUrl(e.target.value)} placeholder="https://player.vimeo.com/video/... ou URL de embed" />
+        <p className="text-xs text-muted-foreground">Cole aqui a URL de embed de qualquer plataforma (não YouTube). Ex: Vimeo, Apple TV+, Dailymotion</p>
       </div>
 
       <div className="space-y-2">
