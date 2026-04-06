@@ -158,7 +158,7 @@ const CineBusinessDetail = () => {
   // Priority: trailer_mp4_url (MP4/M3U8) > embed_url (iframe) > trailer_url (YouTube) > tmdb.trailer_url
   const trailerMp4 = item?.trailer_mp4_url;
   const embedUrl = item?.embed_url;
-  const trailerUrl = item?.trailer_url || tmdb?.trailer_url;
+  const trailerUrl = item?.trailer_url || null;
   
   // For display: prefer direct video (mp4/m3u8) over embed over YouTube
   const bgSource = trailerMp4 || trailerUrl;
