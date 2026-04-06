@@ -384,6 +384,7 @@ const CineBusinessDetail = () => {
         isOpen={showTrailerPlayer}
         onClose={() => setShowTrailerPlayer(false)}
         trailerUrl={trailerMp4 || trailerUrl || null}
+        embedUrl={embedUrl || null}
         title={item.name}
         poster={item.cover_url || item.backdrop_url || undefined}
       />
