@@ -18,6 +18,7 @@ interface CineBusinessItem {
   sinopse: string | null;
   trailer_url: string | null;
   trailer_mp4_url: string | null;
+  embed_url: string | null;
   stream_url: string | null;
   tmdb_id: number | null;
   link_checkout?: string | null;
@@ -116,6 +117,7 @@ const CineBusinessDetail = () => {
         sinopse: data.sinopse || null,
         trailer_url: data.trailer_url || null,
         trailer_mp4_url: (data as any).trailer_mp4_url || null,
+        embed_url: (data as any).embed_url || null,
         stream_url: (data as any).stream_url || null,
         tmdb_id: (data as any).tmdb_id || null,
         link_checkout: (data as any).link_checkout || null,
@@ -153,17 +155,18 @@ const CineBusinessDetail = () => {
     fetchData();
   }, [id, navigate]);
 
-  // Priority: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube) > tmdb.trailer_url
+  // Priority: trailer_mp4_url (MP4/M3U8) > embed_url (iframe) > trailer_url (YouTube) > tmdb.trailer_url
   const trailerMp4 = item?.trailer_mp4_url;
+  const embedUrl = item?.embed_url;
   const trailerUrl = item?.trailer_url || tmdb?.trailer_url;
   
-  // For display: prefer direct video (mp4/m3u8) over YouTube
+  // For display: prefer direct video (mp4/m3u8) over embed over YouTube
   const bgSource = trailerMp4 || trailerUrl;
   const youtubeId = bgSource ? extractYouTubeId(bgSource) : null;
   const isDirectVideo = bgSource && !youtubeId && /\.(mp4|m3u8|m3u)/i.test(bgSource);
   
   const tag = item?.category;
-  const hasTrailer = !!(trailerMp4 || trailerUrl);
+  const hasTrailer = !!(trailerMp4 || embedUrl || trailerUrl);
 
   if (loading) {
     return (
@@ -381,6 +384,7 @@ const CineBusinessDetail = () => {
         isOpen={showTrailerPlayer}
         onClose={() => setShowTrailerPlayer(false)}
         trailerUrl={trailerMp4 || trailerUrl || null}
+        embedUrl={embedUrl || null}
         title={item.name}
         poster={item.cover_url || item.backdrop_url || undefined}
       />

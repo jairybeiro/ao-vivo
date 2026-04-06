@@ -464,6 +464,7 @@ export type Database = {
           category_tag: string | null
           cover_url: string | null
           created_at: string
+          embed_url: string | null
           id: string
           is_active: boolean | null
           link_checkout: string | null
@@ -486,6 +487,7 @@ export type Database = {
           category_tag?: string | null
           cover_url?: string | null
           created_at?: string
+          embed_url?: string | null
           id?: string
           is_active?: boolean | null
           link_checkout?: string | null
@@ -508,6 +510,7 @@ export type Database = {
           category_tag?: string | null
           cover_url?: string | null
           created_at?: string
+          embed_url?: string | null
           id?: string
           is_active?: boolean | null
           link_checkout?: string | null
@@ -612,6 +615,7 @@ export type Database = {
           category_tag: string | null
           cover_url: string | null
           created_at: string
+          embed_url: string | null
           id: string
           is_active: boolean | null
           link_checkout: string | null
@@ -643,6 +647,7 @@ export type Database = {
           category_tag: string | null
           cover_url: string | null
           created_at: string
+          embed_url: string | null
           id: string
           is_active: boolean | null
           link_checkout: string | null

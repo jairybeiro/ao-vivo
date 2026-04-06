@@ -1,0 +1,1 @@
+ALTER TABLE public.vod_movies ADD COLUMN embed_url TEXT DEFAULT NULL;
