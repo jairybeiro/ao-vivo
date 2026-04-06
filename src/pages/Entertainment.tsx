@@ -8,6 +8,7 @@ import CineBusinessCard from "@/components/CineBusinessCard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
+import { extractYouTubeId, isDirectVideoUrl } from "@/lib/videoSource";
 
 interface CineBusinessItem {
   id: string;
@@ -99,13 +100,8 @@ const Entertainment = () => {
   // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
   const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
 
-  // Detect video type for hero
-  const extractYouTubeId = (url: string): string | null => {
-    const match = url.match(/(?:v=|\/embed\/|youtu\.be\/)([^&?#]+)/);
-    return match ? match[1] : null;
-  };
-  const heroYoutubeId = heroVideoUrl ? extractYouTubeId(heroVideoUrl) : null;
-  const heroIsDirectVideo = heroVideoUrl && !heroYoutubeId && /\.(mp4|m3u8|m3u)/i.test(heroVideoUrl);
+  const heroYoutubeId = extractYouTubeId(heroVideoUrl);
+  const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
 
   return (
     <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
