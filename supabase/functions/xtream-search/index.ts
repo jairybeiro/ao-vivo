@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { host, username, password, search } = await req.json();
+    const { host, username, password, search, type = "movie" } = await req.json();
 
     if (!host || !username || !password || !search || search.trim().length < 2) {
       return new Response(
@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
     }
 
     const cleanHost = host.replace(/\/+$/, "");
-    const apiUrl = `${cleanHost}/player_api.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&action=get_vod_streams`;
+    const action = type === "series" ? "get_series" : "get_vod_streams";
+    const apiUrl = `${cleanHost}/player_api.php?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&action=${action}`;
 
     const response = await fetch(apiUrl, {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -50,6 +51,18 @@ Deno.serve(async (req) => {
       })
       .slice(0, 30)
       .map((item: any) => {
+        if (type === "series") {
+          return {
+            series_id: item.series_id,
+            name: item.name || "Sem nome",
+            cover_url: item.cover || null,
+            rating: item.rating || null,
+            category_id: item.category_id || null,
+            plot: item.plot || null,
+            last_modified: item.last_modified || null,
+          };
+        }
+
         const streamId = item.stream_id;
         const ext = item.container_extension || "mp4";
         const streamUrl = `${cleanHost}/movie/${encodeURIComponent(username)}/${encodeURIComponent(password)}/${streamId}.${ext}`;
