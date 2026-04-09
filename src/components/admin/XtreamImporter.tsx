@@ -133,7 +133,7 @@ export const XtreamImporter = () => {
       setSeriesInfo(data);
       // Expand first season by default
       if (data?.episodes?.length > 0) {
-        const seasons = [...new Set(data.episodes.map((ep: EpisodeResult) => ep.season))];
+        const seasons: number[] = [...new Set(data.episodes.map((ep: EpisodeResult) => ep.season as number))];
         setExpandedSeasons(new Set([seasons[0]]));
       }
     } catch (err: any) {
