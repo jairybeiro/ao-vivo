@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, X } from "lucide-react";
+import { Play } from "lucide-react";
 import VodPlayer from "@/components/VodPlayer";
-import { Button } from "@/components/ui/button";
 import { extractYouTubeId, isDirectVideoUrl, pickPreferredMediaUrl } from "@/lib/videoSource";
 
 interface FullscreenTrailerPlayerProps {
@@ -67,37 +66,23 @@ const FullscreenTrailerPlayer = ({
 
   if (!isOpen || !effectiveUrl) return null;
 
+  // "Conteúdo completo" button rendered inline in player controls
+  const fullContentControl = canWatchFullContent ? (
+    <button
+      type="button"
+      onClick={() => setActiveSource("content")}
+      className="flex items-center gap-1.5 text-[11px] md:text-xs text-white/60 hover:text-white transition-colors ml-2"
+    >
+      <Play className="w-3 h-3 md:w-3.5 md:h-3.5 fill-current" />
+      <span className="hidden sm:inline">Conteúdo completo</span>
+    </button>
+  ) : null;
 
   return (
     <div
       ref={containerRef}
       className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
     >
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
-        {canWatchFullContent && (
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => setActiveSource("content")}
-            className="rounded-full shadow-lg"
-          >
-            <Play className="w-4 h-4 fill-current" />
-            Conteúdo completo
-          </Button>
-        )}
-
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={onClose}
-          className="rounded-full border-border/30 bg-background/20 text-foreground backdrop-blur-sm hover:bg-background/30"
-          title="Fechar (ESC)"
-        >
-          <X className="w-5 h-5" />
-        </Button>
-      </div>
-
       {isInitialized && (
         <div className="w-full h-full">
           {isDirectVideo ? (
@@ -107,6 +92,7 @@ const FullscreenTrailerPlayer = ({
               poster={poster || undefined}
               contentType="movie"
               onBack={onClose}
+              extraControls={fullContentControl}
             />
           ) : youtubeId ? (
             <iframe
