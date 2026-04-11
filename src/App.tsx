@@ -15,6 +15,7 @@ import CourseView from "./pages/CourseView";
 import Courses from "./pages/Courses";
 import Entertainment from "./pages/Entertainment";
 import CineBusinessDetail from "./pages/CineBusinessDetail";
+import SeriesDetail from "./pages/SeriesDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             {/* Players */}
             <Route path="/course/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
             <Route path="/cinebusiness/:id" element={<ProtectedRoute><CineBusinessDetail /></ProtectedRoute>} />
+            <Route path="/series/:id" element={<ProtectedRoute><SeriesDetail /></ProtectedRoute>} />
 
             {/* Admin */}
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />

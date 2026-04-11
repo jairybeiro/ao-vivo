@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Film, ChevronRight, Play, Briefcase } from "lucide-react";
+import { Film, ChevronRight, Play, Briefcase, Tv, Star } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import CineBusinessCardPopover from "@/components/CineBusinessCardPopover";
 import CineBusinessCard from "@/components/CineBusinessCard";
@@ -22,11 +22,24 @@ interface CineBusinessItem {
   sinopse: string | null;
 }
 
+interface SeriesItem {
+  id: string;
+  name: string;
+  category: string;
+  cover_url: string | null;
+  backdrop_url: string | null;
+  rating: number | null;
+  plot: string | null;
+}
+
 const Entertainment = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState<"filmes" | "series">("filmes");
   const [cineBusinessItems, setCineBusinessItems] = useState<CineBusinessItem[]>([]);
   const [cineBusinessByCategory, setCineBusinessByCategory] = useState<Record<string, CineBusinessItem[]>>({});
+  const [seriesItems, setSeriesItems] = useState<SeriesItem[]>([]);
+  const [seriesByCategory, setSeriesByCategory] = useState<Record<string, SeriesItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CineBusinessItem | null>(null);
   const [isTrailerPlayerOpen, setIsTrailerPlayerOpen] = useState(false);
@@ -77,9 +90,27 @@ const Entertainment = () => {
     setLoading(false);
   }, []);
 
+  const fetchSeriesContent = useCallback(async () => {
+    const { data } = await supabase
+      .from("vod_series")
+      .select("id, name, category, cover_url, backdrop_url, rating, plot")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    const items = (data || []) as SeriesItem[];
+    setSeriesItems(items);
+    const grouped: Record<string, SeriesItem[]> = {};
+    items.forEach((item) => {
+      if (!grouped[item.category]) grouped[item.category] = [];
+      grouped[item.category].push(item);
+    });
+    setSeriesByCategory(grouped);
+  }, []);
+
   useEffect(() => {
     fetchCineBusinessContent();
-  }, [fetchCineBusinessContent]);
+    fetchSeriesContent();
+  }, [fetchCineBusinessContent, fetchSeriesContent]);
 
   const handleCineBusinessClick = (item: CineBusinessItem) => {
     navigate(`/cinebusiness/${item.id}`);
@@ -216,57 +247,135 @@ const Entertainment = () => {
         title={heroItem?.name || "Trailer"}
       />
 
-      {/* ===== CINEBUSINESS COLLECTIONS ===== */}
-      <main id="collections" className="container mx-auto px-4 py-8 space-y-10 -mt-8 relative z-20">
+      {/* ===== TABS + COLLECTIONS ===== */}
+      <main id="collections" className="container mx-auto px-4 py-8 space-y-6 -mt-8 relative z-20">
+        {/* Tab switcher */}
+        <div className="flex gap-1 bg-muted/50 rounded-lg p-1 w-fit">
+          <button
+            onClick={() => setActiveTab("filmes")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
+              activeTab === "filmes" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Briefcase className="w-4 h-4" />
+            Filmes
+          </button>
+          <button
+            onClick={() => setActiveTab("series")}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
+              activeTab === "series" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Tv className="w-4 h-4" />
+            Séries
+          </button>
+        </div>
+
         {loading ? (
           <div className="text-center text-muted-foreground py-16">Carregando conteúdos...</div>
-        ) : cineBusinessItems.length === 0 ? (
-          <div className="text-center text-muted-foreground py-16">
-            <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p>Nenhum conteúdo disponível.</p>
-            <p className="text-xs mt-1">Adicione conteúdos no painel Admin → CineBusiness.</p>
-          </div>
+        ) : activeTab === "filmes" ? (
+          /* FILMES TAB */
+          cineBusinessItems.length === 0 ? (
+            <div className="text-center text-muted-foreground py-16">
+              <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Nenhum conteúdo disponível.</p>
+            </div>
+          ) : (
+            <div className="space-y-10">
+              {categories.map((category) => (
+                <section key={category} className="space-y-3">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <span className="text-xl">💼</span>
+                    {category}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {cineBusinessByCategory[category].map((item) => (
+                      isMobile ? (
+                        <CineBusinessCard
+                          key={item.id}
+                          id={item.id}
+                          name={item.name}
+                          category={item.category}
+                          cover_url={item.cover_url}
+                          backdrop_url={item.backdrop_url}
+                          rating={item.rating}
+                          trailer_url={item.trailer_mp4_url || item.trailer_url}
+                          onClick={() => handleCineBusinessClick(item)}
+                        />
+                      ) : (
+                        <CineBusinessCardPopover
+                          key={item.id}
+                          id={item.id}
+                          name={item.name}
+                          category={item.category}
+                          cover_url={item.cover_url}
+                          backdrop_url={item.backdrop_url}
+                          rating={item.rating}
+                          trailer_url={item.trailer_mp4_url || item.trailer_url}
+                          sinopse={item.sinopse}
+                          onClick={() => handleCineBusinessClick(item)}
+                          onPlayTrailer={handlePlayTrailer}
+                        />
+                      )
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )
         ) : (
-          categories.map((category) => (
-            <section key={category} className="space-y-3">
-              <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                <span className="text-xl">💼</span>
-                {category}
-                <ChevronRight className="w-4 h-4 text-muted-foreground" />
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {cineBusinessByCategory[category].map((item) => (
-                  isMobile ? (
-                    <CineBusinessCard
-                      key={item.id}
-                      id={item.id}
-                      name={item.name}
-                      category={item.category}
-                      cover_url={item.cover_url}
-                      backdrop_url={item.backdrop_url}
-                      rating={item.rating}
-                      trailer_url={item.trailer_mp4_url || item.trailer_url}
-                      onClick={() => handleCineBusinessClick(item)}
-                    />
-                  ) : (
-                    <CineBusinessCardPopover
-                      key={item.id}
-                      id={item.id}
-                      name={item.name}
-                      category={item.category}
-                      cover_url={item.cover_url}
-                      backdrop_url={item.backdrop_url}
-                      rating={item.rating}
-                      trailer_url={item.trailer_mp4_url || item.trailer_url}
-                      sinopse={item.sinopse}
-                      onClick={() => handleCineBusinessClick(item)}
-                      onPlayTrailer={handlePlayTrailer}
-                    />
-                  )
-                ))}
-              </div>
-            </section>
-          ))
+          /* SÉRIES TAB */
+          seriesItems.length === 0 ? (
+            <div className="text-center text-muted-foreground py-16">
+              <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Nenhuma série disponível.</p>
+            </div>
+          ) : (
+            <div className="space-y-10">
+              {Object.keys(seriesByCategory).map((category) => (
+                <section key={category} className="space-y-3">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <span className="text-xl">📺</span>
+                    {category}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {seriesByCategory[category].map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => navigate(`/series/${item.id}`)}
+                        className="cursor-pointer group"
+                      >
+                        <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative shadow-lg group-hover:scale-105 group-hover:shadow-2xl transition-all duration-300">
+                          {item.cover_url ? (
+                            <img src={item.cover_url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                              <Tv className="w-8 h-8 text-primary" />
+                            </div>
+                          )}
+                          {item.rating && item.rating > 0 && (
+                            <div className="absolute top-1.5 right-1.5 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              {Number(item.rating).toFixed(1)}
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            <Play className="w-10 h-10 text-white opacity-0 group-hover:opacity-90 transition-opacity fill-white" />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs font-medium truncate text-foreground">{item.name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{item.category}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )
         )}
       </main>
     </div>
