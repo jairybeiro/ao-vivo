@@ -552,7 +552,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       {/* Click-to-play/pause overlay */}
       <div
         className={`absolute inset-0 z-10 cursor-pointer ${countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""}`}
-        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } togglePlay(); }}
+        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } if (showMobileVolume) { setShowMobileVolume(false); clearTimeout(mobileVolumeTimer.current); return; } togglePlay(); }}
       />
 
       {/* === CONTROLS LAYER — Appears on hover with 300ms fade === */}
