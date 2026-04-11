@@ -656,13 +656,13 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               {/* Mobile volume with vertical slider */}
               <div className="relative md:hidden">
                 <button
-                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                  onClick={(e) => { e.stopPropagation(); setShowMobileVolume(prev => !prev); if (!showMobileVolume) resetMobileVolumeTimer(); else clearTimeout(mobileVolumeTimer.current); }}
                   onDoubleClick={(e) => { e.stopPropagation(); }}
                   className="hover:text-[hsl(var(--player-contrast)/0.82)] transition"
                 >
                   {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : volume < 0.5 ? <Volume1 className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                 </button>
-                <MobileVolumeSlider muted={muted} volume={volume} onChangeVolume={changeVolume} />
+                <MobileVolumeSlider show={showMobileVolume} muted={muted} volume={volume} onChangeVolume={changeVolume} onResetTimer={resetMobileVolumeTimer} />
               </div>
             </div>
 
