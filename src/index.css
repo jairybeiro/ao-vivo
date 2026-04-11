@@ -101,6 +101,14 @@
     @apply border-border;
   }
 
+  /*
+   * ⚠️ SCROLL PROTECTION — DO NOT MODIFY ⚠️
+   * These rules ensure native mouse wheel scrolling works on all pages.
+   * NEVER add overflow: hidden, max-height, or height constraints to html/body/#root.
+   * NEVER add !important overrides to overflow properties here.
+   * NEVER add overscroll-behavior restrictions here.
+   * Violating these rules WILL break mouse wheel scrolling globally.
+   */
   html, body {
     @apply bg-background text-foreground antialiased overflow-x-hidden;
   }
