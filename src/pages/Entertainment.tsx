@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Film, ChevronRight, Play, Briefcase } from "lucide-react";
+import { Film, ChevronRight, Play, Briefcase, Tv, Star } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import CineBusinessCardPopover from "@/components/CineBusinessCardPopover";
 import CineBusinessCard from "@/components/CineBusinessCard";
@@ -20,6 +20,16 @@ interface CineBusinessItem {
   trailer_url: string | null;
   trailer_mp4_url: string | null;
   sinopse: string | null;
+}
+
+interface SeriesItem {
+  id: string;
+  name: string;
+  category: string;
+  cover_url: string | null;
+  backdrop_url: string | null;
+  rating: number | null;
+  plot: string | null;
 }
 
 const Entertainment = () => {
