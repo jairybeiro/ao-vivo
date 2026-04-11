@@ -266,26 +266,80 @@ const Entertainment = () => {
 
       {/* ===== TABS + COLLECTIONS ===== */}
       <main id="collections" className="container mx-auto px-4 py-8 space-y-6 -mt-8 relative z-20">
-        {/* Tab switcher */}
-        <div className="flex gap-1 bg-muted/50 rounded-lg p-1 w-fit">
-          <button
-            onClick={() => setActiveTab("filmes")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
-              activeTab === "filmes" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Briefcase className="w-4 h-4" />
-            Filmes
-          </button>
-          <button
-            onClick={() => setActiveTab("series")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
-              activeTab === "series" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Tv className="w-4 h-4" />
-            Séries
-          </button>
+        {/* Tab switcher + filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab("filmes")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
+                activeTab === "filmes" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              Filmes
+            </button>
+            <button
+              onClick={() => setActiveTab("series")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
+                activeTab === "series" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Tv className="w-4 h-4" />
+              Séries
+            </button>
+          </div>
+
+          {/* Search + Category (visible only on Séries tab) */}
+          {activeTab === "series" && (
+            <div className="flex items-center gap-2 flex-1 justify-end">
+              {/* Search */}
+              <div className="relative max-w-[220px] w-full">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar série..."
+                  value={seriesSearch}
+                  onChange={(e) => setSeriesSearch(e.target.value)}
+                  className="w-full pl-8 pr-8 py-2 rounded-lg bg-muted/60 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                {seriesSearch && (
+                  <button onClick={() => setSeriesSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Category dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted/60 border border-border text-sm font-medium text-foreground hover:bg-muted transition whitespace-nowrap"
+                >
+                  {seriesCategory || "Categorias"}
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {showCategoryDropdown && (
+                  <div className="absolute right-0 top-full mt-1 bg-popover border border-border rounded-lg shadow-xl z-40 min-w-[180px] max-h-[300px] overflow-y-auto">
+                    <button
+                      onClick={() => { setSeriesCategory(null); setShowCategoryDropdown(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-accent transition ${!seriesCategory ? "text-primary font-bold" : "text-foreground"}`}
+                    >
+                      Todas
+                    </button>
+                    {seriesCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => { setSeriesCategory(cat); setShowCategoryDropdown(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-accent transition ${cat === seriesCategory ? "text-primary font-bold" : "text-foreground"}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {loading ? (
