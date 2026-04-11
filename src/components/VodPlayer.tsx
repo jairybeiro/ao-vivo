@@ -85,23 +85,6 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const saveInterval = useRef<ReturnType<typeof setInterval>>();
   const resumedRef = useRef(false);
 
-  // Detect mobile portrait vs landscape
-  const [isMobilePortrait, setIsMobilePortrait] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.innerWidth < 768 && window.innerHeight > window.innerWidth;
-  });
-
-  useEffect(() => {
-    const checkOrientation = () => {
-      setIsMobilePortrait(window.innerWidth < 768 && window.innerHeight > window.innerWidth);
-    };
-    window.addEventListener("resize", checkOrientation);
-    window.addEventListener("orientationchange", checkOrientation);
-    return () => {
-      window.removeEventListener("resize", checkOrientation);
-      window.removeEventListener("orientationchange", checkOrientation);
-    };
-  }, []);
 
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(() => {
@@ -460,14 +443,8 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   return (
     <div
       ref={containerRef}
-      className={`relative select-none flex items-center justify-center overflow-hidden ${
-        isMobilePortrait && !isFullscreen ? 'w-full aspect-video rounded-none' : ''
-      }`}
+      className="relative select-none flex items-center justify-center overflow-hidden w-full h-full"
       style={{
-        ...(isMobilePortrait && !isFullscreen
-          ? {}
-          : { width: "98vw", height: "98vh", margin: "1vh auto" }
-        ),
         fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
         WebkitFontSmoothing: "antialiased",
         MozOsxFontSmoothing: "grayscale",
@@ -477,7 +454,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     >
       <video
         ref={videoRef}
-        className={`w-full h-full ${isMobilePortrait && !isFullscreen ? 'object-contain' : 'object-cover'}`}
+        className="w-full h-full object-contain"
         poster={poster || undefined}
         playsInline
         preload="auto"

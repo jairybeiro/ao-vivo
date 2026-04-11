@@ -124,10 +124,8 @@ const SeriesDetail = () => {
 
   // Playing mode
   if (activeEpisode) {
-    const isMobilePortrait = isMobile && typeof window !== "undefined" && window.innerHeight > window.innerWidth;
-
     return (
-      <div className={isMobilePortrait ? "min-h-screen bg-black" : "fixed inset-0 z-[9999] bg-black"}>
+      <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
         <VodPlayer
           src={activeEpisode.stream_url}
           title={`${cleanName(series.name)} - T${activeEpisode.season} E${activeEpisode.episode_num}`}
@@ -156,26 +154,6 @@ const SeriesDetail = () => {
             />
           }
         />
-        {/* Mobile portrait: episode info below player */}
-        {isMobilePortrait && (
-          <div className="px-4 py-4 space-y-3">
-            <h2 className="text-white font-bold text-lg">{activeEpisode.title}</h2>
-            {activeEpisode.plot && (
-              <p className="text-white/60 text-sm line-clamp-3">{activeEpisode.plot}</p>
-            )}
-            <div className="pt-2">
-              <EpisodeOverlay
-                seasons={seasons}
-                selectedSeason={selectedSeason}
-                seasonEpisodes={seasonEpisodes}
-                activeEpisodeId={activeEpisode.id}
-                onSelectSeason={setSelectedSeason}
-                onSelectEpisode={setActiveEpisode}
-                formatDuration={formatDuration}
-              />
-            </div>
-          </div>
-        )}
       </div>
     );
   }
