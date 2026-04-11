@@ -642,7 +642,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                 </button>
               )}
 
-              {/* Episodes overlay toggle — hover-based */}
+              {/* Episodes overlay toggle — hover on desktop, click on mobile */}
               {overlayContent && (
                 <div
                   className="relative"
@@ -650,6 +650,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                   onMouseLeave={() => { overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600); }}
                 >
                   <button
+                    onClick={(e) => { e.stopPropagation(); setShowOverlay(prev => !prev); }}
                     className={`hover:text-[hsl(var(--player-contrast)/0.82)] transition ${showOverlay ? "text-[hsl(var(--player-accent))]" : ""}`}
                     title="Episódios"
                   >
