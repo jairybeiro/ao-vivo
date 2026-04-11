@@ -131,7 +131,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [showMobileVolume, setShowMobileVolume] = useState(false);
+  const mobileVolumeTimer = useRef<ReturnType<typeof setTimeout>>();
   const overlayHideTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const resetMobileVolumeTimer = useCallback(() => {
+    clearTimeout(mobileVolumeTimer.current);
+    mobileVolumeTimer.current = setTimeout(() => setShowMobileVolume(false), 3000);
+  }, []);
 
   const { saveProgress } = useSaveWatchProgress();
   const { progress: savedProgress } = useGetWatchProgress(
