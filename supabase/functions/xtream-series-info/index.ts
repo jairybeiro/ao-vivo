@@ -51,6 +51,7 @@ Deno.serve(async (req) => {
           stream_url: streamUrl,
           cover_url: ep.info?.movie_image || ep.info?.cover_big || null,
           duration_secs: ep.info?.duration_secs || null,
+          plot: ep.info?.plot || null,
           container_extension: ext,
         });
       }

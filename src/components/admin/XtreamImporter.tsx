@@ -207,6 +207,7 @@ export const XtreamImporter = () => {
         stream_url: ep.stream_url,
         cover_url: ep.cover_url || null,
         duration_secs: ep.duration_secs || null,
+        plot: (ep as any).plot || null,
         xtream_id: parseInt(String(ep.id)),
       }));
 
