@@ -1,0 +1,1 @@
+ALTER TABLE public.vod_episodes ADD COLUMN IF NOT EXISTS plot text;
