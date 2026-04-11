@@ -377,7 +377,6 @@ const Entertainment = () => {
             </div>
           )
         )}
-        )}
       </main>
     </div>
   );

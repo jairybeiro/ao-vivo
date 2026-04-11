@@ -37,6 +37,7 @@ const App = () => (
             {/* Players */}
             <Route path="/course/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
             <Route path="/cinebusiness/:id" element={<ProtectedRoute><CineBusinessDetail /></ProtectedRoute>} />
+            <Route path="/series/:id" element={<ProtectedRoute><SeriesDetail /></ProtectedRoute>} />
 
             {/* Admin */}
             <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
