@@ -75,27 +75,70 @@ const VodVolumeControl = ({ muted, volume, onToggleMute, onChangeVolume }: {
   );
 };
 
-// Mobile-only vertical volume slider — controlled visibility from parent
+// Mobile-only vertical volume slider — custom touch-based for iOS compatibility
 const MobileVolumeSlider = ({ show, volume, muted, onChangeVolume, onResetTimer }: {
   show: boolean; volume: number; muted: boolean; onChangeVolume: (v: number) => void; onResetTimer: () => void;
 }) => {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const calcVolume = (clientY: number) => {
+    const track = trackRef.current;
+    if (!track) return;
+    const rect = track.getBoundingClientRect();
+    // Bottom = 0, Top = 1
+    const ratio = 1 - Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+    onChangeVolume(Math.round(ratio * 50) / 50); // step ~0.02
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    onResetTimer();
+    calcVolume(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onResetTimer();
+    calcVolume(e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.stopPropagation();
+    onResetTimer();
+  };
+
+  const displayVol = muted ? 0 : volume;
+
   return (
     <div
       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200"
       style={{ opacity: show ? 1 : 0, transform: show ? "scale(1)" : "scale(0.95)", pointerEvents: show ? "auto" : "none" }}
     >
-      <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <input
-          type="range" min="0" max="1" step="0.02"
-          value={muted ? 0 : volume}
-          onChange={(e) => { e.stopPropagation(); onChangeVolume(parseFloat(e.target.value)); onResetTimer(); }}
-          onTouchStart={(e) => { e.stopPropagation(); onResetTimer(); }}
-          onTouchEnd={() => onResetTimer()}
-          onClick={(e) => e.stopPropagation()}
-          className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
-          {...{ orient: "vertical" } as any}
-          style={{ writingMode: "vertical-lr", direction: "rtl", WebkitAppearance: "slider-vertical", width: "4px", accentColor: "#E50914" }}
-        />
+      <div
+        className="bg-[hsl(0,0%,12%)] rounded-md px-4 py-3 flex flex-col items-center shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
+        <div
+          ref={trackRef}
+          className="relative w-1 h-28 rounded-full bg-white/30 cursor-pointer"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onClick={(e) => { e.stopPropagation(); calcVolume(e.clientY); }}
+        >
+          {/* Filled portion */}
+          <div
+            className="absolute bottom-0 left-0 w-full rounded-full"
+            style={{ height: `${displayVol * 100}%`, backgroundColor: "#E50914" }}
+          />
+          {/* Thumb */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md border-2"
+            style={{ bottom: `calc(${displayVol * 100}% - 7px)`, borderColor: "#E50914" }}
+          />
+        </div>
       </div>
     </div>
   );
