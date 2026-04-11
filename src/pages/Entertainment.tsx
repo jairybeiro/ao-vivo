@@ -35,8 +35,11 @@ interface SeriesItem {
 const Entertainment = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [activeTab, setActiveTab] = useState<"filmes" | "series">("filmes");
   const [cineBusinessItems, setCineBusinessItems] = useState<CineBusinessItem[]>([]);
   const [cineBusinessByCategory, setCineBusinessByCategory] = useState<Record<string, CineBusinessItem[]>>({});
+  const [seriesItems, setSeriesItems] = useState<SeriesItem[]>([]);
+  const [seriesByCategory, setSeriesByCategory] = useState<Record<string, SeriesItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CineBusinessItem | null>(null);
   const [isTrailerPlayerOpen, setIsTrailerPlayerOpen] = useState(false);
@@ -87,9 +90,27 @@ const Entertainment = () => {
     setLoading(false);
   }, []);
 
+  const fetchSeriesContent = useCallback(async () => {
+    const { data } = await supabase
+      .from("vod_series")
+      .select("id, name, category, cover_url, backdrop_url, rating, plot")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    const items = (data || []) as SeriesItem[];
+    setSeriesItems(items);
+    const grouped: Record<string, SeriesItem[]> = {};
+    items.forEach((item) => {
+      if (!grouped[item.category]) grouped[item.category] = [];
+      grouped[item.category].push(item);
+    });
+    setSeriesByCategory(grouped);
+  }, []);
+
   useEffect(() => {
     fetchCineBusinessContent();
-  }, [fetchCineBusinessContent]);
+    fetchSeriesContent();
+  }, [fetchCineBusinessContent, fetchSeriesContent]);
 
   const handleCineBusinessClick = (item: CineBusinessItem) => {
     navigate(`/cinebusiness/${item.id}`);
