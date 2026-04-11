@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Star, Play, ChevronDown, Bookmark, Share2 } from "lucide-react";
+import { ArrowLeft, Star, Play, Pause, ChevronDown, Bookmark, Share2 } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import VodPlayer from "@/components/VodPlayer";
