@@ -27,12 +27,11 @@ const WatchFullOverlay = ({
 
   useEffect(() => {
     if (countdown <= 0) {
-      onWatch();
       return;
     }
     const t = setInterval(() => setCountdown((c) => c - 1), 1000);
     return () => clearInterval(t);
-  }, [countdown, onWatch]);
+  }, [countdown]);
 
   const progress = ((COUNTDOWN_SECS - countdown) / COUNTDOWN_SECS) * 100;
 
