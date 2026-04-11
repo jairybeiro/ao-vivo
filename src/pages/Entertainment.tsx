@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Film, ChevronRight, Play, Briefcase, Tv, Star } from "lucide-react";
+import { Film, ChevronRight, Play, Briefcase, Tv, Star, Search, X, ChevronDown } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import CineBusinessCardPopover from "@/components/CineBusinessCardPopover";
 import CineBusinessCard from "@/components/CineBusinessCard";
@@ -44,7 +44,9 @@ const Entertainment = () => {
   const [heroItem, setHeroItem] = useState<CineBusinessItem | null>(null);
   const [isTrailerPlayerOpen, setIsTrailerPlayerOpen] = useState(false);
   const [selectedTrailerUrl, setSelectedTrailerUrl] = useState<string | null>(null);
-
+  const [seriesSearch, setSeriesSearch] = useState("");
+  const [seriesCategory, setSeriesCategory] = useState<string | null>(null);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const fetchCineBusinessContent = useCallback(async () => {
     setLoading(true);
 
@@ -128,6 +130,21 @@ const Entertainment = () => {
   };
 
   const categories = Object.keys(cineBusinessByCategory);
+  const seriesCategories = useMemo(() => Object.keys(seriesByCategory).sort(), [seriesByCategory]);
+
+  const filteredSeriesByCategory = useMemo(() => {
+    const searchLower = seriesSearch.toLowerCase();
+    const result: Record<string, SeriesItem[]> = {};
+    const cats = seriesCategory ? [seriesCategory] : Object.keys(seriesByCategory);
+    cats.forEach((cat) => {
+      const items = seriesByCategory[cat];
+      if (!items) return;
+      const filtered = searchLower ? items.filter((i) => i.name.toLowerCase().includes(searchLower)) : items;
+      if (filtered.length > 0) result[cat] = filtered;
+    });
+    return result;
+  }, [seriesByCategory, seriesSearch, seriesCategory]);
+
   // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
   const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
 
@@ -249,26 +266,80 @@ const Entertainment = () => {
 
       {/* ===== TABS + COLLECTIONS ===== */}
       <main id="collections" className="container mx-auto px-4 py-8 space-y-6 -mt-8 relative z-20">
-        {/* Tab switcher */}
-        <div className="flex gap-1 bg-muted/50 rounded-lg p-1 w-fit">
-          <button
-            onClick={() => setActiveTab("filmes")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
-              activeTab === "filmes" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Briefcase className="w-4 h-4" />
-            Filmes
-          </button>
-          <button
-            onClick={() => setActiveTab("series")}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
-              activeTab === "series" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Tv className="w-4 h-4" />
-            Séries
-          </button>
+        {/* Tab switcher + filters */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab("filmes")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
+                activeTab === "filmes" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              Filmes
+            </button>
+            <button
+              onClick={() => setActiveTab("series")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
+                activeTab === "series" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Tv className="w-4 h-4" />
+              Séries
+            </button>
+          </div>
+
+          {/* Search + Category (visible only on Séries tab) */}
+          {activeTab === "series" && (
+            <div className="flex items-center gap-2 flex-1 justify-end">
+              {/* Search */}
+              <div className="relative max-w-[220px] w-full">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar série..."
+                  value={seriesSearch}
+                  onChange={(e) => setSeriesSearch(e.target.value)}
+                  className="w-full pl-8 pr-8 py-2 rounded-lg bg-muted/60 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+                {seriesSearch && (
+                  <button onClick={() => setSeriesSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Category dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted/60 border border-border text-sm font-medium text-foreground hover:bg-muted transition whitespace-nowrap"
+                >
+                  {seriesCategory || "Categorias"}
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+                {showCategoryDropdown && (
+                  <div className="absolute right-0 top-full mt-1 bg-popover border border-border rounded-lg shadow-xl z-40 min-w-[180px] max-h-[300px] overflow-y-auto">
+                    <button
+                      onClick={() => { setSeriesCategory(null); setShowCategoryDropdown(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-accent transition ${!seriesCategory ? "text-primary font-bold" : "text-foreground"}`}
+                    >
+                      Todas
+                    </button>
+                    {seriesCategories.map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => { setSeriesCategory(cat); setShowCategoryDropdown(false); }}
+                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-accent transition ${cat === seriesCategory ? "text-primary font-bold" : "text-foreground"}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -331,9 +402,14 @@ const Entertainment = () => {
               <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Nenhuma série disponível.</p>
             </div>
+          ) : Object.keys(filteredSeriesByCategory).length === 0 ? (
+            <div className="text-center text-muted-foreground py-16">
+              <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Nenhum resultado encontrado.</p>
+            </div>
           ) : (
             <div className="space-y-10">
-              {Object.keys(seriesByCategory).map((category) => (
+              {Object.keys(filteredSeriesByCategory).map((category) => (
                 <section key={category} className="space-y-3">
                   <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                     <span className="text-xl">📺</span>
@@ -341,7 +417,7 @@ const Entertainment = () => {
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                    {seriesByCategory[category].map((item) => (
+                    {filteredSeriesByCategory[category].map((item) => (
                       <div
                         key={item.id}
                         onClick={() => navigate(`/series/${item.id}`)}
