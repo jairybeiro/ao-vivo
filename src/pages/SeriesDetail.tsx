@@ -429,7 +429,7 @@ const EpisodeCard = ({
   </button>
 );
 
-// Episode overlay for the player — max 6 episodes, active prioritized
+// Episode overlay for the player — Netflix-style two-level navigation
 const EpisodeOverlay = ({
   seasons,
   selectedSeason,
@@ -447,41 +447,62 @@ const EpisodeOverlay = ({
   onSelectEpisode: (ep: Episode) => void;
   formatDuration: (s: number | null) => string;
 }) => {
-  // Build a window of max 6 episodes centered around the active one
+  const [view, setView] = useState<"seasons" | "episodes">("episodes");
+  const hasMultipleSeasons = seasons.length > 1;
+
   const MAX_VISIBLE = 6;
   const activeIdx = seasonEpisodes.findIndex(ep => ep.id === activeEpisodeId);
   let startIdx = 0;
   if (seasonEpisodes.length > MAX_VISIBLE && activeIdx >= 0) {
-    // Center the active episode in the window
     startIdx = Math.max(0, Math.min(activeIdx - 2, seasonEpisodes.length - MAX_VISIBLE));
   }
   const visibleEpisodes = seasonEpisodes.slice(startIdx, startIdx + MAX_VISIBLE);
 
+  // Season list view
+  if (view === "seasons") {
+    return (
+      <div className="space-y-3">
+        <h3 className="text-white font-bold text-base">Temporadas</h3>
+        <div className="space-y-1">
+          {seasons.map((s) => (
+            <button
+              key={s}
+              onClick={() => { onSelectSeason(s); setView("episodes"); }}
+              className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition ${
+                s === selectedSeason
+                  ? "bg-white/10 text-white font-semibold"
+                  : "text-white/70 hover:bg-white/5"
+              }`}
+            >
+              {s === selectedSeason && (
+                <svg className="w-4 h-4 text-white shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              )}
+              <span className="text-sm">Temporada {s}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Episodes list view
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-bold text-base">Temporada {selectedSeason}</h3>
-        {seasons.length > 1 && (
-          <div className="flex gap-1.5">
-            {seasons.map((s) => (
-              <button
-                key={s}
-                onClick={() => onSelectSeason(s)}
-                className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
-                  s === selectedSeason ? "bg-primary text-primary-foreground" : "bg-white/10 text-white/70 hover:bg-white/20"
-                }`}
-              >
-                T{s}
-              </button>
-            ))}
-          </div>
+      <div className="flex items-center gap-2">
+        {hasMultipleSeasons && (
+          <button
+            onClick={() => setView("seasons")}
+            className="w-7 h-7 flex items-center justify-center rounded-full hover:bg-white/10 transition shrink-0"
+          >
+            <ArrowLeft className="w-4 h-4 text-white" />
+          </button>
         )}
+        <h3 className="text-white font-bold text-base">Temporada {selectedSeason}</h3>
       </div>
       <div className="space-y-1">
         {visibleEpisodes.map((ep) => {
           const isActive = ep.id === activeEpisodeId;
           if (isActive) {
-            // Active episode: expanded with thumbnail + description
             return (
               <div
                 key={ep.id}
@@ -503,7 +524,6 @@ const EpisodeOverlay = ({
                       <Pause className="w-3.5 h-3.5 text-white fill-white" />
                     </div>
                   </div>
-                  {/* Progress bar under thumbnail */}
                   <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
                     <div className="h-full bg-primary" style={{ width: "40%" }} />
                   </div>
@@ -517,7 +537,6 @@ const EpisodeOverlay = ({
               </div>
             );
           }
-          // Non-active: compact list row
           return (
             <button
               key={ep.id}
@@ -538,5 +557,4 @@ const EpisodeOverlay = ({
     </div>
   );
 };
-
 export default SeriesDetail;
