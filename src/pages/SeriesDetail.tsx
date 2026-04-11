@@ -124,8 +124,8 @@ const SeriesDetail = () => {
       <div className="fixed inset-0 z-[9999] bg-black">
         <VodPlayer
           src={activeEpisode.stream_url}
-          title={activeEpisode.title}
-          subtitle={`${series.name} · T${activeEpisode.season}:E${activeEpisode.episode_num}`}
+          title={`${series.name} - T${activeEpisode.season} E${activeEpisode.episode_num}`}
+          subtitle=""
           poster={activeEpisode.cover_url || series.backdrop_url || undefined}
           contentType="episode"
           contentId={activeEpisode.id}
