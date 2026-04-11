@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Star, Play, ChevronDown, Bookmark, Share2 } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
 import VodPlayer from "@/components/VodPlayer";
+import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 
 interface Series {
   id: string;
@@ -91,12 +92,21 @@ const SeriesDetail = () => {
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
+  const formatEpisodeCode = (season: number, epNum: number) => {
+    return `S${String(season).padStart(2, "0")}E${String(epNum).padStart(4, "0")}`;
+  };
+
   const formatDate = (dateStr: string) => {
     try {
       const d = new Date(dateStr);
       return d.toLocaleDateString("pt-BR");
     } catch { return ""; }
   };
+
+  // Trailer source for hero autoplay
+  const trailerSrc = series?.trailer_mp4_url || series?.trailer_url || null;
+  const isYouTubeTrailer = trailerSrc?.includes("youtube") || trailerSrc?.includes("youtu.be");
+  const autoplayTrailer = trailerSrc && !isYouTubeTrailer ? trailerSrc : null;
 
   if (loading) {
     return (
@@ -149,45 +159,84 @@ const SeriesDetail = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <MainHeader transparent={!isMobile} />
+        <MainHeader transparent />
       </div>
 
-      {/* Hero */}
-      <section className="relative w-full">
-        <div className="relative w-full aspect-[16/7] min-h-[400px] max-h-[70vh]">
-          {series.backdrop_url ? (
-            <img src={series.backdrop_url} alt={series.name} className="w-full h-full object-cover" />
-          ) : series.cover_url ? (
-            <img src={series.cover_url} alt={series.name} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-muted to-background" />
+      {/* Hero - Boxed player style */}
+      <section className="relative w-full pt-[60px]">
+        {/* Background blur behind the boxed player */}
+        <div className="absolute inset-0 overflow-hidden">
+          {series.backdrop_url && (
+            <img
+              src={series.backdrop_url}
+              alt=""
+              className="w-full h-full object-cover scale-110 blur-2xl opacity-30"
+            />
           )}
+          <div className="absolute inset-0 bg-background/70" />
+        </div>
 
-          {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-transparent to-transparent" />
+        <div className="relative max-w-5xl mx-auto px-4 md:px-8 pt-8 pb-0">
+          {/* Boxed player/image container */}
+          <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl bg-black">
+            {autoplayTrailer ? (
+              <>
+                <HlsAutoplayVideo
+                  src={autoplayTrailer}
+                  poster={series.backdrop_url || series.cover_url || undefined}
+                  className="w-full h-full object-cover"
+                />
+                {/* Central play button over trailer */}
+                <button
+                  onClick={() => seasonEpisodes.length > 0 && setActiveEpisode(seasonEpisodes[0])}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-20 h-20 rounded-full bg-primary/90 hover:bg-primary flex items-center justify-center shadow-2xl transition-transform hover:scale-110"
+                >
+                  <Play className="w-8 h-8 text-primary-foreground fill-primary-foreground ml-1" />
+                </button>
+              </>
+            ) : series.backdrop_url ? (
+              <>
+                <img src={series.backdrop_url} alt={series.name} className="w-full h-full object-cover" />
+                <button
+                  onClick={() => seasonEpisodes.length > 0 && setActiveEpisode(seasonEpisodes[0])}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-20 h-20 rounded-full bg-primary/90 hover:bg-primary flex items-center justify-center shadow-2xl transition-transform hover:scale-110"
+                >
+                  <Play className="w-8 h-8 text-primary-foreground fill-primary-foreground ml-1" />
+                </button>
+              </>
+            ) : series.cover_url ? (
+              <>
+                <img src={series.cover_url} alt={series.name} className="w-full h-full object-cover" />
+                <button
+                  onClick={() => seasonEpisodes.length > 0 && setActiveEpisode(seasonEpisodes[0])}
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-20 h-20 rounded-full bg-primary/90 hover:bg-primary flex items-center justify-center shadow-2xl transition-transform hover:scale-110"
+                >
+                  <Play className="w-8 h-8 text-primary-foreground fill-primary-foreground ml-1" />
+                </button>
+              </>
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-muted to-background flex items-center justify-center">
+                <Play className="w-16 h-16 text-muted-foreground/30" />
+              </div>
+            )}
 
-          {/* Central play button */}
-          <button
-            onClick={() => seasonEpisodes.length > 0 && setActiveEpisode(seasonEpisodes[0])}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-20 h-20 rounded-full bg-primary/90 hover:bg-primary flex items-center justify-center shadow-2xl transition-transform hover:scale-110"
-          >
-            <Play className="w-8 h-8 text-primary-foreground fill-primary-foreground ml-1" />
-          </button>
+            {/* Bottom gradient scrim */}
+            <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
-          {/* Back button */}
-          <button onClick={() => navigate(-1)} className="absolute top-20 left-4 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
+            {/* Back button */}
+            <button onClick={() => navigate(-1)} className="absolute top-4 left-4 z-30 w-9 h-9 flex items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </div>
 
-          {/* Hero content */}
-          <div className="absolute bottom-0 left-0 right-0 z-20 px-4 md:px-12 pb-8">
+          {/* Title & actions below the player box */}
+          <div className="mt-6 pb-4">
             <div className="flex items-center gap-3 mb-3">
               <span className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded">SÉRIE</span>
               <span className="text-muted-foreground text-sm">{series.category}</span>
             </div>
 
-            <h1 className={`font-black text-foreground leading-tight ${isMobile ? "text-3xl" : "text-5xl"}`}>
+            <h1 className={`font-black text-foreground leading-tight ${isMobile ? "text-2xl" : "text-4xl"}`}>
               {series.name}
             </h1>
 
@@ -211,7 +260,7 @@ const SeriesDetail = () => {
       </section>
 
       {/* Content: Synopsis + Metadata */}
-      <main className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left: Synopsis */}
           <div className="lg:col-span-2 space-y-8">
@@ -243,6 +292,7 @@ const SeriesDetail = () => {
                     seriesName={series.name}
                     onPlay={() => setActiveEpisode(ep)}
                     formatDuration={formatDuration}
+                    formatEpisodeCode={formatEpisodeCode}
                   />
                 ))}
               </div>
@@ -332,18 +382,20 @@ const EpisodeCard = ({
   seriesName,
   onPlay,
   formatDuration,
+  formatEpisodeCode,
 }: {
   episode: Episode;
   seriesName: string;
   onPlay: () => void;
   formatDuration: (s: number | null) => string;
+  formatEpisodeCode: (season: number, epNum: number) => string;
 }) => (
   <button
     onClick={onPlay}
-    className="w-full flex items-start gap-4 p-4 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/40 transition text-left group"
+    className="w-full flex items-start gap-5 p-4 rounded-xl border border-border hover:border-primary/30 hover:bg-muted/40 transition text-left group"
   >
     {/* Thumbnail */}
-    <div className="relative w-36 aspect-video rounded-lg overflow-hidden shrink-0 bg-muted">
+    <div className="relative w-40 md:w-48 aspect-video rounded-lg overflow-hidden shrink-0 bg-muted">
       {episode.cover_url ? (
         <img src={episode.cover_url} alt={episode.title} className="w-full h-full object-cover" />
       ) : (
@@ -351,7 +403,7 @@ const EpisodeCard = ({
           <Play className="w-6 h-6 text-muted-foreground/40" />
         </div>
       )}
-      <div className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+      <div className="absolute bottom-1.5 right-1.5 bg-primary/90 text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded">
         {episode.episode_num}
       </div>
     </div>
@@ -359,15 +411,15 @@ const EpisodeCard = ({
     {/* Info */}
     <div className="flex-1 min-w-0 py-0.5">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition truncate">
-          {episode.episode_num}. {episode.title}
+        <h3 className="font-black text-foreground text-sm md:text-base group-hover:text-primary transition">
+          {episode.episode_num}. {seriesName} - {formatEpisodeCode(episode.season, episode.episode_num)}
         </h3>
         {episode.duration_secs && (
-          <span className="text-xs text-muted-foreground shrink-0 mt-0.5">{formatDuration(episode.duration_secs)}</span>
+          <span className="text-xs text-muted-foreground shrink-0 mt-0.5 font-medium">{formatDuration(episode.duration_secs)}</span>
         )}
       </div>
       {episode.plot && (
-        <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">{episode.plot}</p>
+        <p className="text-sm text-muted-foreground mt-2 line-clamp-3 leading-relaxed">{episode.plot}</p>
       )}
     </div>
   </button>
