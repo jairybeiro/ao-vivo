@@ -75,85 +75,6 @@ const VodVolumeControl = ({ muted, volume, onToggleMute, onChangeVolume }: {
   );
 };
 
-// Mobile-only vertical volume slider — pointer events for iOS + Android
-const MobileVolumeSlider = ({ show, volume, muted, onChangeVolume, onResetTimer }: {
-  show: boolean; volume: number; muted: boolean; onChangeVolume: (v: number) => void; onResetTimer: () => void;
-}) => {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef(false);
-
-  const calcVolume = useCallback((clientY: number) => {
-    const track = trackRef.current;
-    if (!track) return;
-    const rect = track.getBoundingClientRect();
-    const ratio = 1 - Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    onChangeVolume(Math.round(ratio * 50) / 50);
-  }, [onChangeVolume]);
-
-  // Use pointer events for universal touch + mouse support
-  const handlePointerDown = (e: React.PointerEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    dragging.current = true;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
-    onResetTimer();
-    calcVolume(e.clientY);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current) return;
-    e.stopPropagation();
-    e.preventDefault();
-    onResetTimer();
-    calcVolume(e.clientY);
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    e.stopPropagation();
-    dragging.current = false;
-    onResetTimer();
-  };
-
-  const displayVol = muted ? 0 : volume;
-
-  return (
-    <div
-      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200"
-      style={{ opacity: show ? 1 : 0, transform: show ? "scale(1)" : "scale(0.95)", pointerEvents: show ? "auto" : "none" }}
-    >
-      <div
-        className="bg-[hsl(0,0%,12%)] rounded-md px-4 py-3 flex flex-col items-center shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
-      >
-        {/* Wide invisible touch target wrapping thin visible track */}
-        <div
-          className="relative flex items-center justify-center cursor-pointer"
-          style={{ width: 44, height: 112, touchAction: "none" }}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-        >
-          {/* Visible thin track */}
-          <div ref={trackRef} className="relative w-1 h-full rounded-full bg-white/30">
-            {/* Filled portion */}
-            <div
-              className="absolute bottom-0 left-0 w-full rounded-full"
-              style={{ height: `${displayVol * 100}%`, backgroundColor: "#E50914" }}
-            />
-            {/* Thumb */}
-            <div
-              className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white shadow-md border-2"
-              style={{ bottom: `calc(${displayVol * 100}% - 8px)`, borderColor: "#E50914" }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded, extraControls, centerLabel, overlayContent }: VodPlayerProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -184,14 +105,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
-  const [showMobileVolume, setShowMobileVolume] = useState(false);
-  const mobileVolumeTimer = useRef<ReturnType<typeof setTimeout>>();
   const overlayHideTimer = useRef<ReturnType<typeof setTimeout>>();
-
-  const resetMobileVolumeTimer = useCallback(() => {
-    clearTimeout(mobileVolumeTimer.current);
-    mobileVolumeTimer.current = setTimeout(() => setShowMobileVolume(false), 3000);
-  }, []);
 
   const { saveProgress } = useSaveWatchProgress();
   const { progress: savedProgress } = useGetWatchProgress(
@@ -605,7 +519,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       {/* Click-to-play/pause overlay */}
       <div
         className={`absolute inset-0 z-10 cursor-pointer ${countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""}`}
-        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } if (showMobileVolume) { setShowMobileVolume(false); clearTimeout(mobileVolumeTimer.current); return; } togglePlay(); }}
+        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } togglePlay(); }}
       />
 
       {/* === CONTROLS LAYER — Appears on hover with 300ms fade === */}
@@ -706,16 +620,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               {/* Volume — vertical slider on hover (Netflix style) */}
               <VodVolumeControl muted={muted} volume={volume} onToggleMute={(e) => { e.stopPropagation(); toggleMute(); }} onChangeVolume={changeVolume} />
 
-              {/* Mobile volume with vertical slider */}
+              {/* Mobile volume — mute/unmute only */}
               <div className="relative md:hidden">
                 <button
-                  onClick={(e) => { e.stopPropagation(); setShowMobileVolume(prev => !prev); if (!showMobileVolume) resetMobileVolumeTimer(); else clearTimeout(mobileVolumeTimer.current); }}
-                  onDoubleClick={(e) => { e.stopPropagation(); }}
+                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
                   className="hover:text-[hsl(var(--player-contrast)/0.82)] transition"
                 >
                   {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : volume < 0.5 ? <Volume1 className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                 </button>
-                <MobileVolumeSlider show={showMobileVolume} muted={muted} volume={volume} onChangeVolume={changeVolume} onResetTimer={resetMobileVolumeTimer} />
               </div>
             </div>
 
