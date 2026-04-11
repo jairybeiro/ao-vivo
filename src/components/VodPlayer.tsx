@@ -519,7 +519,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       {/* Click-to-play/pause overlay */}
       <div
         className={`absolute inset-0 z-10 cursor-pointer ${countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""}`}
-        onClick={togglePlay}
+        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } togglePlay(); }}
       />
 
       {/* === CONTROLS LAYER — Appears on hover with 300ms fade === */}
@@ -642,7 +642,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                 </button>
               )}
 
-              {/* Episodes overlay toggle — hover-based */}
+              {/* Episodes overlay toggle — hover on desktop, click on mobile */}
               {overlayContent && (
                 <div
                   className="relative"
@@ -650,6 +650,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                   onMouseLeave={() => { overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600); }}
                 >
                   <button
+                    onClick={(e) => { e.stopPropagation(); setShowOverlay(prev => !prev); }}
                     className={`hover:text-[hsl(var(--player-contrast)/0.82)] transition ${showOverlay ? "text-[hsl(var(--player-accent))]" : ""}`}
                     title="Episódios"
                   >
