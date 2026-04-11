@@ -402,9 +402,14 @@ const Entertainment = () => {
               <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Nenhuma série disponível.</p>
             </div>
+          ) : Object.keys(filteredSeriesByCategory).length === 0 ? (
+            <div className="text-center text-muted-foreground py-16">
+              <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Nenhum resultado encontrado.</p>
+            </div>
           ) : (
             <div className="space-y-10">
-              {Object.keys(seriesByCategory).map((category) => (
+              {Object.keys(filteredSeriesByCategory).map((category) => (
                 <section key={category} className="space-y-3">
                   <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
                     <span className="text-xl">📺</span>
@@ -412,7 +417,7 @@ const Entertainment = () => {
                     <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </h2>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                    {seriesByCategory[category].map((item) => (
+                    {filteredSeriesByCategory[category].map((item) => (
                       <div
                         key={item.id}
                         onClick={() => navigate(`/series/${item.id}`)}
