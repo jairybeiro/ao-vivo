@@ -460,11 +460,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   return (
     <div
       ref={containerRef}
-      className="relative select-none flex items-center justify-center overflow-hidden"
+      className={`relative select-none flex items-center justify-center overflow-hidden ${
+        isMobilePortrait && !isFullscreen ? 'w-full aspect-video rounded-none' : ''
+      }`}
       style={{
-        width: "98vw",
-        height: "98vh",
-        margin: "1vh auto",
+        ...(isMobilePortrait && !isFullscreen
+          ? {}
+          : { width: "98vw", height: "98vh", margin: "1vh auto" }
+        ),
         fontFamily: "'Inter', 'Roboto', system-ui, -apple-system, sans-serif",
         WebkitFontSmoothing: "antialiased",
         MozOsxFontSmoothing: "grayscale",
