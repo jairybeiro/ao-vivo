@@ -52,11 +52,18 @@ export const resolvePlayableStreamUrl = async (sourceUrl: string) => {
 };
 
 export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
+  const requiresResolution = Boolean(sourceUrl && shouldResolveStreamUrl(sourceUrl));
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(() => {
     if (!sourceUrl) return null;
     return shouldResolveStreamUrl(sourceUrl) ? null : toProxyStreamUrl(sourceUrl);
   });
   const [isResolving, setIsResolving] = useState(() => Boolean(sourceUrl && shouldResolveStreamUrl(sourceUrl)));
+
+  const safeResolvedUrl = sourceUrl
+    ? requiresResolution
+      ? resolvedUrlCache.get(sourceUrl) ?? resolvedUrl
+      : toProxyStreamUrl(sourceUrl)
+    : null;
 
   useEffect(() => {
     let isActive = true;
@@ -93,5 +100,8 @@ export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
     };
   }, [sourceUrl]);
 
-  return { resolvedUrl, isResolving };
+  return {
+    resolvedUrl: requiresResolution && !resolvedUrlCache.get(sourceUrl || "") ? resolvedUrl : safeResolvedUrl,
+    isResolving: requiresResolution ? isResolving && !resolvedUrlCache.get(sourceUrl || "") : false,
+  };
 };

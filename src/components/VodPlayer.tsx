@@ -176,7 +176,11 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     const video = videoRef.current;
     if (!video) return;
     if (isResolving || !resolvedUrl) {
+      setError(null);
       setLoading(true);
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
       return;
     }
 
@@ -228,7 +232,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         hlsRef.current = null;
       }
     };
-  }, [resolvedUrl, isHls, isResolving]);
+  }, [src, resolvedUrl, isHls, isResolving]);
 
   // Video event listeners
   useEffect(() => {
