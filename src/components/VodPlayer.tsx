@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { toProxyStreamUrl } from "@/lib/streamProxy";
 import { isHlsUrl, isStreamUrl } from "@/lib/hlsUtils";
 import { useSaveWatchProgress, useGetWatchProgress } from "@/hooks/useWatchProgress";
 import { NetflixLoader } from "@/components/NetflixLoader";
+import { useResolvedStreamUrl } from "@/hooks/useResolvedStreamUrl";
 import Hls from "hls.js";
 import {
   Play,
@@ -110,8 +110,8 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     contentId
   );
 
-  const proxiedSrc = toProxyStreamUrl(src);
-  const isHls = isHlsUrl(src);
+  const { resolvedUrl, isResolving } = useResolvedStreamUrl(src);
+  const isHls = isHlsUrl(resolvedUrl || src);
 
   // Save progress periodically and on unmount
   const doSave = useCallback(() => {
@@ -175,6 +175,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    if (isResolving || !resolvedUrl) {
+      setError(null);
+      setLoading(true);
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -198,7 +206,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         enableWorker: true,
         startFragPrefetch: true,
       });
-      hls.loadSource(proxiedSrc);
+      hls.loadSource(resolvedUrl);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         video.play().catch(() => {});
@@ -211,10 +219,10 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       });
       hlsRef.current = hls;
     } else if (isHls && video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = proxiedSrc;
+      video.src = resolvedUrl;
       video.play().catch(() => {});
     } else {
-      video.src = proxiedSrc;
+      video.src = resolvedUrl;
       video.play().catch(() => {});
     }
 
@@ -224,7 +232,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         hlsRef.current = null;
       }
     };
-  }, [proxiedSrc, isHls]);
+  }, [src, resolvedUrl, isHls, isResolving]);
 
   // Video event listeners
   useEffect(() => {
