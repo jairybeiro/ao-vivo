@@ -75,36 +75,42 @@ const VodVolumeControl = ({ muted, volume, onToggleMute, onChangeVolume }: {
   );
 };
 
-// Mobile-only vertical volume slider — custom touch-based for iOS compatibility
+// Mobile-only vertical volume slider — pointer events for iOS + Android
 const MobileVolumeSlider = ({ show, volume, muted, onChangeVolume, onResetTimer }: {
   show: boolean; volume: number; muted: boolean; onChangeVolume: (v: number) => void; onResetTimer: () => void;
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
 
-  const calcVolume = (clientY: number) => {
+  const calcVolume = useCallback((clientY: number) => {
     const track = trackRef.current;
     if (!track) return;
     const rect = track.getBoundingClientRect();
-    // Bottom = 0, Top = 1
     const ratio = 1 - Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    onChangeVolume(Math.round(ratio * 50) / 50); // step ~0.02
-  };
+    onChangeVolume(Math.round(ratio * 50) / 50);
+  }, [onChangeVolume]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // Use pointer events for universal touch + mouse support
+  const handlePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation();
+    e.preventDefault();
+    dragging.current = true;
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
     onResetTimer();
-    calcVolume(e.touches[0].clientY);
+    calcVolume(e.clientY);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
     e.stopPropagation();
     e.preventDefault();
     onResetTimer();
-    calcVolume(e.touches[0].clientY);
+    calcVolume(e.clientY);
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     e.stopPropagation();
+    dragging.current = false;
     onResetTimer();
   };
 
@@ -120,24 +126,28 @@ const MobileVolumeSlider = ({ show, volume, muted, onChangeVolume, onResetTimer 
         onClick={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
       >
+        {/* Wide invisible touch target wrapping thin visible track */}
         <div
-          ref={trackRef}
-          className="relative w-1 h-28 rounded-full bg-white/30 cursor-pointer"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={(e) => { e.stopPropagation(); calcVolume(e.clientY); }}
+          className="relative flex items-center justify-center cursor-pointer"
+          style={{ width: 44, height: 112, touchAction: "none" }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
         >
-          {/* Filled portion */}
-          <div
-            className="absolute bottom-0 left-0 w-full rounded-full"
-            style={{ height: `${displayVol * 100}%`, backgroundColor: "#E50914" }}
-          />
-          {/* Thumb */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 w-3.5 h-3.5 rounded-full bg-white shadow-md border-2"
-            style={{ bottom: `calc(${displayVol * 100}% - 7px)`, borderColor: "#E50914" }}
-          />
+          {/* Visible thin track */}
+          <div ref={trackRef} className="relative w-1 h-full rounded-full bg-white/30">
+            {/* Filled portion */}
+            <div
+              className="absolute bottom-0 left-0 w-full rounded-full"
+              style={{ height: `${displayVol * 100}%`, backgroundColor: "#E50914" }}
+            />
+            {/* Thumb */}
+            <div
+              className="absolute left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-white shadow-md border-2"
+              style={{ bottom: `calc(${displayVol * 100}% - 8px)`, borderColor: "#E50914" }}
+            />
+          </div>
         </div>
       </div>
     </div>
