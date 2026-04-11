@@ -53,15 +53,17 @@ export const resolvePlayableStreamUrl = async (sourceUrl: string) => {
 
 export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
   const requiresResolution = Boolean(sourceUrl && shouldResolveStreamUrl(sourceUrl));
+  const [resolvedFor, setResolvedFor] = useState<string | null>(sourceUrl ?? null);
   const [resolvedUrl, setResolvedUrl] = useState<string | null>(() => {
     if (!sourceUrl) return null;
     return shouldResolveStreamUrl(sourceUrl) ? null : toProxyStreamUrl(sourceUrl);
   });
   const [isResolving, setIsResolving] = useState(() => Boolean(sourceUrl && shouldResolveStreamUrl(sourceUrl)));
 
+  const cachedResolvedUrl = sourceUrl ? resolvedUrlCache.get(sourceUrl) ?? null : null;
   const safeResolvedUrl = sourceUrl
     ? requiresResolution
-      ? resolvedUrlCache.get(sourceUrl) ?? resolvedUrl
+      ? cachedResolvedUrl ?? (resolvedFor === sourceUrl ? resolvedUrl : null)
       : toProxyStreamUrl(sourceUrl)
     : null;
 
@@ -75,17 +77,20 @@ export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
     }
 
     if (!shouldResolveStreamUrl(sourceUrl)) {
+      setResolvedFor(sourceUrl);
       setResolvedUrl(toProxyStreamUrl(sourceUrl));
       setIsResolving(false);
       return;
     }
 
+    setResolvedFor(sourceUrl);
     setResolvedUrl(null);
     setIsResolving(true);
 
     void resolvePlayableStreamUrl(sourceUrl)
       .then((nextUrl) => {
         if (isActive) {
+          setResolvedFor(sourceUrl);
           setResolvedUrl(nextUrl);
         }
       })
@@ -101,7 +106,7 @@ export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
   }, [sourceUrl]);
 
   return {
-    resolvedUrl: requiresResolution && !resolvedUrlCache.get(sourceUrl || "") ? resolvedUrl : safeResolvedUrl,
-    isResolving: requiresResolution ? isResolving && !resolvedUrlCache.get(sourceUrl || "") : false,
+    resolvedUrl: safeResolvedUrl,
+    isResolving: requiresResolution ? isResolving && !cachedResolvedUrl : false,
   };
 };
