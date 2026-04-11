@@ -104,6 +104,9 @@ const SeriesDetail = () => {
   };
 
   // Trailer source for hero autoplay
+  // Remove duplicate year pattern e.g. "Title 2019 (2019)" → "Title 2019"
+  const cleanName = (name: string) => name.replace(/\s*\((\d{4})\)\s*$/, (_, yr) => name.includes(yr) ? '' : ` (${yr})`).trim();
+
   const trailerSrc = series?.trailer_mp4_url || series?.trailer_url || null;
   const isYouTubeTrailer = trailerSrc?.includes("youtube") || trailerSrc?.includes("youtu.be");
   const autoplayTrailer = trailerSrc && !isYouTubeTrailer ? trailerSrc : null;
