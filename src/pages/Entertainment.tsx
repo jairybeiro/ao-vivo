@@ -20,6 +20,8 @@ interface CineBusinessItem {
   trailer_url: string | null;
   trailer_mp4_url: string | null;
   sinopse: string | null;
+  stream_url?: string;
+  embed_url?: string | null;
 }
 
 interface SeriesItem {
