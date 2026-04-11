@@ -264,7 +264,8 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     const onVideoEnded = () => {
       setPlaying(false);
       doSave();
-      if (nextEpisode) {
+      onEnded?.();
+      if (nextEpisode && !onEnded) {
         startCountdown();
       }
     };
@@ -290,7 +291,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       video.removeEventListener("volumechange", onVolumeChange);
       video.removeEventListener("ended", onVideoEnded);
     };
-  }, [nextEpisode, doSave]);
+  }, [nextEpisode, doSave, onEnded]);
 
   // Auto-hide controls
   const resetHideTimer = useCallback(() => {
