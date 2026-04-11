@@ -20,6 +20,8 @@ interface CineBusinessItem {
   trailer_url: string | null;
   trailer_mp4_url: string | null;
   sinopse: string | null;
+  stream_url?: string;
+  embed_url?: string | null;
 }
 
 interface SeriesItem {
@@ -54,7 +56,7 @@ const Entertainment = () => {
       // Fetch ONLY CineBusiness content
       const { data: cineBizData, error } = await supabase
         .from("vod_movies")
-        .select("id, name, category, cover_url, backdrop_url, rating, sinopse, trailer_url, trailer_mp4_url")
+        .select("id, name, category, cover_url, backdrop_url, rating, sinopse, trailer_url, trailer_mp4_url, stream_url, embed_url")
         .in("category", ["Negócios", "Empreendedorismo", "Mentalidade", "Liderança", "Finanças", "Marketing", "Produtividade", "Tecnologia", "Desenvolvimento Pessoal", "Startups"])
         .eq("is_active", true)
         .order("created_at", { ascending: false });
@@ -261,7 +263,10 @@ const Entertainment = () => {
         isOpen={isTrailerPlayerOpen}
         onClose={() => setIsTrailerPlayerOpen(false)}
         trailerUrl={selectedTrailerUrl}
+        embedUrl={heroItem?.embed_url || null}
+        contentUrl={heroItem?.stream_url || null}
         title={heroItem?.name || "Trailer"}
+        poster={heroItem?.cover_url || heroItem?.backdrop_url || undefined}
       />
 
       {/* ===== TABS + COLLECTIONS ===== */}
