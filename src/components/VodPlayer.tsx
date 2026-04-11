@@ -104,6 +104,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
+  const overlayHideTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const { saveProgress } = useSaveWatchProgress();
   const { progress: savedProgress } = useGetWatchProgress(
@@ -642,15 +643,20 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
                 </button>
               )}
 
-              {/* Episodes overlay toggle */}
+              {/* Episodes overlay toggle — hover-based */}
               {overlayContent && (
-                <button
-                  onClick={(e) => { e.stopPropagation(); setShowOverlay(!showOverlay); }}
-                  className={`hover:text-[hsl(var(--player-contrast)/0.82)] transition ${showOverlay ? "text-[hsl(var(--player-accent))]" : ""}`}
-                  title="Episódios"
+                <div
+                  className="relative"
+                  onMouseEnter={() => { clearTimeout(overlayHideTimer.current); setShowOverlay(true); }}
+                  onMouseLeave={() => { overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600); }}
                 >
-                  <EpisodesIcon />
-                </button>
+                  <button
+                    className={`hover:text-[hsl(var(--player-contrast)/0.82)] transition ${showOverlay ? "text-[hsl(var(--player-accent))]" : ""}`}
+                    title="Episódios"
+                  >
+                    <EpisodesIcon />
+                  </button>
+                </div>
               )}
 
               {/* Extra controls */}
@@ -684,27 +690,22 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         </div>
       </div>
 
-      {/* Episode overlay panel — slides in from right */}
+      {/* Episode overlay panel — hover-based, bottom-aligned, slides from right */}
       {overlayContent && (
         <div
-          className="absolute top-0 right-0 h-full z-30 transition-transform duration-300 ease-in-out"
+          className="absolute bottom-0 right-0 z-30 transition-all duration-300 ease-in-out"
           style={{
             width: "min(420px, 85vw)",
-            transform: showOverlay ? "translateX(0)" : "translateX(100%)",
+            maxHeight: "70%",
+            opacity: showOverlay ? 1 : 0,
+            transform: showOverlay ? "translateX(0)" : "translateX(20px)",
+            pointerEvents: showOverlay ? "auto" : "none",
           }}
           onClick={(e) => e.stopPropagation()}
+          onMouseEnter={() => { clearTimeout(overlayHideTimer.current); }}
+          onMouseLeave={() => { overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600); }}
         >
-          <div className="h-full bg-black/90 backdrop-blur-xl border-l border-white/10 flex flex-col">
-            {/* Panel header */}
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
-              <button
-                onClick={() => setShowOverlay(false)}
-                className="text-white/70 hover:text-white transition"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <h3 className="text-white font-bold text-base">Episódios</h3>
-            </div>
+          <div className="h-full bg-black/90 backdrop-blur-xl border-l border-t border-white/10 rounded-tl-xl flex flex-col overflow-hidden">
             {/* Panel content */}
             <div className="flex-1 overflow-y-auto px-4 py-3">
               {overlayContent}
