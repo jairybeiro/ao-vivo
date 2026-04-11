@@ -15,6 +15,7 @@ import CourseView from "./pages/CourseView";
 import Courses from "./pages/Courses";
 import Entertainment from "./pages/Entertainment";
 import CineBusinessDetail from "./pages/CineBusinessDetail";
+import SeriesDetail from "./pages/SeriesDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
