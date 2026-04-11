@@ -14,14 +14,18 @@ const withProtocol = (url: string, protocol: "http:" | "https:") => {
   return parsed.toString();
 };
 
-const probeStreamUrl = async (url: string) => {
-  let lastError: string | null = null;
+/**
+ * Follow redirects manually to capture the final URL reliably.
+ * Uses redirect:"manual" so we can read the Location header on 3xx responses.
+ */
+const resolveRedirects = async (url: string, maxRedirects = 5): Promise<{ ok: boolean; finalUrl: string; error?: string }> => {
+  let current = url;
 
-  for (const method of ["HEAD", "GET"] as const) {
+  for (let i = 0; i < maxRedirects; i++) {
     try {
-      const response = await fetch(url, {
-        method,
-        redirect: "follow",
+      const response = await fetch(current, {
+        method: "GET",
+        redirect: "manual",
         headers: {
           "User-Agent": "Mozilla/5.0 (Lovable Stream Resolver)",
           Accept: "*/*",
@@ -29,34 +33,30 @@ const probeStreamUrl = async (url: string) => {
         },
       });
 
-      try {
-        await response.body?.cancel();
-      } catch {
-        // no-op
+      try { await response.body?.cancel(); } catch { /* no-op */ }
+
+      const status = response.status;
+
+      if (status >= 300 && status < 400) {
+        const location = response.headers.get("location");
+        if (!location) return { ok: false, finalUrl: current, error: `Redirect ${status} sem Location header` };
+
+        // Resolve relative redirects
+        current = new URL(location, current).toString();
+        continue;
       }
 
-      if (response.ok) {
-        return {
-          ok: true,
-          finalUrl: response.url || url,
-          status: response.status,
-          contentType: response.headers.get("content-type"),
-        };
+      if (response.ok || status === 206) {
+        return { ok: true, finalUrl: current };
       }
 
-      lastError = `HTTP ${response.status}`;
+      return { ok: false, finalUrl: current, error: `HTTP ${status}` };
     } catch (error) {
-      lastError = error instanceof Error ? error.message : String(error);
+      return { ok: false, finalUrl: current, error: error instanceof Error ? error.message : String(error) };
     }
   }
 
-  return {
-    ok: false,
-    finalUrl: url,
-    status: 0,
-    contentType: null,
-    error: lastError,
-  };
+  return { ok: false, finalUrl: current, error: "Too many redirects" };
 };
 
 Deno.serve(async (req) => {
@@ -84,42 +84,38 @@ Deno.serve(async (req) => {
       });
     }
 
-    let discoveredUrl = inputUrl;
+    // Step 1: Activate via HTTP to follow the 302 redirect chain
+    const httpUrl = withProtocol(inputUrl, "http:");
+    const result = await resolveRedirects(httpUrl);
 
-    if (ACTIVATION_SOURCE_HOSTS.has(inputHost)) {
-      const activationProbe = await probeStreamUrl(withProtocol(inputUrl, "http:"));
-
-      if (!activationProbe.ok) {
-        return new Response(JSON.stringify({ error: activationProbe.error || "Falha ao ativar stream" }), {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      discoveredUrl = activationProbe.finalUrl;
+    if (!result.ok) {
+      return new Response(JSON.stringify({ error: result.error || "Falha ao ativar stream" }), {
+        status: 502,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const discoveredHost = normalizeHost(new URL(discoveredUrl).hostname);
-    let resolvedUrl = discoveredUrl;
+    let resolvedUrl = result.finalUrl;
 
-    if (HTTPS_DESTINATION_HOSTS.has(discoveredHost) || discoveredUrl.startsWith("http://")) {
-      const httpsCandidate = withProtocol(discoveredUrl, "https:");
-      const httpsProbe = await probeStreamUrl(httpsCandidate);
-
-      if (httpsProbe.ok) {
+    // Step 2: Upgrade to HTTPS if the destination host supports it
+    const finalHost = normalizeHost(new URL(resolvedUrl).hostname);
+    if (HTTPS_DESTINATION_HOSTS.has(finalHost) || resolvedUrl.startsWith("http://")) {
+      const httpsCandidate = withProtocol(resolvedUrl, "https:");
+      const httpsCheck = await resolveRedirects(httpsCandidate, 1);
+      if (httpsCheck.ok) {
         resolvedUrl = httpsCandidate;
       }
     }
 
+    console.log(`Resolved: ${inputUrl} → ${resolvedUrl}`);
+
     return new Response(
       JSON.stringify({
         resolvedUrl,
-        discoveredUrl,
+        discoveredUrl: result.finalUrl,
         activated: resolvedUrl !== inputUrl,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     return new Response(
