@@ -75,19 +75,10 @@ const VodVolumeControl = ({ muted, volume, onToggleMute, onChangeVolume }: {
   );
 };
 
-// Mobile-only vertical volume slider — appears on mute toggle, auto-hides
-const MobileVolumeSlider = ({ muted, volume, onChangeVolume }: {
-  muted: boolean; volume: number; onChangeVolume: (v: number) => void;
+// Mobile-only vertical volume slider — controlled visibility from parent
+const MobileVolumeSlider = ({ show, volume, muted, onChangeVolume, onResetTimer }: {
+  show: boolean; volume: number; muted: boolean; onChangeVolume: (v: number) => void; onResetTimer: () => void;
 }) => {
-  const [show, setShow] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>();
-  const showSlider = () => { clearTimeout(timer.current); setShow(true); timer.current = setTimeout(() => setShow(false), 3000); };
-  const hideSlider = () => { timer.current = setTimeout(() => setShow(false), 1500); };
-  useEffect(() => () => clearTimeout(timer.current), []);
-
-  // Show slider briefly whenever volume/mute changes
-  useEffect(() => { showSlider(); }, [muted, volume]);
-
   return (
     <div
       className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200"
@@ -97,9 +88,9 @@ const MobileVolumeSlider = ({ muted, volume, onChangeVolume }: {
         <input
           type="range" min="0" max="1" step="0.02"
           value={muted ? 0 : volume}
-          onChange={(e) => { e.stopPropagation(); onChangeVolume(parseFloat(e.target.value)); clearTimeout(timer.current); timer.current = setTimeout(() => setShow(false), 3000); }}
-          onTouchStart={(e) => { e.stopPropagation(); clearTimeout(timer.current); }}
-          onTouchEnd={() => { timer.current = setTimeout(() => setShow(false), 3000); }}
+          onChange={(e) => { e.stopPropagation(); onChangeVolume(parseFloat(e.target.value)); onResetTimer(); }}
+          onTouchStart={(e) => { e.stopPropagation(); onResetTimer(); }}
+          onTouchEnd={() => onResetTimer()}
           onClick={(e) => e.stopPropagation()}
           className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
           {...{ orient: "vertical" } as any}
@@ -140,7 +131,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [showMobileVolume, setShowMobileVolume] = useState(false);
+  const mobileVolumeTimer = useRef<ReturnType<typeof setTimeout>>();
   const overlayHideTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const resetMobileVolumeTimer = useCallback(() => {
+    clearTimeout(mobileVolumeTimer.current);
+    mobileVolumeTimer.current = setTimeout(() => setShowMobileVolume(false), 3000);
+  }, []);
 
   const { saveProgress } = useSaveWatchProgress();
   const { progress: savedProgress } = useGetWatchProgress(
@@ -554,7 +552,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       {/* Click-to-play/pause overlay */}
       <div
         className={`absolute inset-0 z-10 cursor-pointer ${countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""}`}
-        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } togglePlay(); }}
+        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } if (showMobileVolume) { setShowMobileVolume(false); clearTimeout(mobileVolumeTimer.current); return; } togglePlay(); }}
       />
 
       {/* === CONTROLS LAYER — Appears on hover with 300ms fade === */}
@@ -658,13 +656,13 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               {/* Mobile volume with vertical slider */}
               <div className="relative md:hidden">
                 <button
-                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                  onClick={(e) => { e.stopPropagation(); setShowMobileVolume(prev => !prev); if (!showMobileVolume) resetMobileVolumeTimer(); else clearTimeout(mobileVolumeTimer.current); }}
                   onDoubleClick={(e) => { e.stopPropagation(); }}
                   className="hover:text-[hsl(var(--player-contrast)/0.82)] transition"
                 >
                   {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : volume < 0.5 ? <Volume1 className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                 </button>
-                <MobileVolumeSlider muted={muted} volume={volume} onChangeVolume={changeVolume} />
+                <MobileVolumeSlider show={showMobileVolume} muted={muted} volume={volume} onChangeVolume={changeVolume} onResetTimer={resetMobileVolumeTimer} />
               </div>
             </div>
 
