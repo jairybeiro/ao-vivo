@@ -446,7 +446,8 @@ const EpisodeOverlay = ({
   onSelectEpisode: (ep: Episode) => void;
   formatDuration: (s: number | null) => string;
 }) => (
-  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+  <div className="space-y-4">
+    <h3 className="text-white font-bold text-lg">Temporada {selectedSeason}</h3>
     {seasons.length > 1 && (
       <div className="flex gap-2 flex-wrap">
         {seasons.map((s) => (
