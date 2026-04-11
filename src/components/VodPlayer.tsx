@@ -620,10 +620,17 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               {/* Volume — vertical slider on hover (Netflix style) */}
               <VodVolumeControl muted={muted} volume={volume} onToggleMute={(e) => { e.stopPropagation(); toggleMute(); }} onChangeVolume={changeVolume} />
 
-              {/* Mobile mute */}
-              <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="md:hidden hover:text-[hsl(var(--player-contrast)/0.82)] transition">
-                {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-              </button>
+              {/* Mobile volume with vertical slider */}
+              <div className="relative md:hidden">
+                <button
+                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                  onDoubleClick={(e) => { e.stopPropagation(); }}
+                  className="hover:text-[hsl(var(--player-contrast)/0.82)] transition"
+                >
+                  {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : volume < 0.5 ? <Volume1 className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                </button>
+                <MobileVolumeSlider muted={muted} volume={volume} onChangeVolume={changeVolume} />
+              </div>
             </div>
 
             {/* Center label — Netflix style "SeriesName E4 Episode Title" */}
