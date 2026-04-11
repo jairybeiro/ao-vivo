@@ -152,7 +152,7 @@ const Entertainment = () => {
   const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
 
   return (
-    <div className="min-h-screen bg-background overflow-y-auto" style={{ height: "100vh" }}>
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <div className={`fixed top-0 left-0 right-0 z-50 ${isMobile ? "bg-[#0f0f0f]" : ""}`}>
         <MainHeader transparent={!isMobile} />
