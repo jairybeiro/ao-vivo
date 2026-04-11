@@ -75,6 +75,40 @@ const VodVolumeControl = ({ muted, volume, onToggleMute, onChangeVolume }: {
   );
 };
 
+// Mobile-only vertical volume slider — appears on mute toggle, auto-hides
+const MobileVolumeSlider = ({ muted, volume, onChangeVolume }: {
+  muted: boolean; volume: number; onChangeVolume: (v: number) => void;
+}) => {
+  const [show, setShow] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const showSlider = () => { clearTimeout(timer.current); setShow(true); timer.current = setTimeout(() => setShow(false), 3000); };
+  const hideSlider = () => { timer.current = setTimeout(() => setShow(false), 1500); };
+  useEffect(() => () => clearTimeout(timer.current), []);
+
+  // Show slider briefly whenever volume/mute changes
+  useEffect(() => { showSlider(); }, [muted, volume]);
+
+  return (
+    <div
+      className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200"
+      style={{ opacity: show ? 1 : 0, transform: show ? "scale(1)" : "scale(0.95)", pointerEvents: show ? "auto" : "none" }}
+    >
+      <div className="bg-[hsl(0,0%,12%)] rounded-md px-3 py-4 flex flex-col items-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="range" min="0" max="1" step="0.02"
+          value={muted ? 0 : volume}
+          onChange={(e) => { e.stopPropagation(); onChangeVolume(parseFloat(e.target.value)); clearTimeout(timer.current); timer.current = setTimeout(() => setShow(false), 3000); }}
+          onTouchStart={(e) => { e.stopPropagation(); clearTimeout(timer.current); }}
+          onTouchEnd={() => { timer.current = setTimeout(() => setShow(false), 3000); }}
+          onClick={(e) => e.stopPropagation()}
+          className="h-24 appearance-none cursor-pointer bg-transparent volume-slider-red"
+          {...{ orient: "vertical" } as any}
+          style={{ writingMode: "vertical-lr", direction: "rtl", WebkitAppearance: "slider-vertical", width: "4px", accentColor: "#E50914" }}
+        />
+      </div>
+    </div>
+  );
+
 const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded, extraControls, centerLabel, overlayContent }: VodPlayerProps) => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
