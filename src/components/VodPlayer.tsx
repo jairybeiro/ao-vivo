@@ -108,6 +108,7 @@ const MobileVolumeSlider = ({ muted, volume, onChangeVolume }: {
       </div>
     </div>
   );
+};
 
 const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, contentName, contentCoverUrl, nextEpisode, onBack, onEnded, extraControls, centerLabel, overlayContent }: VodPlayerProps) => {
   const navigate = useNavigate();
