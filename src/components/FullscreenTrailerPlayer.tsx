@@ -35,6 +35,9 @@ const FullscreenTrailerPlayer = ({
   }, [isOpen, trailerUrl, embedUrl, contentUrl]);
 
   useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+
     const handleEscapeKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         onClose();
@@ -44,11 +47,13 @@ const FullscreenTrailerPlayer = ({
     if (isOpen) {
       document.addEventListener("keydown", handleEscapeKey);
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     }
 
     return () => {
       document.removeEventListener("keydown", handleEscapeKey);
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
     };
   }, [isOpen, onClose]);
 

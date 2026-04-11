@@ -25,6 +25,7 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
   const [showPoster, setShowPoster] = useState(!!(poster && delayMs > 0));
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const mediaPointerEvents = showControls ? "auto" : "none";
 
   useEffect(() => {
     if (!poster || delayMs <= 0) {
@@ -117,7 +118,7 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
         src={poster}
         alt=""
         className={className}
-        style={{ ...style, objectFit: "cover" }}
+        style={{ ...style, objectFit: "cover", pointerEvents: mediaPointerEvents }}
       />
     );
   }
@@ -131,7 +132,7 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
         playsInline
         autoPlay
         className={className}
-        style={style}
+        style={{ ...style, pointerEvents: mediaPointerEvents }}
       />
       {showControls && (
         <div className="absolute bottom-3 right-3 flex items-center gap-2 z-10">
