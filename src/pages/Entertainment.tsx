@@ -130,6 +130,21 @@ const Entertainment = () => {
   };
 
   const categories = Object.keys(cineBusinessByCategory);
+  const seriesCategories = useMemo(() => Object.keys(seriesByCategory).sort(), [seriesByCategory]);
+
+  const filteredSeriesByCategory = useMemo(() => {
+    const searchLower = seriesSearch.toLowerCase();
+    const result: Record<string, SeriesItem[]> = {};
+    const cats = seriesCategory ? [seriesCategory] : Object.keys(seriesByCategory);
+    cats.forEach((cat) => {
+      const items = seriesByCategory[cat];
+      if (!items) return;
+      const filtered = searchLower ? items.filter((i) => i.name.toLowerCase().includes(searchLower)) : items;
+      if (filtered.length > 0) result[cat] = filtered;
+    });
+    return result;
+  }, [seriesByCategory, seriesSearch, seriesCategory]);
+
   // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
   const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
 
