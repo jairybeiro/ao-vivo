@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Film, ChevronRight, Play, Briefcase, Tv, Star } from "lucide-react";
+import { Film, ChevronRight, Play, Briefcase, Tv, Star, Search, X, ChevronDown } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import CineBusinessCardPopover from "@/components/CineBusinessCardPopover";
 import CineBusinessCard from "@/components/CineBusinessCard";
