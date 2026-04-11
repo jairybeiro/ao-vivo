@@ -102,30 +102,16 @@
   }
 
   html, body {
-    @apply bg-background text-foreground antialiased;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: touch;
-    height: auto !important;
-    max-height: none !important;
+    @apply bg-background text-foreground antialiased overflow-x-hidden;
   }
 
   #root {
-    overflow: visible !important;
-    height: auto !important;
-    max-height: none !important;
     min-height: 100vh;
   }
 
   /* PWA Safe Areas */
   body {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-
-  /* Prevent pull-to-refresh on mobile */
-  html {
-    overscroll-behavior-y: contain;
   }
 
   /* Touch optimization */
