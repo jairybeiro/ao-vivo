@@ -690,13 +690,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
         </div>
       </div>
 
-      {/* Episode overlay panel — hover-based, bottom-aligned, slides from right */}
+      {/* Episode overlay panel — hover-based, bottom aligned to progress bar */}
       {overlayContent && (
         <div
-          className="absolute bottom-0 right-0 z-30 transition-all duration-300 ease-in-out"
+          className="absolute right-0 z-30 transition-all duration-300 ease-in-out"
           style={{
             width: "min(420px, 85vw)",
-            maxHeight: "70%",
+            maxHeight: "60%",
+            bottom: "calc(env(safe-area-inset-bottom, 0px) + 62px)",
             opacity: showOverlay ? 1 : 0,
             transform: showOverlay ? "translateX(0)" : "translateX(20px)",
             pointerEvents: showOverlay ? "auto" : "none",
