@@ -414,6 +414,7 @@ export type Database = {
           duration_secs: number | null
           episode_num: number
           id: string
+          plot: string | null
           season: number
           series_id: string
           stream_url: string
@@ -427,6 +428,7 @@ export type Database = {
           duration_secs?: number | null
           episode_num?: number
           id?: string
+          plot?: string | null
           season?: number
           series_id: string
           stream_url: string
@@ -440,6 +442,7 @@ export type Database = {
           duration_secs?: number | null
           episode_num?: number
           id?: string
+          plot?: string | null
           season?: number
           series_id?: string
           stream_url?: string
