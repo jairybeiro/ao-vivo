@@ -103,6 +103,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const { saveProgress } = useSaveWatchProgress();
   const { progress: savedProgress } = useGetWatchProgress(
