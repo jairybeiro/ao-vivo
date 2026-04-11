@@ -263,7 +263,10 @@ const Entertainment = () => {
         isOpen={isTrailerPlayerOpen}
         onClose={() => setIsTrailerPlayerOpen(false)}
         trailerUrl={selectedTrailerUrl}
+        embedUrl={heroItem?.embed_url || null}
+        contentUrl={heroItem?.stream_url || null}
         title={heroItem?.name || "Trailer"}
+        poster={heroItem?.cover_url || heroItem?.backdrop_url || undefined}
       />
 
       {/* ===== TABS + COLLECTIONS ===== */}
