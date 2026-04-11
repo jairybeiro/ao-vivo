@@ -85,6 +85,24 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const saveInterval = useRef<ReturnType<typeof setInterval>>();
   const resumedRef = useRef(false);
 
+  // Detect mobile portrait vs landscape
+  const [isMobilePortrait, setIsMobilePortrait] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768 && window.innerHeight > window.innerWidth;
+  });
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      setIsMobilePortrait(window.innerWidth < 768 && window.innerHeight > window.innerWidth);
+    };
+    window.addEventListener("resize", checkOrientation);
+    window.addEventListener("orientationchange", checkOrientation);
+    return () => {
+      window.removeEventListener("resize", checkOrientation);
+      window.removeEventListener("orientationchange", checkOrientation);
+    };
+  }, []);
+
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(() => {
     try { return localStorage.getItem("player_muted") === "true"; } catch { return true; }
