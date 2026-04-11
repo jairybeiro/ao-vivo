@@ -1,7 +1,19 @@
 /**
- * Proxy utility - simplified for App Store version.
- * Since we're using direct HTTPS URLs, no proxy is needed.
- * This is kept as a pass-through for backward compatibility.
+ * Proxy utility — ensures stream URLs use HTTPS to avoid mixed-content blocks.
  */
-export const toProxyStreamUrl = (url: string): string => url;
-export const toProxyAssetUrl = (url: string | null): string | null => url;
+export const toProxyStreamUrl = (url: string): string => {
+  if (!url) return url;
+  // Convert http:// to https:// to prevent mixed-content issues on HTTPS sites
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
+
+export const toProxyAssetUrl = (url: string | null): string | null => {
+  if (!url) return url;
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
