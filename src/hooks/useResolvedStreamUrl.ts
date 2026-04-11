@@ -52,20 +52,8 @@ export const resolvePlayableStreamUrl = async (sourceUrl: string) => {
 };
 
 export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
-  const requiresResolution = Boolean(sourceUrl && shouldResolveStreamUrl(sourceUrl));
-  const [resolvedFor, setResolvedFor] = useState<string | null>(sourceUrl ?? null);
-  const [resolvedUrl, setResolvedUrl] = useState<string | null>(() => {
-    if (!sourceUrl) return null;
-    return shouldResolveStreamUrl(sourceUrl) ? null : toProxyStreamUrl(sourceUrl);
-  });
-  const [isResolving, setIsResolving] = useState(() => Boolean(sourceUrl && shouldResolveStreamUrl(sourceUrl)));
-
-  const cachedResolvedUrl = sourceUrl ? resolvedUrlCache.get(sourceUrl) ?? null : null;
-  const safeResolvedUrl = sourceUrl
-    ? requiresResolution
-      ? cachedResolvedUrl ?? (resolvedFor === sourceUrl ? resolvedUrl : null)
-      : toProxyStreamUrl(sourceUrl)
-    : null;
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -77,20 +65,25 @@ export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
     }
 
     if (!shouldResolveStreamUrl(sourceUrl)) {
-      setResolvedFor(sourceUrl);
       setResolvedUrl(toProxyStreamUrl(sourceUrl));
       setIsResolving(false);
       return;
     }
 
-    setResolvedFor(sourceUrl);
+    // Check cache first
+    const cached = resolvedUrlCache.get(sourceUrl);
+    if (cached) {
+      setResolvedUrl(cached);
+      setIsResolving(false);
+      return;
+    }
+
     setResolvedUrl(null);
     setIsResolving(true);
 
     void resolvePlayableStreamUrl(sourceUrl)
       .then((nextUrl) => {
         if (isActive) {
-          setResolvedFor(sourceUrl);
           setResolvedUrl(nextUrl);
         }
       })
@@ -106,7 +99,7 @@ export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
   }, [sourceUrl]);
 
   return {
-    resolvedUrl: safeResolvedUrl,
-    isResolving: requiresResolution ? isResolving && !cachedResolvedUrl : false,
+    resolvedUrl,
+    isResolving,
   };
 };
