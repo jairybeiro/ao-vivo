@@ -477,7 +477,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     >
       <video
         ref={videoRef}
-        className="w-full h-full object-cover"
+        className={`w-full h-full ${isMobilePortrait && !isFullscreen ? 'object-contain' : 'object-cover'}`}
         poster={poster || undefined}
         playsInline
         preload="auto"
