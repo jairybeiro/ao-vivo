@@ -429,7 +429,7 @@ const EpisodeCard = ({
   </button>
 );
 
-// Episode overlay for the player
+// Episode overlay for the player — max 6 episodes, active prioritized
 const EpisodeOverlay = ({
   seasons,
   selectedSeason,
@@ -446,66 +446,97 @@ const EpisodeOverlay = ({
   onSelectSeason: (s: number) => void;
   onSelectEpisode: (ep: Episode) => void;
   formatDuration: (s: number | null) => string;
-}) => (
-  <div className="space-y-4">
-    <h3 className="text-white font-bold text-lg">Temporada {selectedSeason}</h3>
-    {seasons.length > 1 && (
-      <div className="flex gap-2 flex-wrap">
-        {seasons.map((s) => (
-          <button
-            key={s}
-            onClick={() => onSelectSeason(s)}
-            className={`px-3 py-1.5 rounded text-xs font-medium transition ${
-              s === selectedSeason ? "bg-primary text-primary-foreground" : "bg-white/10 text-white/70 hover:bg-white/20"
-            }`}
-          >
-            T{s}
-          </button>
-        ))}
-      </div>
-    )}
+}) => {
+  // Build a window of max 6 episodes centered around the active one
+  const MAX_VISIBLE = 6;
+  const activeIdx = seasonEpisodes.findIndex(ep => ep.id === activeEpisodeId);
+  let startIdx = 0;
+  if (seasonEpisodes.length > MAX_VISIBLE && activeIdx >= 0) {
+    // Center the active episode in the window
+    startIdx = Math.max(0, Math.min(activeIdx - 2, seasonEpisodes.length - MAX_VISIBLE));
+  }
+  const visibleEpisodes = seasonEpisodes.slice(startIdx, startIdx + MAX_VISIBLE);
+
+  return (
     <div className="space-y-3">
-      {seasonEpisodes.map((ep) => (
-        <button
-          key={ep.id}
-          onClick={() => onSelectEpisode(ep)}
-          className={`w-full flex items-start gap-3 p-2 rounded-lg text-left transition ${
-            ep.id === activeEpisodeId ? "bg-white/10 ring-1 ring-primary/50" : "hover:bg-white/5"
-          }`}
-        >
-          <span className={`w-6 text-center font-bold text-sm shrink-0 mt-3 ${ep.id === activeEpisodeId ? "text-primary" : "text-white/50"}`}>
-            {ep.episode_num}
-          </span>
-          {/* Thumbnail */}
-          <div className="relative w-28 aspect-video rounded overflow-hidden shrink-0 bg-white/5">
-            {ep.cover_url ? (
-              <img src={ep.cover_url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/20">
-                <Play className="w-5 h-5" />
-              </div>
-            )}
-            {ep.id === activeEpisodeId && (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                  <Pause className="w-4 h-4 text-white fill-white" />
+      <div className="flex items-center justify-between">
+        <h3 className="text-white font-bold text-base">Temporada {selectedSeason}</h3>
+        {seasons.length > 1 && (
+          <div className="flex gap-1.5">
+            {seasons.map((s) => (
+              <button
+                key={s}
+                onClick={() => onSelectSeason(s)}
+                className={`px-2.5 py-1 rounded text-[11px] font-medium transition ${
+                  s === selectedSeason ? "bg-primary text-primary-foreground" : "bg-white/10 text-white/70 hover:bg-white/20"
+                }`}
+              >
+                T{s}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="space-y-1">
+        {visibleEpisodes.map((ep) => {
+          const isActive = ep.id === activeEpisodeId;
+          if (isActive) {
+            // Active episode: expanded with thumbnail + description
+            return (
+              <div
+                key={ep.id}
+                className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50"
+              >
+                <span className="w-5 text-center font-bold text-sm shrink-0 mt-3 text-primary">
+                  {ep.episode_num}
+                </span>
+                <div className="relative w-28 aspect-video rounded overflow-hidden shrink-0 bg-white/5">
+                  {ep.cover_url ? (
+                    <img src={ep.cover_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white/20">
+                      <Play className="w-5 h-5" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                    <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+                      <Pause className="w-3.5 h-3.5 text-white fill-white" />
+                    </div>
+                  </div>
+                  {/* Progress bar under thumbnail */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
+                    <div className="h-full bg-primary" style={{ width: "40%" }} />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 py-0.5">
+                  <p className="text-sm font-medium text-white truncate">{ep.title}</p>
+                  {ep.plot && (
+                    <p className="text-[11px] text-white/40 mt-1 line-clamp-2 leading-relaxed">{ep.plot}</p>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
-          {/* Info */}
-          <div className="flex-1 min-w-0 py-0.5">
-            <p className={`text-sm font-medium truncate ${ep.id === activeEpisodeId ? "text-white" : "text-white/80"}`}>
-              {ep.title}
-            </p>
-            {ep.plot && (
-              <p className="text-xs text-white/40 mt-1 line-clamp-2 leading-relaxed">{ep.plot}</p>
-            )}
-          </div>
-        </button>
-      ))}
+            );
+          }
+          // Non-active: compact list row
+          return (
+            <button
+              key={ep.id}
+              onClick={() => onSelectEpisode(ep)}
+              className="w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left hover:bg-white/5 transition"
+            >
+              <span className="w-5 text-center font-bold text-sm shrink-0 text-white/40">
+                {ep.episode_num}
+              </span>
+              <p className="text-sm text-white/70 truncate flex-1">{ep.title}</p>
+              {ep.duration_secs && (
+                <span className="text-[11px] text-white/30 shrink-0">{formatDuration(ep.duration_secs)}</span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default SeriesDetail;
