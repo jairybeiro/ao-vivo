@@ -105,6 +105,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
+  const [isIOSVolumeUnavailable, setIsIOSVolumeUnavailable] = useState(false);
   const overlayHideTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const { saveProgress } = useSaveWatchProgress();
@@ -313,6 +314,15 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     return () => clearTimeout(hideTimer.current);
   }, [playing]);
 
+  useEffect(() => {
+    const ua = window.navigator.userAgent || "";
+    const platform = window.navigator.platform || "";
+    const touchPoints = window.navigator.maxTouchPoints || 0;
+    const isIOSDevice = /iPad|iPhone|iPod/i.test(ua) || (platform === "MacIntel" && touchPoints > 1);
+
+    setIsIOSVolumeUnavailable(isIOSDevice);
+  }, []);
+
   // Fullscreen listener
   useEffect(() => {
     const onFsChange = () => {
@@ -350,6 +360,21 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     const v = videoRef.current;
     if (!v) return;
     if (v.paused) v.play(); else v.pause();
+  };
+
+  const handleSurfaceClick = () => {
+    if (showOverlay) {
+      clearTimeout(overlayHideTimer.current);
+      setShowOverlay(false);
+      return;
+    }
+
+    if (showSettings) {
+      setShowSettings(false);
+      return;
+    }
+
+    togglePlay();
   };
 
   const toggleMute = () => {
@@ -519,7 +544,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       {/* Click-to-play/pause overlay */}
       <div
         className={`absolute inset-0 z-10 cursor-pointer ${countdown !== null || showResumePrompt || error ? "pointer-events-none" : ""}`}
-        onClick={() => { if (showOverlay) { setShowOverlay(false); return; } togglePlay(); }}
+        onClick={handleSurfaceClick}
       />
 
       {/* === CONTROLS LAYER — Appears on hover with 300ms fade === */}
@@ -618,17 +643,21 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               </button>
 
               {/* Volume — vertical slider on hover (Netflix style) */}
-              <VodVolumeControl muted={muted} volume={volume} onToggleMute={(e) => { e.stopPropagation(); toggleMute(); }} onChangeVolume={changeVolume} />
+              {!isIOSVolumeUnavailable && (
+                <VodVolumeControl muted={muted} volume={volume} onToggleMute={(e) => { e.stopPropagation(); toggleMute(); }} onChangeVolume={changeVolume} />
+              )}
 
               {/* Mobile volume — mute/unmute only */}
-              <div className="relative md:hidden">
-                <button
-                  onClick={(e) => { e.stopPropagation(); toggleMute(); }}
-                  className="hover:text-[hsl(var(--player-contrast)/0.82)] transition"
-                >
-                  {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : volume < 0.5 ? <Volume1 className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-                </button>
-              </div>
+              {!isIOSVolumeUnavailable && (
+                <div className="relative md:hidden">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); toggleMute(); }}
+                    className="hover:text-[hsl(var(--player-contrast)/0.82)] transition"
+                  >
+                    {muted || volume === 0 ? <VolumeX className="w-6 h-6" /> : volume < 0.5 ? <Volume1 className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Center label — Netflix style "SeriesName E4 Episode Title" */}
