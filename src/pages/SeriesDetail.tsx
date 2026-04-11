@@ -127,12 +127,12 @@ const SeriesDetail = () => {
       <div className="fixed inset-0 z-[9999] bg-black">
         <VodPlayer
           src={activeEpisode.stream_url}
-          title={`${series.name} - T${activeEpisode.season} E${activeEpisode.episode_num}`}
+          title={`${cleanName(series.name)} - T${activeEpisode.season} E${activeEpisode.episode_num}`}
           subtitle=""
           poster={activeEpisode.cover_url || series.backdrop_url || undefined}
           contentType="episode"
           contentId={activeEpisode.id}
-          contentName={`${series.name} - ${activeEpisode.title}`}
+          contentName={`${cleanName(series.name)} - ${activeEpisode.title}`}
           contentCoverUrl={series.cover_url}
           nextEpisode={
             nextEpisode
@@ -240,7 +240,7 @@ const SeriesDetail = () => {
             </div>
 
             <h1 className={`font-black text-foreground leading-tight ${isMobile ? "text-2xl" : "text-4xl"}`}>
-              {series.name}
+              {cleanName(series.name)}
             </h1>
 
             <div className="flex items-center gap-3 mt-5">
