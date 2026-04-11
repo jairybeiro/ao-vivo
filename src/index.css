@@ -111,6 +111,13 @@
     max-height: none !important;
   }
 
+  #root {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100vh;
+  }
+
   /* PWA Safe Areas */
   body {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
