@@ -134,6 +134,14 @@
     @apply bg-glass/80 backdrop-blur-xl border border-glass-border;
   }
 
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   .player-scrim-top {
     background: linear-gradient(180deg, hsl(var(--player-scrim) / 0.5) 0%, hsl(var(--player-scrim) / 0) 100%);
   }
