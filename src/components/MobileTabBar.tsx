@@ -1,0 +1,88 @@
+import { useNavigate, useLocation } from "react-router-dom";
+import { Home, BookOpen, Search, User, LogOut } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+
+const MobileTabBar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { signOut } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
+
+  const isActive = (path: string) => {
+    if (path === "/") return location.pathname === "/";
+    return location.pathname.startsWith(path);
+  };
+
+  const tabs = [
+    { path: "/", label: "Home", icon: Home },
+    { path: "/cursos", label: "Cursos", icon: BookOpen },
+    { path: "/entretenimento", label: "Busca", icon: Search },
+  ];
+
+  return (
+    <>
+      {/* Profile overlay */}
+      {showProfile && (
+        <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm" onClick={() => setShowProfile(false)}>
+          <div
+            className="absolute bottom-20 left-4 right-4 rounded-2xl bg-card/90 backdrop-blur-xl border border-white/10 p-4 space-y-3"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={async () => {
+                await signOut();
+                navigate("/login");
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
+            >
+              <LogOut className="w-5 h-5" />
+              Sair da conta
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tab Bar */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-[80] md:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+      >
+        <div className="bg-card/70 backdrop-blur-2xl border-t border-white/10">
+          <div className="flex items-center justify-around h-14">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const active = isActive(tab.path);
+              return (
+                <button
+                  key={tab.path}
+                  onClick={() => navigate(tab.path)}
+                  className={cn(
+                    "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors",
+                    active ? "text-primary" : "text-muted-foreground"
+                  )}
+                >
+                  <Icon className="w-5 h-5" strokeWidth={active ? 2.5 : 1.5} />
+                  <span className="text-[10px] font-medium">{tab.label}</span>
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setShowProfile(!showProfile)}
+              className={cn(
+                "flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-colors",
+                showProfile ? "text-primary" : "text-muted-foreground"
+              )}
+            >
+              <User className="w-5 h-5" strokeWidth={showProfile ? 2.5 : 1.5} />
+              <span className="text-[10px] font-medium">Perfil</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+    </>
+  );
+};
+
+export default MobileTabBar;
