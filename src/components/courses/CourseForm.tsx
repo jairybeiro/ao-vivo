@@ -25,6 +25,7 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
   const [level, setLevel] = useState(course?.level || "Iniciante");
   const [category, setCategory] = useState(course?.category || "Geral");
   const [isActive, setIsActive] = useState(course?.isActive ?? true);
+  const [isFeatured, setIsFeatured] = useState(course?.isFeatured ?? false);
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -40,6 +41,7 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
       setLevel(course.level || "Iniciante");
       setCategory(course.category);
       setIsActive(course.isActive);
+      setIsFeatured(course.isFeatured);
     }
   }, [course]);
 
@@ -58,6 +60,7 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
         level,
         category,
         isActive,
+        isFeatured,
       });
       onCancel();
     } catch (error) {
@@ -144,10 +147,14 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-end pb-1">
+        <div className="flex items-end pb-1 gap-4">
           <div className="flex items-center gap-2">
             <Switch id="isActive" checked={isActive} onCheckedChange={setIsActive} />
-            <Label htmlFor="isActive">Curso ativo</Label>
+            <Label htmlFor="isActive">Ativo</Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch id="isFeatured" checked={isFeatured} onCheckedChange={setIsFeatured} />
+            <Label htmlFor="isFeatured" className="text-amber-500 font-semibold">⭐ Destaque</Label>
           </div>
         </div>
       </div>

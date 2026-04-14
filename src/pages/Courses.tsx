@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useCourses } from "@/hooks/useCourses";
 import { CourseCard } from "@/components/courses/CourseCard";
+import { CoursesHeroBanner } from "@/components/courses/CoursesHeroBanner";
 import { BookOpen, Crown, Play } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -25,6 +26,9 @@ const Courses = () => {
             </div>
           </div>
         </div>
+
+        {/* Hero banner */}
+        {!loading && <CoursesHeroBanner courses={courses} />}
 
         {loading ? (
           <div className="px-4 pt-6 space-y-4">
@@ -122,10 +126,13 @@ const Courses = () => {
     );
   }
 
-  // Desktop (unchanged)
+  // Desktop
   return (
     <div className="min-h-screen bg-background">
       <MainHeader />
+
+      {/* Hero banner */}
+      {!loading && <CoursesHeroBanner courses={courses} />}
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
