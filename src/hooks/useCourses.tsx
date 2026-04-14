@@ -6,6 +6,11 @@ export interface Course {
   title: string;
   description: string | null;
   thumbnailUrl: string | null;
+  bannerUrl: string | null;
+  heroVideoUrl: string | null;
+  previewVideoUrl: string | null;
+  instructorName: string | null;
+  level: string;
   category: string;
   isActive: boolean;
   createdAt: string;
@@ -48,6 +53,11 @@ interface DBCourse {
   title: string;
   description: string | null;
   thumbnail_url: string | null;
+  banner_url: string | null;
+  hero_video_url: string | null;
+  preview_video_url: string | null;
+  instructor_name: string | null;
+  level: string;
   category: string;
   is_active: boolean;
   created_at: string;
@@ -90,6 +100,11 @@ const mapCourse = (db: DBCourse): Course => ({
   title: db.title,
   description: db.description,
   thumbnailUrl: db.thumbnail_url,
+  bannerUrl: db.banner_url,
+  heroVideoUrl: db.hero_video_url,
+  previewVideoUrl: db.preview_video_url,
+  instructorName: db.instructor_name,
+  level: db.level,
   category: db.category,
   isActive: db.is_active,
   createdAt: db.created_at,
@@ -351,6 +366,11 @@ export const useCoursesAdmin = () => {
       title: courseData.title,
       description: courseData.description,
       thumbnail_url: courseData.thumbnailUrl,
+      banner_url: courseData.bannerUrl,
+      hero_video_url: courseData.heroVideoUrl,
+      preview_video_url: courseData.previewVideoUrl,
+      instructor_name: courseData.instructorName,
+      level: courseData.level,
       category: courseData.category,
       is_active: courseData.isActive,
     });
@@ -364,6 +384,11 @@ export const useCoursesAdmin = () => {
     if (courseData.title !== undefined) updateData.title = courseData.title;
     if (courseData.description !== undefined) updateData.description = courseData.description;
     if (courseData.thumbnailUrl !== undefined) updateData.thumbnail_url = courseData.thumbnailUrl;
+    if (courseData.bannerUrl !== undefined) updateData.banner_url = courseData.bannerUrl;
+    if (courseData.heroVideoUrl !== undefined) updateData.hero_video_url = courseData.heroVideoUrl;
+    if (courseData.previewVideoUrl !== undefined) updateData.preview_video_url = courseData.previewVideoUrl;
+    if (courseData.instructorName !== undefined) updateData.instructor_name = courseData.instructorName;
+    if (courseData.level !== undefined) updateData.level = courseData.level;
     if (courseData.category !== undefined) updateData.category = courseData.category;
     if (courseData.isActive !== undefined) updateData.is_active = courseData.isActive;
 
