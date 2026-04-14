@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import MobileTabBar from "@/components/MobileTabBar";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import AdminLogin from "./pages/AdminLogin";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/install" element={<Install />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <MobileTabBar />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
