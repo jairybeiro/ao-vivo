@@ -42,7 +42,7 @@ export const ModuleAccordion = ({
           <AccordionItem
             key={module.id}
             value={module.id}
-            className="border rounded-lg bg-card overflow-hidden"
+            className="border border-white/5 rounded-2xl bg-card/50 backdrop-blur-sm overflow-hidden"
           >
             <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-accent/50">
               <div className="flex items-center gap-3 flex-1 text-left">
