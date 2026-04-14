@@ -206,31 +206,46 @@ export type Database = {
       }
       courses: {
         Row: {
+          banner_url: string | null
           category: string | null
           created_at: string
           description: string | null
+          hero_video_url: string | null
           id: string
+          instructor_name: string | null
           is_active: boolean | null
+          level: string | null
+          preview_video_url: string | null
           thumbnail_url: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          banner_url?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
+          hero_video_url?: string | null
           id?: string
+          instructor_name?: string | null
           is_active?: boolean | null
+          level?: string | null
+          preview_video_url?: string | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          banner_url?: string | null
           category?: string | null
           created_at?: string
           description?: string | null
+          hero_video_url?: string | null
           id?: string
+          instructor_name?: string | null
           is_active?: boolean | null
+          level?: string | null
+          preview_video_url?: string | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
