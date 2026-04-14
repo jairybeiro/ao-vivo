@@ -214,6 +214,7 @@ export type Database = {
           id: string
           instructor_name: string | null
           is_active: boolean | null
+          is_featured: boolean
           level: string | null
           preview_video_url: string | null
           thumbnail_url: string | null
@@ -229,6 +230,7 @@ export type Database = {
           id?: string
           instructor_name?: string | null
           is_active?: boolean | null
+          is_featured?: boolean
           level?: string | null
           preview_video_url?: string | null
           thumbnail_url?: string | null
@@ -244,6 +246,7 @@ export type Database = {
           id?: string
           instructor_name?: string | null
           is_active?: boolean | null
+          is_featured?: boolean
           level?: string | null
           preview_video_url?: string | null
           thumbnail_url?: string | null
