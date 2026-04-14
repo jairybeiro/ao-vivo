@@ -434,8 +434,12 @@ export const CourseManager = () => {
       </CardContent>
 
       {/* Course Dialog */}
-      <Dialog open={courseDialogOpen} onOpenChange={setCourseDialogOpen}>
-        <DialogContent>
+      <Dialog open={courseDialogOpen} onOpenChange={() => {}}>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{editingCourse ? "Editar Curso" : "Novo Curso"}</DialogTitle>
           </DialogHeader>
@@ -448,8 +452,12 @@ export const CourseManager = () => {
       </Dialog>
 
       {/* Module Dialog */}
-      <Dialog open={moduleDialogOpen} onOpenChange={setModuleDialogOpen}>
-        <DialogContent>
+      <Dialog open={moduleDialogOpen} onOpenChange={() => {}}>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{editingModule ? "Editar Módulo" : "Novo Módulo"}</DialogTitle>
           </DialogHeader>
@@ -464,8 +472,12 @@ export const CourseManager = () => {
       </Dialog>
 
       {/* Lesson Dialog */}
-      <Dialog open={lessonDialogOpen} onOpenChange={setLessonDialogOpen}>
-        <DialogContent>
+      <Dialog open={lessonDialogOpen} onOpenChange={() => {}}>
+        <DialogContent
+          onInteractOutside={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{editingLesson ? "Editar Aula" : "Nova Aula"}</DialogTitle>
           </DialogHeader>

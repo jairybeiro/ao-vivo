@@ -1,4 +1,4 @@
-import { Play, BookOpen } from "lucide-react";
+import { Play, BookOpen, User, BarChart3 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -41,6 +41,13 @@ export const CourseCard = ({ course, progress = 0, onClick }: CourseCardProps) =
           {course.category}
         </Badge>
 
+        {/* Level badge */}
+        {course.level && (
+          <Badge variant="secondary" className="absolute top-3 right-3 bg-primary/80 text-primary-foreground text-[10px]">
+            {course.level}
+          </Badge>
+        )}
+
         {/* Progresso se existir */}
         {progress > 0 && (
           <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
@@ -51,9 +58,15 @@ export const CourseCard = ({ course, progress = 0, onClick }: CourseCardProps) =
       </div>
 
       <CardContent className="p-4">
-        <h3 className="font-semibold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors">
+        <h3 className="font-semibold text-lg line-clamp-2 mb-1 group-hover:text-primary transition-colors">
           {course.title}
         </h3>
+        {course.instructorName && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-1.5">
+            <User className="w-3 h-3" />
+            <span>{course.instructorName}</span>
+          </div>
+        )}
         {course.description && (
           <p className="text-sm text-muted-foreground line-clamp-2">
             {course.description}

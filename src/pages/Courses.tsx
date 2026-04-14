@@ -87,14 +87,26 @@ const Courses = () => {
                   <div className="absolute bottom-0 left-0 right-0 p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-white/60 font-medium mb-1 uppercase tracking-wider">
-                          {course.category}
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-xs text-white/60 font-medium uppercase tracking-wider">
+                            {course.category}
+                          </p>
+                          {course.level && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/80 text-primary-foreground font-semibold">
+                              {course.level}
+                            </span>
+                          )}
+                        </div>
                         <h3 className="text-lg font-bold text-white leading-tight line-clamp-2">
                           {course.title}
                         </h3>
+                        {course.instructorName && (
+                          <p className="text-xs text-white/50 mt-1">
+                            por {course.instructorName}
+                          </p>
+                        )}
                         {course.description && (
-                          <p className="text-xs text-white/50 mt-1.5 line-clamp-2">
+                          <p className="text-xs text-white/40 mt-1 line-clamp-2">
                             {course.description}
                           </p>
                         )}
