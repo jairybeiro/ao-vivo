@@ -13,6 +13,7 @@ export interface Course {
   level: string;
   category: string;
   isActive: boolean;
+  isFeatured: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -60,6 +61,7 @@ interface DBCourse {
   level: string;
   category: string;
   is_active: boolean;
+  is_featured: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -107,6 +109,7 @@ const mapCourse = (db: DBCourse): Course => ({
   level: db.level,
   category: db.category,
   isActive: db.is_active,
+  isFeatured: db.is_featured,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
@@ -373,6 +376,7 @@ export const useCoursesAdmin = () => {
       level: courseData.level,
       category: courseData.category,
       is_active: courseData.isActive,
+      is_featured: courseData.isFeatured,
     });
 
     if (error) throw error;
@@ -391,6 +395,7 @@ export const useCoursesAdmin = () => {
     if (courseData.level !== undefined) updateData.level = courseData.level;
     if (courseData.category !== undefined) updateData.category = courseData.category;
     if (courseData.isActive !== undefined) updateData.is_active = courseData.isActive;
+    if (courseData.isFeatured !== undefined) updateData.is_featured = courseData.isFeatured;
 
     const { error } = await supabase.from("courses").update(updateData).eq("id", id);
     if (error) throw error;

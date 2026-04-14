@@ -272,6 +272,11 @@ export const CourseManager = () => {
                         <Badge variant={course.isActive ? "default" : "secondary"}>
                           {course.isActive ? "Ativo" : "Inativo"}
                         </Badge>
+                        {course.isFeatured && (
+                          <Badge className="bg-amber-500/20 text-amber-500 border-amber-500/30">
+                            ⭐ Destaque
+                          </Badge>
+                        )}
                       </div>
                       <p className="text-sm text-muted-foreground">{course.category}</p>
                     </div>
