@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Menu } from "lucide-react";
+import { ArrowLeft, Menu, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -10,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ModuleAccordion } from "@/components/courses/ModuleAccordion";
 import { DesktopLessonPlayer } from "@/components/courses/DesktopLessonPlayer";
 import { MobileLessonPlayer } from "@/components/courses/MobileLessonPlayer";
+import { MobileCourseView } from "@/components/courses/MobileCourseView";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CourseView = () => {
@@ -34,7 +35,6 @@ const CourseView = () => {
   const [userExitedPlayer, setUserExitedPlayer] = useState(false);
   const isMobile = useIsMobile();
 
-  // Ordenar todas as aulas em sequência
   const allLessonsOrdered = useMemo(() => {
     const ordered: CourseLesson[] = [];
     modules.forEach((module) => {
@@ -44,37 +44,22 @@ const CourseView = () => {
     return ordered;
   }, [modules, lessons]);
 
-  // Definir aula inicial: prioriza aula com progresso parcial, depois primeira não concluída
-  // Só define automaticamente se o usuário NÃO saiu intencionalmente do player
+  // Auto-select lesson
   useEffect(() => {
     if (!currentLesson && allLessonsOrdered.length > 0 && !userExitedPlayer) {
-      // 1. Procurar aula com progresso parcial (segundos assistidos > 0 e não concluída)
       const lessonInProgress = allLessonsOrdered.find((l) => {
         const watchedSeconds = getWatchedSeconds(l.id);
         return watchedSeconds > 0 && !isLessonCompleted(l.id);
       });
+      if (lessonInProgress) { setCurrentLesson(lessonInProgress); return; }
 
-      if (lessonInProgress) {
-        setCurrentLesson(lessonInProgress);
-        return;
-      }
-
-      // 2. Se não houver aula em progresso, pegar a primeira não concluída
       const firstIncomplete = allLessonsOrdered.find((l) => !isLessonCompleted(l.id));
-      
-      if (firstIncomplete) {
-        setCurrentLesson(firstIncomplete);
-        return;
-      }
+      if (firstIncomplete) { setCurrentLesson(firstIncomplete); return; }
 
-      // 3. Se todas estiverem concluídas, voltar para a primeira
       setCurrentLesson(allLessonsOrdered[0]);
     }
   }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted, userExitedPlayer]);
 
-  // Redirecionamento agora é feito pelo ProtectedRoute
-
-  // Calculate navigation helpers
   const currentIndex = currentLesson
     ? allLessonsOrdered.findIndex((l) => l.id === currentLesson.id)
     : -1;
@@ -82,29 +67,20 @@ const CourseView = () => {
   const hasPrevious = currentIndex > 0;
   const nextLesson = hasNext ? allLessonsOrdered[currentIndex + 1] : null;
 
-  // Callbacks - must be before any returns
   const handleTimeUpdate = useCallback((currentTime: number) => {
-    if (currentLesson) {
-      saveWatchedSeconds(currentLesson.id, currentTime);
-    }
+    if (currentLesson) saveWatchedSeconds(currentLesson.id, currentTime);
   }, [currentLesson, saveWatchedSeconds]);
 
   const handleNext = useCallback(() => {
-    if (hasNext) {
-      setCurrentLesson(allLessonsOrdered[currentIndex + 1]);
-    }
+    if (hasNext) setCurrentLesson(allLessonsOrdered[currentIndex + 1]);
   }, [hasNext, allLessonsOrdered, currentIndex]);
 
   const handlePrevious = useCallback(() => {
-    if (hasPrevious) {
-      setCurrentLesson(allLessonsOrdered[currentIndex - 1]);
-    }
+    if (hasPrevious) setCurrentLesson(allLessonsOrdered[currentIndex - 1]);
   }, [hasPrevious, allLessonsOrdered, currentIndex]);
 
   const handleComplete = useCallback(async () => {
-    if (currentLesson) {
-      await markLessonComplete(currentLesson.id);
-    }
+    if (currentLesson) await markLessonComplete(currentLesson.id);
   }, [currentLesson, markLessonComplete]);
 
   const handleSelectLesson = useCallback((lesson: CourseLesson) => {
@@ -118,7 +94,6 @@ const CourseView = () => {
     setCurrentLesson(null);
   }, []);
 
-  // Loading states - after all hooks
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -132,22 +107,41 @@ const CourseView = () => {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Curso não encontrado</p>
-          <Button onClick={() => navigate("/premium")}>Voltar</Button>
+          <Button onClick={() => navigate("/cursos")}>Voltar</Button>
         </div>
       </div>
     );
   }
 
+  // Mobile: delegate to MobileCourseView
+  if (isMobile) {
+    return (
+      <MobileCourseView
+        course={course}
+        modules={modules}
+        currentLesson={currentLesson}
+        allLessonsOrdered={allLessonsOrdered}
+        hasNext={hasNext}
+        hasPrevious={hasPrevious}
+        nextLesson={nextLesson}
+        isLessonCompleted={isLessonCompleted}
+        getLessonsForModule={getLessonsForModule}
+        getWatchedSeconds={getWatchedSeconds}
+        getCourseProgress={getCourseProgress}
+        onSelectLesson={handleSelectLesson}
+        onComplete={handleComplete}
+        onNext={handleNext}
+        onPrevious={handlePrevious}
+        onTimeUpdate={handleTimeUpdate}
+        onBack={handleBackFromMobile}
+      />
+    );
+  }
+
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Header da sidebar */}
       <div className="p-4 border-b">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate("/premium")}
-          className="gap-2 mb-3"
-        >
+        <Button variant="ghost" size="sm" onClick={() => navigate("/cursos")} className="gap-2 mb-3">
           <ArrowLeft className="w-4 h-4" />
           Voltar aos cursos
         </Button>
@@ -160,8 +154,6 @@ const CourseView = () => {
           <Progress value={getCourseProgress()} className="h-2" />
         </div>
       </div>
-
-      {/* Lista de módulos */}
       <ScrollArea className="flex-1 p-4">
         <ModuleAccordion
           modules={modules}
@@ -174,37 +166,13 @@ const CourseView = () => {
     </div>
   );
 
-  // Mobile fullscreen player
-  if (isMobile && currentLesson) {
-    return (
-      <MobileLessonPlayer
-        key={currentLesson.id}
-        lesson={currentLesson}
-        courseName={course.title}
-        isCompleted={isLessonCompleted(currentLesson.id)}
-        hasNext={hasNext}
-        hasPrevious={hasPrevious}
-        nextLessonTitle={nextLesson?.title}
-        initialTime={getWatchedSeconds(currentLesson.id)}
-        onComplete={handleComplete}
-        onNext={handleNext}
-        onPrevious={handlePrevious}
-        onTimeUpdate={handleTimeUpdate}
-        onBack={handleBackFromMobile}
-      />
-    );
-  }
-
   // Desktop: fullscreen player mode
-  if (!isMobile && currentLesson) {
+  if (currentLesson) {
     return (
       <div className="min-h-screen bg-black flex">
-        {/* Sidebar Desktop - can be toggled */}
         <aside className="hidden lg:flex w-80 border-r border-white/10 flex-col bg-card/95 backdrop-blur">
           <SidebarContent />
         </aside>
-
-        {/* Player */}
         <main className="flex-1 h-screen">
           <DesktopLessonPlayer
             key={currentLesson.id}
@@ -219,30 +187,24 @@ const CourseView = () => {
             onNext={handleNext}
             onPrevious={handlePrevious}
             onTimeUpdate={handleTimeUpdate}
-            onBack={() => navigate("/premium")}
+            onBack={() => navigate("/cursos")}
           />
         </main>
       </div>
     );
   }
 
-  // Default: course overview (no lesson selected)
+  // Desktop: no lesson selected
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar Desktop */}
       <aside className="hidden lg:flex w-80 border-r flex-col bg-card">
         <SidebarContent />
       </aside>
-
-      {/* Conteúdo principal */}
       <main className="flex-1 flex flex-col min-h-screen">
-        {/* Header mobile */}
         <header className="lg:hidden flex items-center gap-3 p-3 border-b bg-card">
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="w-5 h-5" />
-              </Button>
+              <Button variant="ghost" size="icon"><Menu className="w-5 h-5" /></Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 p-0">
               <SidebarContent />
@@ -253,8 +215,6 @@ const CourseView = () => {
             <p className="font-medium truncate">Selecione uma aula</p>
           </div>
         </header>
-
-        {/* Content area */}
         <div className="flex-1 flex items-center justify-center text-muted-foreground">
           Selecione uma aula para começar
         </div>

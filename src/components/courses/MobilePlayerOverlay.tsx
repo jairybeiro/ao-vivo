@@ -1,12 +1,9 @@
-import { ArrowLeft, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, SkipForward, Maximize, Minimize } from "lucide-react";
+import { ArrowLeft, Play, Pause, RotateCcw, RotateCw, Volume2, VolumeX, SkipForward, Maximize, Minimize, Smartphone } from "lucide-react";
 
 interface MobilePlayerOverlayProps {
-  // Lesson info
   lessonTitle: string;
   courseName: string;
   moduleName?: string;
-  
-  // Player state
   isPlaying: boolean;
   isLive: boolean;
   isMuted: boolean;
@@ -15,15 +12,9 @@ interface MobilePlayerOverlayProps {
   bufferedPercent: number;
   progressPercent: number;
   isFullscreen?: boolean;
-  
-  // Navigation
   hasNext: boolean;
   isCompleted: boolean;
-  
-  // Visibility
   visible: boolean;
-  
-  // Callbacks
   onTogglePlay: () => void;
   onToggleMute: () => void;
   onSeek: (percent: number) => void;
@@ -40,6 +31,17 @@ const formatTime = (time: number) => {
   const minutes = Math.floor(time / 60);
   const seconds = Math.floor(time % 60);
   return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+};
+
+const handleLandscapeLock = async () => {
+  try {
+    // Try Screen Orientation API
+    if (screen.orientation && (screen.orientation as any).lock) {
+      await (screen.orientation as any).lock("landscape");
+    }
+  } catch (err) {
+    console.log("Orientation lock not supported:", err);
+  }
 };
 
 export const MobilePlayerOverlay = ({
@@ -82,135 +84,118 @@ export const MobilePlayerOverlay = ({
         visible ? "opacity-100" : "opacity-0 pointer-events-none"
       }`}
     >
-      {/* Top - Back button only */}
-      <div className="relative z-10 p-4 pl-6 pt-[calc(env(safe-area-inset-top)+20px)]">
+      {/* Top bar - glass style */}
+      <div className="relative z-10 flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+16px)] pb-2 bg-gradient-to-b from-black/70 to-transparent">
+        <button
+          onClick={(e) => { e.stopPropagation(); onBack(); }}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm"
+        >
+          <ArrowLeft className="w-5 h-5 text-white" />
+        </button>
+
+        <div className="flex-1 mx-3 min-w-0 text-center">
+          <p className="text-white/60 text-[10px] font-medium truncate">{courseName}</p>
+          <p className="text-white text-xs font-semibold truncate">{lessonTitle}</p>
+        </div>
+
+        {/* Landscape lock button */}
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onBack();
+            handleLandscapeLock();
+            onToggleFullscreen?.();
           }}
-          className="w-10 h-10 flex items-center justify-center bg-black/30 rounded-full"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm"
+          title="Travar Horizontal"
         >
-          <ArrowLeft className="w-6 h-6 text-white" />
+          <Smartphone className="w-5 h-5 text-white rotate-90" />
         </button>
       </div>
 
-      {/* Center - empty space for tapping */}
-      <div className="flex-1" />
+      {/* Center - play controls */}
+      <div className="flex-1 flex items-center justify-center gap-8">
+        {!isLive && (
+          <button onClick={onSkipBackward} className="w-12 h-12 flex items-center justify-center relative opacity-80">
+            <RotateCcw className="w-7 h-7 text-white" />
+            <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white mt-0.5">10</span>
+          </button>
+        )}
 
-      {/* Bottom section - Full width progress bar and controls */}
-      <div className="relative z-10">
-        {/* Progress bar - full width at the bottom */}
+        <button
+          onClick={onTogglePlay}
+          className="w-18 h-18 flex items-center justify-center rounded-full bg-white/15 backdrop-blur-xl border border-white/20"
+          style={{ width: 72, height: 72 }}
+        >
+          {isPlaying ? (
+            <Pause className="w-9 h-9 text-white" fill="white" />
+          ) : (
+            <Play className="w-9 h-9 text-white ml-1" fill="white" />
+          )}
+        </button>
+
+        {!isLive && (
+          <button onClick={onSkipForward} className="w-12 h-12 flex items-center justify-center relative opacity-80">
+            <RotateCw className="w-7 h-7 text-white" />
+            <span className="absolute inset-0 flex items-center justify-center text-[9px] font-bold text-white mt-0.5">10</span>
+          </button>
+        )}
+      </div>
+
+      {/* Bottom controls */}
+      <div className="relative z-10 bg-gradient-to-t from-black/80 to-transparent pt-6">
+        {/* Progress bar */}
         {!isLive && (
           <div
-            className="w-full h-6 flex items-end cursor-pointer px-0"
+            className="mx-4 h-8 flex items-center cursor-pointer"
             onClick={handleProgressClick}
             onTouchStart={handleProgressClick}
           >
-            <div className="relative w-full h-[3px] bg-white/30 overflow-hidden">
-              {/* Buffered */}
+            <div className="relative w-full h-[3px] bg-white/20 rounded-full overflow-hidden">
               <div
-                className="absolute top-0 left-0 h-full bg-white/40"
+                className="absolute top-0 left-0 h-full bg-white/30 rounded-full"
                 style={{ width: `${bufferedPercent}%` }}
               />
-              {/* Progress - red like the reference */}
               <div
-                className="absolute top-0 left-0 h-full bg-red-600"
+                className="absolute top-0 left-0 h-full bg-primary rounded-full"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
+            {/* Thumb */}
+            <div
+              className="absolute w-3.5 h-3.5 rounded-full bg-primary border-2 border-white shadow-lg"
+              style={{ left: `calc(${progressPercent}% + 16px - 7px)`, marginLeft: `-${progressPercent * 0.32}px` }}
+            />
           </div>
         )}
 
-        {/* Controls bar */}
-        <div className="flex items-center justify-between gap-1 px-3 py-2 pb-[calc(env(safe-area-inset-bottom)+14px)] bg-gradient-to-t from-black/80 to-transparent">
-          {/* Left side: Play, Skip back, Skip forward, Volume */}
-          <div className="flex items-center gap-1">
-            {/* Play/Pause */}
-            <button
-              onClick={onTogglePlay}
-              className="w-10 h-10 flex items-center justify-center"
-            >
-              {isPlaying ? (
-                <Pause className="w-6 h-6 text-white" fill="white" />
-              ) : (
-                <Play className="w-6 h-6 text-white" fill="white" />
-              )}
-            </button>
-
-            {/* Skip Backward */}
-            {!isLive && (
-              <button
-                onClick={onSkipBackward}
-                className="w-9 h-9 flex items-center justify-center relative"
-              >
-                <RotateCcw className="w-5 h-5 text-white" />
-                <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white mt-0.5">10</span>
-              </button>
-            )}
-
-            {/* Skip Forward */}
-            {!isLive && (
-              <button
-                onClick={onSkipForward}
-                className="w-9 h-9 flex items-center justify-center relative"
-              >
-                <RotateCw className="w-5 h-5 text-white" />
-                <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white mt-0.5">10</span>
-              </button>
-            )}
-
-            {/* Volume */}
-            <button
-              onClick={onToggleMute}
-              className="w-9 h-9 flex items-center justify-center"
-            >
+        {/* Bottom bar */}
+        <div className="flex items-center justify-between px-4 py-2 pb-[calc(env(safe-area-inset-bottom)+10px)]">
+          <div className="flex items-center gap-3">
+            <button onClick={onToggleMute} className="w-9 h-9 flex items-center justify-center">
               <VolumeIcon className="w-5 h-5 text-white" />
             </button>
-
-            {/* Time display */}
-            <div className="text-white text-xs font-medium ml-1">
+            <span className="text-white/70 text-xs font-medium">
               {isLive ? (
                 <span className="flex items-center gap-1.5">
                   <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                   AO VIVO
                 </span>
               ) : (
-                <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+                `${formatTime(currentTime)} / ${formatTime(duration)}`
               )}
-            </div>
+            </span>
           </div>
 
-          {/* Center: Module name + Lesson title */}
-          <div className="flex-1 flex items-center justify-center gap-2 mx-2 min-w-0">
-            {moduleName && (
-              <span className="text-white font-bold text-xs shrink-0">{moduleName}</span>
-            )}
-            <span className="text-white/80 text-xs truncate">{lessonTitle}</span>
-          </div>
-
-          {/* Right side: Fullscreen + Next */}
-          <div className="flex items-center gap-1">
-            {/* Fullscreen button */}
+          <div className="flex items-center gap-2">
             {onToggleFullscreen && (
-              <button
-                onClick={onToggleFullscreen}
-                className="w-9 h-9 flex items-center justify-center text-white"
-              >
-                {isFullscreen ? (
-                  <Minimize className="w-5 h-5" />
-                ) : (
-                  <Maximize className="w-5 h-5" />
-                )}
+              <button onClick={onToggleFullscreen} className="w-9 h-9 flex items-center justify-center text-white">
+                {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
               </button>
             )}
-            {/* Next button - icon only */}
             <button
               onClick={onNext}
               disabled={!hasNext}
-              className={`w-9 h-9 flex items-center justify-center ${
-                hasNext ? "text-white" : "text-white/30"
-              }`}
+              className={`w-9 h-9 flex items-center justify-center ${hasNext ? "text-white" : "text-white/30"}`}
             >
               <SkipForward className="w-5 h-5" fill={hasNext ? "white" : "rgba(255,255,255,0.3)"} />
             </button>
