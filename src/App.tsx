@@ -50,7 +50,8 @@ const AnimatedRoutes = () => {
           <Route path="/entretenimento" element={<ProtectedRoute><Entertainment /></ProtectedRoute>} />
 
           {/* Players */}
-          <Route path="/course/:courseId" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
+          <Route path="/course/:courseId" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
+          <Route path="/course/:courseId/player" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
           <Route path="/cinebusiness/:id" element={<ProtectedRoute><CineBusinessDetail /></ProtectedRoute>} />
           <Route path="/series/:id" element={<ProtectedRoute><SeriesDetail /></ProtectedRoute>} />
 
