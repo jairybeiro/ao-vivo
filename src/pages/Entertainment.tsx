@@ -147,56 +147,82 @@ const Entertainment = () => {
     return result;
   }, [seriesByCategory, seriesSearch, seriesCategory]);
 
+  // Hero carousel candidates (items with trailers or backdrops)
+  const heroCandidates = useMemo(() => {
+    const withTrailer = cineBusinessItems.filter((i) => i.trailer_mp4_url || i.trailer_url || i.backdrop_url);
+    return (withTrailer.length > 0 ? withTrailer : cineBusinessItems).slice(0, 5);
+  }, [cineBusinessItems]);
+
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroTransitioning, setHeroTransitioning] = useState(false);
+
+  // Auto-rotate hero every 6s
+  useEffect(() => {
+    if (heroCandidates.length <= 1) return;
+    const timer = setInterval(() => {
+      setHeroTransitioning(true);
+      setTimeout(() => {
+        setHeroIndex((i) => (i + 1) % heroCandidates.length);
+        setHeroTransitioning(false);
+      }, 400);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [heroCandidates.length]);
+
+  const currentHero = heroCandidates[heroIndex] || heroItem;
+
   // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
-  const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
+  const heroVideoUrl = currentHero?.trailer_mp4_url || currentHero?.trailer_url || null;
 
   const heroYoutubeId = extractYouTubeId(heroVideoUrl);
   const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      {/* Header */}
-      <div className={`fixed top-0 left-0 right-0 z-50`}>
-        <MainHeader transparent={!isMobile} />
+      {/* Header - absolute on mobile for immersive hero */}
+      <div className={isMobile ? "absolute top-0 left-0 right-0 z-50" : "fixed top-0 left-0 right-0 z-50"}>
+        <MainHeader transparent />
       </div>
 
       {/* ===== HERO SECTION ===== */}
       {isMobile ? (
-        /* ====== MOBILE HERO - Apple TV Style ====== */
-        <section className="relative w-full h-[80vh] overflow-hidden">
-          {/* Video/Image background - vertical format */}
-          {heroIsDirectVideo ? (
-            <HlsAutoplayVideo
-              src={heroVideoUrl!}
-              poster={heroItem?.backdrop_url}
-              delayMs={2000}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : heroYoutubeId ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
-              className="absolute inset-0 w-full h-full scale-[1.8]"
-              allow="autoplay; encrypted-media"
-              frameBorder="0"
-              style={{ pointerEvents: "none" }}
-              title={heroItem?.name || ""}
-            />
-          ) : heroItem?.backdrop_url ? (
-            <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-background" />
-          )}
+        /* ====== MOBILE HERO - Immersive Full-bleed ====== */
+        <section className="relative w-full h-[85vh] overflow-hidden">
+          {/* Video/Image background - extends to top-0, behind header */}
+          <div className={`absolute inset-0 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
+            {heroIsDirectVideo ? (
+              <HlsAutoplayVideo
+                src={heroVideoUrl!}
+                poster={currentHero?.backdrop_url}
+                delayMs={2000}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : heroYoutubeId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
+                className="absolute inset-0 w-full h-full scale-[1.8]"
+                allow="autoplay; encrypted-media"
+                frameBorder="0"
+                style={{ pointerEvents: "none" }}
+                title={currentHero?.name || ""}
+              />
+            ) : currentHero?.backdrop_url ? (
+              <img src={currentHero.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-background" />
+            )}
+          </div>
 
           {/* Gradient overlays - Apple TV style */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
 
           {/* Content overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 z-20 p-5 pb-6 space-y-3">
+          <div className={`absolute bottom-0 left-0 right-0 z-20 p-5 pb-6 space-y-3 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
             {/* Category badge */}
-            {heroItem?.category && (
+            {currentHero?.category && (
               <span className="inline-block px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 text-[11px] font-semibold tracking-wide uppercase border border-white/10">
-                {heroItem.category}
+                {currentHero.category}
               </span>
             )}
 
@@ -205,17 +231,17 @@ const Entertainment = () => {
               className="text-2xl font-black text-white leading-tight tracking-tight"
               style={{ fontFamily: "'SF Pro Display', 'Helvetica Neue', sans-serif" }}
             >
-              {heroItem?.name || "Conteúdos que Inspiram"}
+              {currentHero?.name || "Conteúdos que Inspiram"}
             </h1>
 
             {/* Synopsis */}
             <p className="text-white/60 text-xs leading-relaxed line-clamp-2 max-w-[90%]">
-              {heroItem?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
+              {currentHero?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
             </p>
 
-            {/* Apple TV style buttons - glassmorphism */}
+            {/* Buttons - both with glassmorphism */}
             <div className="flex items-center gap-3 pt-1">
-              {heroItem && (
+              {currentHero && (
                 <button
                   onClick={() => handlePlayTrailer(heroVideoUrl)}
                   className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white text-black font-bold text-sm active:scale-[0.97] transition-transform shadow-lg"
@@ -226,24 +252,27 @@ const Entertainment = () => {
               )}
               <button
                 onClick={scrollToContent}
-                className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white/15 backdrop-blur-xl text-white font-semibold text-sm border border-white/20 active:scale-[0.97] transition-transform"
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/15 backdrop-blur-xl text-white font-semibold text-sm border border-white/20 active:scale-[0.97] transition-transform shadow-lg"
               >
                 <Film className="w-4 h-4" />
                 Explorar
               </button>
             </div>
 
-            {/* Dots indicator */}
-            <div className="flex items-center justify-center gap-1.5 pt-2">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className={`rounded-full transition-all ${
-                    i === 0 ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30"
-                  }`}
-                />
-              ))}
-            </div>
+            {/* Synced dots indicator */}
+            {heroCandidates.length > 1 && (
+              <div className="flex items-center justify-center gap-1.5 pt-2">
+                {heroCandidates.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setHeroTransitioning(true); setTimeout(() => { setHeroIndex(i); setHeroTransitioning(false); }, 400); }}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === heroIndex ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       ) : (
@@ -251,8 +280,8 @@ const Entertainment = () => {
         <section className="relative w-full bg-[#0f0f0f] pt-16">
           {/* Ambilight layer */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            {heroItem?.backdrop_url ? (
-              <img src={heroItem.backdrop_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
+            {currentHero?.backdrop_url ? (
+              <img src={currentHero.backdrop_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
             )}
@@ -266,7 +295,7 @@ const Entertainment = () => {
               {heroIsDirectVideo ? (
                 <HlsAutoplayVideo
                   src={heroVideoUrl!}
-                  poster={heroItem?.backdrop_url}
+                  poster={currentHero?.backdrop_url}
                   delayMs={3000}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -277,10 +306,10 @@ const Entertainment = () => {
                   allow="autoplay; encrypted-media"
                   frameBorder="0"
                   style={{ pointerEvents: "none" }}
-                  title={heroItem?.name || ""}
+                  title={currentHero?.name || ""}
                 />
-              ) : heroItem?.backdrop_url ? (
-                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              ) : currentHero?.backdrop_url ? (
+                <img src={currentHero.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
@@ -297,12 +326,12 @@ const Entertainment = () => {
                   <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
                 </h1>
 
-                {heroItem?.name && (
-                  <p className="text-lg font-semibold text-white/90 mt-1.5">{heroItem.name}</p>
+                {currentHero?.name && (
+                  <p className="text-lg font-semibold text-white/90 mt-1.5">{currentHero.name}</p>
                 )}
 
                 <p className="text-sm text-white/70 leading-relaxed mt-1 max-w-lg line-clamp-3">
-                  {heroItem?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
+                  {currentHero?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
                 </p>
 
                 <div className="flex items-center gap-2 text-xs text-white/50 mt-1.5">
@@ -312,7 +341,7 @@ const Entertainment = () => {
                 </div>
 
                 <div className="flex items-center gap-2.5 mt-4">
-                  {heroItem && (
+                  {currentHero && (
                     <button
                       onClick={() => handlePlayTrailer(heroVideoUrl)}
                       className="flex items-center justify-center gap-2 bg-[hsl(var(--player-accent))] text-white font-bold rounded-md shadow-lg px-7 py-3 text-sm hover:brightness-110 active:scale-[0.97] transition-transform"
@@ -343,10 +372,10 @@ const Entertainment = () => {
         isOpen={isTrailerPlayerOpen}
         onClose={() => setIsTrailerPlayerOpen(false)}
         trailerUrl={selectedTrailerUrl}
-        embedUrl={heroItem?.embed_url || null}
-        contentUrl={heroItem?.stream_url || null}
-        title={heroItem?.name || "Trailer"}
-        poster={heroItem?.cover_url || heroItem?.backdrop_url || undefined}
+        embedUrl={currentHero?.embed_url || null}
+        contentUrl={currentHero?.stream_url || null}
+        title={currentHero?.name || "Trailer"}
+        poster={currentHero?.cover_url || currentHero?.backdrop_url || undefined}
       />
 
       {/* ===== TABS + COLLECTIONS ===== */}
