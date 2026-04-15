@@ -178,12 +178,12 @@ const CourseDetail = () => {
         {/* Actions */}
         <div className="px-5 pt-5 space-y-3">
           <Button
-            onClick={() => navigate(`/course/${course.id}/player`)}
+            onClick={handleAccessCourse}
             className="w-full gap-2 rounded-xl h-12 text-base font-semibold"
             size="lg"
           >
             <Play className="w-5 h-5" fill="currentColor" />
-            {progress > 0 ? "Continuar Curso" : "Começar Agora"}
+            {ctaLabel}
           </Button>
 
           {course.previewVideoUrl && (
@@ -357,12 +357,12 @@ const CourseDetail = () => {
             {/* Actions */}
             <div className="flex items-center gap-3 pt-2">
               <Button
-                onClick={() => navigate(`/course/${course.id}/player`)}
+                onClick={handleAccessCourse}
                 className="gap-2 rounded-full px-8"
                 size="lg"
               >
                 <Play className="w-5 h-5" fill="currentColor" />
-                {progress > 0 ? "Continuar Curso" : "Começar Agora"}
+                {ctaLabel}
               </Button>
               {course.previewVideoUrl && (
                 <Button
@@ -488,12 +488,12 @@ const CourseDetail = () => {
               )}
               <div className="space-y-3">
                 <Button
-                  onClick={() => navigate(`/course/${course.id}/player`)}
+                  onClick={handleAccessCourse}
                   className="w-full gap-2 rounded-xl h-12 text-base font-semibold"
                   size="lg"
                 >
                   <Play className="w-5 h-5" fill="currentColor" />
-                  {progress > 0 ? "Continuar" : "Acessar Curso"}
+                  {ctaLabel}
                 </Button>
               </div>
 
