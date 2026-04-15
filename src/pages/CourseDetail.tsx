@@ -52,12 +52,7 @@ const CourseDetail = () => {
     });
   };
 
-  const getYouTubeEmbedUrl = (url: string) => {
-    const match = url.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/
-    );
-    return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0` : url;
-  };
+  // YouTube embed helper removed — using PreviewPlayerModal now
 
   if (loading) {
     return (
