@@ -60,10 +60,10 @@ const MobileTabBar = () => {
 
       {/* Tab Bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-[80] md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-[80] md:hidden bg-background/95 backdrop-blur-2xl border-t border-white/10"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
-        <div className="bg-card/70 backdrop-blur-2xl border-t border-white/10">
+        <div>
           <div className="flex items-center justify-around h-14">
             {tabs.map((tab) => {
               const Icon = tab.icon;

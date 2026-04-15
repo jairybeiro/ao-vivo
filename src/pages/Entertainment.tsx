@@ -187,7 +187,7 @@ const Entertainment = () => {
       {/* ===== HERO SECTION ===== */}
       {isMobile ? (
         /* ====== MOBILE HERO - Immersive Full-bleed ====== */
-        <section className="relative w-full h-[85vh] overflow-hidden">
+        <section className="relative w-full h-[100svh] overflow-hidden">
           {/* Video/Image background - extends to top-0, behind header */}
           <div className={`absolute inset-0 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
             {heroIsDirectVideo ? (
