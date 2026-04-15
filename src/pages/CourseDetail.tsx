@@ -366,26 +366,10 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {/* Preview video */}
+      {/* Preview modal (desktop) */}
       <AnimatePresence>
         {showPreview && course.previewVideoUrl && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="container mx-auto px-4 py-8">
-              <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden aspect-video bg-black shadow-2xl shadow-primary/5">
-                <iframe
-                  src={getYouTubeEmbedUrl(course.previewVideoUrl)}
-                  className="w-full h-full"
-                  allow="autoplay; encrypted-media; fullscreen"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-          </motion.div>
+          <PreviewPlayerModal url={course.previewVideoUrl} onClose={() => setShowPreview(false)} />
         )}
       </AnimatePresence>
 
