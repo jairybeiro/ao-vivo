@@ -14,6 +14,7 @@ export interface Course {
   category: string;
   isActive: boolean;
   isFeatured: boolean;
+  priceCents: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -62,6 +63,7 @@ interface DBCourse {
   category: string;
   is_active: boolean;
   is_featured: boolean;
+  price_cents: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -110,6 +112,7 @@ const mapCourse = (db: DBCourse): Course => ({
   category: db.category,
   isActive: db.is_active,
   isFeatured: db.is_featured,
+  priceCents: db.price_cents,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
