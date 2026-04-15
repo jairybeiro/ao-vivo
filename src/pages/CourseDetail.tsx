@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCourseDetails } from "@/hooks/useCourses";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MainHeader from "@/components/MainHeader";
+import PreviewPlayerModal from "@/components/courses/PreviewPlayerModal";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -11,11 +12,8 @@ import {
   BookOpen,
   Clock,
   User,
-  Star,
   ChevronDown,
-  ChevronRight,
   CheckCircle2,
-  Lock,
   GraduationCap,
   Layers,
   Monitor,
@@ -54,12 +52,7 @@ const CourseDetail = () => {
     });
   };
 
-  const getYouTubeEmbedUrl = (url: string) => {
-    const match = url.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/
-    );
-    return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0` : url;
-  };
+  
 
   if (loading) {
     return (
@@ -171,33 +164,19 @@ const CourseDetail = () => {
           {course.previewVideoUrl && (
             <Button
               variant="outline"
-              onClick={() => setShowPreview(!showPreview)}
+              onClick={() => setShowPreview(true)}
               className="w-full gap-2 rounded-xl h-11 border-white/10"
             >
               <Play className="w-4 h-4" />
-              {showPreview ? "Fechar Preview" : "Ver Preview"}
+              Ver Preview
             </Button>
           )}
         </div>
 
-        {/* Preview video */}
+        {/* Preview modal */}
         <AnimatePresence>
           {showPreview && course.previewVideoUrl && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="px-5 pt-4 overflow-hidden"
-            >
-              <div className="rounded-xl overflow-hidden aspect-video bg-black">
-                <iframe
-                  src={getYouTubeEmbedUrl(course.previewVideoUrl)}
-                  className="w-full h-full"
-                  allow="autoplay; encrypted-media; fullscreen"
-                  allowFullScreen
-                />
-              </div>
-            </motion.div>
+            <PreviewPlayerModal url={course.previewVideoUrl} onClose={() => setShowPreview(false)} />
           )}
         </AnimatePresence>
 
@@ -363,7 +342,7 @@ const CourseDetail = () => {
               {course.previewVideoUrl && (
                 <Button
                   variant="outline"
-                  onClick={() => setShowPreview(!showPreview)}
+                  onClick={() => setShowPreview(true)}
                   className="gap-2 rounded-full px-6 border-white/10"
                   size="lg"
                 >
@@ -387,26 +366,10 @@ const CourseDetail = () => {
         </div>
       </div>
 
-      {/* Preview video */}
+      {/* Preview modal (desktop) */}
       <AnimatePresence>
         {showPreview && course.previewVideoUrl && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="container mx-auto px-4 py-8">
-              <div className="max-w-4xl mx-auto rounded-2xl overflow-hidden aspect-video bg-black shadow-2xl shadow-primary/5">
-                <iframe
-                  src={getYouTubeEmbedUrl(course.previewVideoUrl)}
-                  className="w-full h-full"
-                  allow="autoplay; encrypted-media; fullscreen"
-                  allowFullScreen
-                />
-              </div>
-            </div>
-          </motion.div>
+          <PreviewPlayerModal url={course.previewVideoUrl} onClose={() => setShowPreview(false)} />
         )}
       </AnimatePresence>
 
