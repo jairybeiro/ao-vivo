@@ -26,8 +26,11 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
   const [category, setCategory] = useState(course?.category || "Geral");
   const [isActive, setIsActive] = useState(course?.isActive ?? true);
   const [isFeatured, setIsFeatured] = useState(course?.isFeatured ?? false);
+  const [priceCents, setPriceCents] = useState<number | null>(course?.priceCents ?? null);
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  const priceDisplay = priceCents !== null ? (priceCents / 100).toFixed(2) : "";
 
   useEffect(() => {
     if (course) {
@@ -42,6 +45,7 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
       setCategory(course.category);
       setIsActive(course.isActive);
       setIsFeatured(course.isFeatured);
+      setPriceCents(course.priceCents ?? null);
     }
   }, [course]);
 
@@ -61,6 +65,7 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
         category,
         isActive,
         isFeatured,
+        priceCents,
       });
       onCancel();
     } catch (error) {
@@ -157,6 +162,26 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
             <Label htmlFor="isFeatured" className="text-amber-500 font-semibold">⭐ Destaque</Label>
           </div>
         </div>
+      </div>
+
+      {/* Preço */}
+      <div>
+        <Label htmlFor="price">Preço (R$)</Label>
+        <Input
+          id="price"
+          type="number"
+          step="0.01"
+          min="0"
+          value={priceDisplay}
+          onChange={(e) => {
+            const val = e.target.value;
+            setPriceCents(val ? Math.round(parseFloat(val) * 100) : null);
+          }}
+          placeholder="0,00 (vazio = gratuito)"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Deixe vazio para curso gratuito
+        </p>
       </div>
 
       {/* Seção: Imagens */}
