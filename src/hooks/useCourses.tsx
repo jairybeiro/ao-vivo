@@ -380,6 +380,7 @@ export const useCoursesAdmin = () => {
       category: courseData.category,
       is_active: courseData.isActive,
       is_featured: courseData.isFeatured,
+      price_cents: courseData.priceCents,
     });
 
     if (error) throw error;
@@ -399,6 +400,7 @@ export const useCoursesAdmin = () => {
     if (courseData.category !== undefined) updateData.category = courseData.category;
     if (courseData.isActive !== undefined) updateData.is_active = courseData.isActive;
     if (courseData.isFeatured !== undefined) updateData.is_featured = courseData.isFeatured;
+    if (courseData.priceCents !== undefined) updateData.price_cents = courseData.priceCents;
 
     const { error } = await supabase.from("courses").update(updateData).eq("id", id);
     if (error) throw error;
