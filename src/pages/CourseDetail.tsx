@@ -52,7 +52,7 @@ const CourseDetail = () => {
     });
   };
 
-  // YouTube embed helper removed — using PreviewPlayerModal now
+  
 
   if (loading) {
     return (
