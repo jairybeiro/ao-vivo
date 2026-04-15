@@ -164,6 +164,26 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
         </div>
       </div>
 
+      {/* Preço */}
+      <div>
+        <Label htmlFor="price">Preço (R$)</Label>
+        <Input
+          id="price"
+          type="number"
+          step="0.01"
+          min="0"
+          value={priceDisplay}
+          onChange={(e) => {
+            const val = e.target.value;
+            setPriceCents(val ? Math.round(parseFloat(val) * 100) : null);
+          }}
+          placeholder="0,00 (vazio = gratuito)"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          Deixe vazio para curso gratuito
+        </p>
+      </div>
+
       {/* Seção: Imagens */}
       <div className="space-y-1 pt-2">
         <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
