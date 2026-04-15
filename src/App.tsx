@@ -17,6 +17,8 @@ import CourseView from "./pages/CourseView";
 import CourseDetail from "./pages/CourseDetail";
 import Courses from "./pages/Courses";
 import MyCourses from "./pages/MyCourses";
+import CourseCheckout from "./pages/CourseCheckout";
+import CheckoutReturn from "./pages/CheckoutReturn";
 import Entertainment from "./pages/Entertainment";
 import CineBusinessDetail from "./pages/CineBusinessDetail";
 import SeriesDetail from "./pages/SeriesDetail";
@@ -55,7 +57,9 @@ const AnimatedRoutes = () => {
 
           {/* Protected - requires auth */}
           <Route path="/course/:courseId/player" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
+          <Route path="/course/:courseId/checkout" element={<ProtectedRoute><CourseCheckout /></ProtectedRoute>} />
           <Route path="/meus-cursos" element={<ProtectedRoute><MyCourses /></ProtectedRoute>} />
+          <Route path="/checkout/return" element={<CheckoutReturn />} />
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
 
           {/* Public */}
