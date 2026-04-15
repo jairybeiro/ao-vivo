@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCourseDetails } from "@/hooks/useCourses";
+import { useUserCourses } from "@/hooks/useUserCourses";
+import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MainHeader from "@/components/MainHeader";
 import PreviewPlayerModal from "@/components/courses/PreviewPlayerModal";
@@ -24,6 +26,8 @@ const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { ownsCourse } = useUserCourses();
   const {
     course,
     modules,
