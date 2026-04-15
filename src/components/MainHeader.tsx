@@ -29,13 +29,15 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 transition-colors duration-300",
-        transparent
+        "top-0 left-0 right-0 z-50 transition-colors duration-300",
+        isMobile
+          ? "absolute bg-transparent border-b-0"
+          : "sticky",
+        !isMobile && (transparent
           ? "bg-transparent border-b-0"
-          : "border-b border-border bg-card/80 backdrop-blur-md",
-        isMobile && "bg-black/60 backdrop-blur-2xl border-b-0"
+          : "border-b border-border bg-card/80 backdrop-blur-md")
       )}
-      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+      style={{ paddingTop: isMobile ? "env(safe-area-inset-top, 0px)" : undefined }}
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14">

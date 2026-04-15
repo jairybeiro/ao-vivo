@@ -147,8 +147,32 @@ const Entertainment = () => {
     return result;
   }, [seriesByCategory, seriesSearch, seriesCategory]);
 
+  // Hero carousel candidates (items with trailers or backdrops)
+  const heroCandidates = useMemo(() => {
+    const withTrailer = cineBusinessItems.filter((i) => i.trailer_mp4_url || i.trailer_url || i.backdrop_url);
+    return (withTrailer.length > 0 ? withTrailer : cineBusinessItems).slice(0, 5);
+  }, [cineBusinessItems]);
+
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [heroTransitioning, setHeroTransitioning] = useState(false);
+
+  // Auto-rotate hero every 6s
+  useEffect(() => {
+    if (heroCandidates.length <= 1) return;
+    const timer = setInterval(() => {
+      setHeroTransitioning(true);
+      setTimeout(() => {
+        setHeroIndex((i) => (i + 1) % heroCandidates.length);
+        setHeroTransitioning(false);
+      }, 400);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, [heroCandidates.length]);
+
+  const currentHero = heroCandidates[heroIndex] || heroItem;
+
   // Prioridade: trailer_mp4_url (MP4/M3U8) > trailer_url (YouTube)
-  const heroVideoUrl = heroItem?.trailer_mp4_url || heroItem?.trailer_url || null;
+  const heroVideoUrl = currentHero?.trailer_mp4_url || currentHero?.trailer_url || null;
 
   const heroYoutubeId = extractYouTubeId(heroVideoUrl);
   const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
