@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCourseDetails } from "@/hooks/useCourses";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MainHeader from "@/components/MainHeader";
+import PreviewPlayerModal from "@/components/courses/PreviewPlayerModal";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -11,11 +12,8 @@ import {
   BookOpen,
   Clock,
   User,
-  Star,
   ChevronDown,
-  ChevronRight,
   CheckCircle2,
-  Lock,
   GraduationCap,
   Layers,
   Monitor,
