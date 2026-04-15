@@ -14,6 +14,7 @@ import AdminLogin from "./pages/AdminLogin";
 import Login from "./pages/Login";
 import Install from "./pages/Install";
 import CourseView from "./pages/CourseView";
+import CourseDetail from "./pages/CourseDetail";
 import Courses from "./pages/Courses";
 import Entertainment from "./pages/Entertainment";
 import CineBusinessDetail from "./pages/CineBusinessDetail";
