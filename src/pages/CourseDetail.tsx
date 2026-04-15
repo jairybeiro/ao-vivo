@@ -57,26 +57,30 @@ const CourseDetail = () => {
   };
 
   const hasAccess = !!user && ownsCourse(courseId || "");
+  const isPaid = !!(course as any)?.priceCents && (course as any).priceCents > 0;
+  const isFree = !isPaid;
 
   const handleAccessCourse = () => {
     if (!user) {
       navigate("/login", { state: { from: `/course/${courseId}` } });
       return;
     }
-    if (hasAccess) {
+    if (hasAccess || isFree) {
       navigate(`/course/${course?.id}/player`);
       return;
     }
-    // TODO: Etapa 4 - checkout flow
-    navigate(`/course/${course?.id}/player`);
+    // Paid course, not owned → checkout
+    navigate(`/course/${course?.id}/checkout`);
   };
 
   const ctaLabel = !user
     ? "Criar Conta para Acessar"
-    : hasAccess
+    : hasAccess || isFree
     ? progress > 0
       ? "Continuar Curso"
       : "Começar Agora"
+    : isPaid
+    ? `Comprar — R$ ${((course as any).priceCents / 100).toFixed(2).replace(".", ",")}`
     : "Acessar Curso";
 
   if (loading) {
