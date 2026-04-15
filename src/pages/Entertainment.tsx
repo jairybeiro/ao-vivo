@@ -179,37 +179,39 @@ const Entertainment = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      {/* Header */}
-      <div className={`fixed top-0 left-0 right-0 z-50`}>
-        <MainHeader transparent={!isMobile} />
+      {/* Header - absolute on mobile for immersive hero */}
+      <div className={isMobile ? "absolute top-0 left-0 right-0 z-50" : "fixed top-0 left-0 right-0 z-50"}>
+        <MainHeader transparent />
       </div>
 
       {/* ===== HERO SECTION ===== */}
       {isMobile ? (
-        /* ====== MOBILE HERO - Apple TV Style ====== */
-        <section className="relative w-full h-[80vh] overflow-hidden">
-          {/* Video/Image background - vertical format */}
-          {heroIsDirectVideo ? (
-            <HlsAutoplayVideo
-              src={heroVideoUrl!}
-              poster={heroItem?.backdrop_url}
-              delayMs={2000}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : heroYoutubeId ? (
-            <iframe
-              src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
-              className="absolute inset-0 w-full h-full scale-[1.8]"
-              allow="autoplay; encrypted-media"
-              frameBorder="0"
-              style={{ pointerEvents: "none" }}
-              title={heroItem?.name || ""}
-            />
-          ) : heroItem?.backdrop_url ? (
-            <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-background" />
-          )}
+        /* ====== MOBILE HERO - Immersive Full-bleed ====== */
+        <section className="relative w-full h-[85vh] overflow-hidden">
+          {/* Video/Image background - extends to top-0, behind header */}
+          <div className={`absolute inset-0 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
+            {heroIsDirectVideo ? (
+              <HlsAutoplayVideo
+                src={heroVideoUrl!}
+                poster={currentHero?.backdrop_url}
+                delayMs={2000}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            ) : heroYoutubeId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
+                className="absolute inset-0 w-full h-full scale-[1.8]"
+                allow="autoplay; encrypted-media"
+                frameBorder="0"
+                style={{ pointerEvents: "none" }}
+                title={currentHero?.name || ""}
+              />
+            ) : currentHero?.backdrop_url ? (
+              <img src={currentHero.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-background" />
+            )}
+          </div>
 
           {/* Gradient overlays - Apple TV style */}
           <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
