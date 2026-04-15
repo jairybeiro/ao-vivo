@@ -178,7 +178,7 @@ const Entertainment = () => {
   const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-24 md:pb-0">
       {/* Header - absolute on mobile for immersive hero */}
       <div className={isMobile ? "absolute top-0 left-0 right-0 z-50" : "fixed top-0 left-0 right-0 z-50"}>
         <MainHeader transparent />
