@@ -218,11 +218,11 @@ const Entertainment = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
 
           {/* Content overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 z-20 p-5 pb-6 space-y-3">
+          <div className={`absolute bottom-0 left-0 right-0 z-20 p-5 pb-6 space-y-3 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
             {/* Category badge */}
-            {heroItem?.category && (
+            {currentHero?.category && (
               <span className="inline-block px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 text-[11px] font-semibold tracking-wide uppercase border border-white/10">
-                {heroItem.category}
+                {currentHero.category}
               </span>
             )}
 
@@ -231,17 +231,17 @@ const Entertainment = () => {
               className="text-2xl font-black text-white leading-tight tracking-tight"
               style={{ fontFamily: "'SF Pro Display', 'Helvetica Neue', sans-serif" }}
             >
-              {heroItem?.name || "Conteúdos que Inspiram"}
+              {currentHero?.name || "Conteúdos que Inspiram"}
             </h1>
 
             {/* Synopsis */}
             <p className="text-white/60 text-xs leading-relaxed line-clamp-2 max-w-[90%]">
-              {heroItem?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
+              {currentHero?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
             </p>
 
-            {/* Apple TV style buttons - glassmorphism */}
+            {/* Buttons - both with glassmorphism */}
             <div className="flex items-center gap-3 pt-1">
-              {heroItem && (
+              {currentHero && (
                 <button
                   onClick={() => handlePlayTrailer(heroVideoUrl)}
                   className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white text-black font-bold text-sm active:scale-[0.97] transition-transform shadow-lg"
@@ -252,24 +252,27 @@ const Entertainment = () => {
               )}
               <button
                 onClick={scrollToContent}
-                className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl bg-white/15 backdrop-blur-xl text-white font-semibold text-sm border border-white/20 active:scale-[0.97] transition-transform"
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white/15 backdrop-blur-xl text-white font-semibold text-sm border border-white/20 active:scale-[0.97] transition-transform shadow-lg"
               >
                 <Film className="w-4 h-4" />
                 Explorar
               </button>
             </div>
 
-            {/* Dots indicator */}
-            <div className="flex items-center justify-center gap-1.5 pt-2">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className={`rounded-full transition-all ${
-                    i === 0 ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30"
-                  }`}
-                />
-              ))}
-            </div>
+            {/* Synced dots indicator */}
+            {heroCandidates.length > 1 && (
+              <div className="flex items-center justify-center gap-1.5 pt-2">
+                {heroCandidates.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setHeroTransitioning(true); setTimeout(() => { setHeroIndex(i); setHeroTransitioning(false); }, 400); }}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === heroIndex ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       ) : (
