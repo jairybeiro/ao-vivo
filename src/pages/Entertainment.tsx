@@ -178,7 +178,7 @@ const Entertainment = () => {
   const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-24 md:pb-0">
       {/* Header - absolute on mobile for immersive hero */}
       <div className={isMobile ? "absolute top-0 left-0 right-0 z-50" : "fixed top-0 left-0 right-0 z-50"}>
         <MainHeader transparent />
@@ -187,7 +187,7 @@ const Entertainment = () => {
       {/* ===== HERO SECTION ===== */}
       {isMobile ? (
         /* ====== MOBILE HERO - Immersive Full-bleed ====== */
-        <section className="relative w-full h-[85vh] overflow-hidden">
+        <section className="relative w-full h-[100svh] overflow-hidden">
           {/* Video/Image background - extends to top-0, behind header */}
           <div className={`absolute inset-0 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
             {heroIsDirectVideo ? (
