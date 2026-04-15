@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Sparkles, LogOut, LogIn } from "lucide-react";
+import { Home, BookOpen, Sparkles, LogOut, LogIn, GraduationCap } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,6 +23,7 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
     { path: "/", label: "Home", icon: <Home className="w-4 h-4" /> },
     { path: "/cursos", label: "Cursos", icon: <BookOpen className="w-4 h-4" /> },
     { path: "/entretenimento", label: "Inspire-se", icon: <Sparkles className="w-4 h-4" /> },
+    ...(user ? [{ path: "/meus-cursos", label: "Meus Cursos", icon: <GraduationCap className="w-4 h-4" /> }] : []),
   ];
 
   return (

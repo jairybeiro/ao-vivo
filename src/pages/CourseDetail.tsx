@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useCourseDetails } from "@/hooks/useCourses";
+import { useUserCourses } from "@/hooks/useUserCourses";
+import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MainHeader from "@/components/MainHeader";
 import PreviewPlayerModal from "@/components/courses/PreviewPlayerModal";
@@ -24,6 +26,8 @@ const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { ownsCourse } = useUserCourses();
   const {
     course,
     modules,
@@ -52,7 +56,28 @@ const CourseDetail = () => {
     });
   };
 
-  
+  const hasAccess = !!user && ownsCourse(courseId || "");
+
+  const handleAccessCourse = () => {
+    if (!user) {
+      navigate("/login", { state: { from: `/course/${courseId}` } });
+      return;
+    }
+    if (hasAccess) {
+      navigate(`/course/${course?.id}/player`);
+      return;
+    }
+    // TODO: Etapa 4 - checkout flow
+    navigate(`/course/${course?.id}/player`);
+  };
+
+  const ctaLabel = !user
+    ? "Criar Conta para Acessar"
+    : hasAccess
+    ? progress > 0
+      ? "Continuar Curso"
+      : "Começar Agora"
+    : "Acessar Curso";
 
   if (loading) {
     return (
@@ -153,12 +178,12 @@ const CourseDetail = () => {
         {/* Actions */}
         <div className="px-5 pt-5 space-y-3">
           <Button
-            onClick={() => navigate(`/course/${course.id}/player`)}
+            onClick={handleAccessCourse}
             className="w-full gap-2 rounded-xl h-12 text-base font-semibold"
             size="lg"
           >
             <Play className="w-5 h-5" fill="currentColor" />
-            {progress > 0 ? "Continuar Curso" : "Começar Agora"}
+            {ctaLabel}
           </Button>
 
           {course.previewVideoUrl && (
@@ -332,12 +357,12 @@ const CourseDetail = () => {
             {/* Actions */}
             <div className="flex items-center gap-3 pt-2">
               <Button
-                onClick={() => navigate(`/course/${course.id}/player`)}
+                onClick={handleAccessCourse}
                 className="gap-2 rounded-full px-8"
                 size="lg"
               >
                 <Play className="w-5 h-5" fill="currentColor" />
-                {progress > 0 ? "Continuar Curso" : "Começar Agora"}
+                {ctaLabel}
               </Button>
               {course.previewVideoUrl && (
                 <Button
@@ -463,12 +488,12 @@ const CourseDetail = () => {
               )}
               <div className="space-y-3">
                 <Button
-                  onClick={() => navigate(`/course/${course.id}/player`)}
+                  onClick={handleAccessCourse}
                   className="w-full gap-2 rounded-xl h-12 text-base font-semibold"
                   size="lg"
                 >
                   <Play className="w-5 h-5" fill="currentColor" />
-                  {progress > 0 ? "Continuar" : "Acessar Curso"}
+                  {ctaLabel}
                 </Button>
               </div>
 
