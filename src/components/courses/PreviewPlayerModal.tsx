@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { X, Play, Pause, Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft, Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { motion } from "framer-motion";
 import Hls from "hls.js";
 
@@ -112,13 +112,13 @@ const PreviewPlayerModal = ({ url, onClose }: PreviewPlayerModalProps) => {
         transition={{ duration: 0.3 }}
         className="absolute inset-0 pointer-events-none"
       >
-        {/* Top gradient + close */}
+        {/* Top gradient + back arrow */}
         <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/70 to-transparent pointer-events-auto">
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors"
+            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-colors"
           >
-            <X className="w-5 h-5 text-white" />
+            <ChevronLeft className="w-6 h-6 text-white" />
           </button>
         </div>
 
