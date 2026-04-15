@@ -26,8 +26,11 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
   const [category, setCategory] = useState(course?.category || "Geral");
   const [isActive, setIsActive] = useState(course?.isActive ?? true);
   const [isFeatured, setIsFeatured] = useState(course?.isFeatured ?? false);
+  const [priceCents, setPriceCents] = useState<number | null>(course?.priceCents ?? null);
   const [loading, setLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  const priceDisplay = priceCents !== null ? (priceCents / 100).toFixed(2) : "";
 
   useEffect(() => {
     if (course) {
@@ -42,6 +45,7 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
       setCategory(course.category);
       setIsActive(course.isActive);
       setIsFeatured(course.isFeatured);
+      setPriceCents(course.priceCents ?? null);
     }
   }, [course]);
 
@@ -61,6 +65,7 @@ export const CourseForm = ({ course, onSubmit, onCancel }: CourseFormProps) => {
         category,
         isActive,
         isFeatured,
+        priceCents,
       });
       onCancel();
     } catch (error) {
