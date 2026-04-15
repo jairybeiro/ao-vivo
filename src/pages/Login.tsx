@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { Tv } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as { from?: string })?.from || "/";
   const { signIn, signUp, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
@@ -21,7 +23,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     }
   }, [user, navigate]);
 
@@ -48,7 +50,7 @@ const Login = () => {
       toast.error(getLoginErrorMessage(error.message));
     } else {
       toast.success("Login realizado com sucesso!");
-      navigate("/");
+      navigate(from);
     }
   };
 
