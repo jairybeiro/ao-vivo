@@ -280,8 +280,8 @@ const Entertainment = () => {
         <section className="relative w-full bg-[#0f0f0f] pt-16">
           {/* Ambilight layer */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-            {heroItem?.backdrop_url ? (
-              <img src={heroItem.backdrop_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
+            {currentHero?.backdrop_url ? (
+              <img src={currentHero.backdrop_url} alt="" className="w-full h-full object-cover scale-110 blur-3xl opacity-50" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
             )}
@@ -295,7 +295,7 @@ const Entertainment = () => {
               {heroIsDirectVideo ? (
                 <HlsAutoplayVideo
                   src={heroVideoUrl!}
-                  poster={heroItem?.backdrop_url}
+                  poster={currentHero?.backdrop_url}
                   delayMs={3000}
                   className="absolute inset-0 w-full h-full object-cover"
                 />
@@ -306,10 +306,10 @@ const Entertainment = () => {
                   allow="autoplay; encrypted-media"
                   frameBorder="0"
                   style={{ pointerEvents: "none" }}
-                  title={heroItem?.name || ""}
+                  title={currentHero?.name || ""}
                 />
-              ) : heroItem?.backdrop_url ? (
-                <img src={heroItem.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              ) : currentHero?.backdrop_url ? (
+                <img src={currentHero.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
               )}
@@ -326,12 +326,12 @@ const Entertainment = () => {
                   <span className="text-[hsl(var(--player-accent))]">INSPIRAM</span>
                 </h1>
 
-                {heroItem?.name && (
-                  <p className="text-lg font-semibold text-white/90 mt-1.5">{heroItem.name}</p>
+                {currentHero?.name && (
+                  <p className="text-lg font-semibold text-white/90 mt-1.5">{currentHero.name}</p>
                 )}
 
                 <p className="text-sm text-white/70 leading-relaxed mt-1 max-w-lg line-clamp-3">
-                  {heroItem?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
+                  {currentHero?.sinopse || "Conteúdos de negócios, empreendedorismo e desenvolvimento pessoal."}
                 </p>
 
                 <div className="flex items-center gap-2 text-xs text-white/50 mt-1.5">
@@ -341,7 +341,7 @@ const Entertainment = () => {
                 </div>
 
                 <div className="flex items-center gap-2.5 mt-4">
-                  {heroItem && (
+                  {currentHero && (
                     <button
                       onClick={() => handlePlayTrailer(heroVideoUrl)}
                       className="flex items-center justify-center gap-2 bg-[hsl(var(--player-accent))] text-white font-bold rounded-md shadow-lg px-7 py-3 text-sm hover:brightness-110 active:scale-[0.97] transition-transform"
@@ -372,10 +372,10 @@ const Entertainment = () => {
         isOpen={isTrailerPlayerOpen}
         onClose={() => setIsTrailerPlayerOpen(false)}
         trailerUrl={selectedTrailerUrl}
-        embedUrl={heroItem?.embed_url || null}
-        contentUrl={heroItem?.stream_url || null}
-        title={heroItem?.name || "Trailer"}
-        poster={heroItem?.cover_url || heroItem?.backdrop_url || undefined}
+        embedUrl={currentHero?.embed_url || null}
+        contentUrl={currentHero?.stream_url || null}
+        title={currentHero?.name || "Trailer"}
+        poster={currentHero?.cover_url || currentHero?.backdrop_url || undefined}
       />
 
       {/* ===== TABS + COLLECTIONS ===== */}
