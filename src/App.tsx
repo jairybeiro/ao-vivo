@@ -44,18 +44,16 @@ const AnimatedRoutes = () => {
         className="min-h-screen"
       >
         <Routes location={location}>
-          {/* Main navigation */}
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-          <Route path="/cursos" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
-          <Route path="/entretenimento" element={<ProtectedRoute><Entertainment /></ProtectedRoute>} />
+          {/* Public pages */}
+          <Route path="/" element={<Home />} />
+          <Route path="/cursos" element={<Courses />} />
+          <Route path="/entretenimento" element={<Entertainment />} />
+          <Route path="/course/:courseId" element={<CourseDetail />} />
+          <Route path="/cinebusiness/:id" element={<CineBusinessDetail />} />
+          <Route path="/series/:id" element={<SeriesDetail />} />
 
-          {/* Players */}
-          <Route path="/course/:courseId" element={<ProtectedRoute><CourseDetail /></ProtectedRoute>} />
+          {/* Protected - requires auth */}
           <Route path="/course/:courseId/player" element={<ProtectedRoute><CourseView /></ProtectedRoute>} />
-          <Route path="/cinebusiness/:id" element={<ProtectedRoute><CineBusinessDetail /></ProtectedRoute>} />
-          <Route path="/series/:id" element={<ProtectedRoute><SeriesDetail /></ProtectedRoute>} />
-
-          {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
 
           {/* Public */}
