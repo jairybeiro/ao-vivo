@@ -56,7 +56,28 @@ const CourseDetail = () => {
     });
   };
 
-  
+  const hasAccess = !!user && ownsCourse(courseId || "");
+
+  const handleAccessCourse = () => {
+    if (!user) {
+      navigate("/login", { state: { from: `/course/${courseId}` } });
+      return;
+    }
+    if (hasAccess) {
+      navigate(`/course/${course?.id}/player`);
+      return;
+    }
+    // TODO: Etapa 4 - checkout flow
+    navigate(`/course/${course?.id}/player`);
+  };
+
+  const ctaLabel = !user
+    ? "Criar Conta para Acessar"
+    : hasAccess
+    ? progress > 0
+      ? "Continuar Curso"
+      : "Começar Agora"
+    : "Acessar Curso";
 
   if (loading) {
     return (
