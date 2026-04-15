@@ -23,7 +23,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/", { replace: true });
+      navigate(from, { replace: true });
     }
   }, [user, navigate]);
 
@@ -50,7 +50,7 @@ const Login = () => {
       toast.error(getLoginErrorMessage(error.message));
     } else {
       toast.success("Login realizado com sucesso!");
-      navigate("/");
+      navigate(from);
     }
   };
 
