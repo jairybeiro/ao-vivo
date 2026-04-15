@@ -217,6 +217,7 @@ export type Database = {
           is_featured: boolean
           level: string | null
           preview_video_url: string | null
+          price_cents: number | null
           thumbnail_url: string | null
           title: string
           updated_at: string
@@ -233,6 +234,7 @@ export type Database = {
           is_featured?: boolean
           level?: string | null
           preview_video_url?: string | null
+          price_cents?: number | null
           thumbnail_url?: string | null
           title: string
           updated_at?: string
@@ -249,6 +251,7 @@ export type Database = {
           is_featured?: boolean
           level?: string | null
           preview_video_url?: string | null
+          price_cents?: number | null
           thumbnail_url?: string | null
           title?: string
           updated_at?: string
