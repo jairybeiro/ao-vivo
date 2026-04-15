@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Sparkles, LogOut } from "lucide-react";
+import { Home, BookOpen, Sparkles, LogOut, LogIn } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -11,7 +11,7 @@ interface MainHeaderProps {
 const MainHeader = ({ transparent = false }: MainHeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
 
   const isActive = (path: string) => {
@@ -45,7 +45,7 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
             AO VIVO
           </button>
 
-          {/* Desktop nav - hidden on mobile (Tab Bar handles it) */}
+          {/* Desktop nav */}
           {!isMobile && (
             <nav className="flex items-center gap-1">
               {navItems.map((item) => (
@@ -66,18 +66,27 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
             </nav>
           )}
 
-          {/* Logout - desktop only, mobile uses Tab Bar profile */}
+          {/* Desktop auth button */}
           {!isMobile && (
-            <button
-              onClick={async () => { await signOut(); navigate("/login"); }}
-              className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-              title="Sair"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            user ? (
+              <button
+                onClick={async () => { await signOut(); navigate("/"); }}
+                className="p-2 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                title="Sair"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Entrar</span>
+              </button>
+            )
           )}
 
-          {/* Mobile: empty spacer for balance */}
           {isMobile && <div className="w-8" />}
         </div>
       </div>

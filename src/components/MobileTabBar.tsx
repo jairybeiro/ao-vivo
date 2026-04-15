@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Search, User, LogOut } from "lucide-react";
+import { Home, BookOpen, Search, User, LogOut, LogIn } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 const MobileTabBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [showProfile, setShowProfile] = useState(false);
 
   const isActive = (path: string) => {
@@ -30,16 +30,29 @@ const MobileTabBar = () => {
             className="absolute bottom-20 left-4 right-4 rounded-2xl bg-card/90 backdrop-blur-xl border border-white/10 p-4 space-y-3"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={async () => {
-                await signOut();
-                navigate("/login");
-              }}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
-            >
-              <LogOut className="w-5 h-5" />
-              Sair da conta
-            </button>
+            {user ? (
+              <button
+                onClick={async () => {
+                  await signOut();
+                  setShowProfile(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-destructive hover:bg-destructive/10 transition-colors text-sm font-medium"
+              >
+                <LogOut className="w-5 h-5" />
+                Sair da conta
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setShowProfile(false);
+                  navigate("/login");
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-primary hover:bg-primary/10 transition-colors text-sm font-medium"
+              >
+                <LogIn className="w-5 h-5" />
+                Entrar / Criar conta
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -76,7 +89,7 @@ const MobileTabBar = () => {
               )}
             >
               <User className="w-5 h-5" strokeWidth={showProfile ? 2.5 : 1.5} />
-              <span className="text-[10px] font-medium">Perfil</span>
+              <span className="text-[10px] font-medium">{user ? "Perfil" : "Entrar"}</span>
             </button>
           </div>
         </div>
