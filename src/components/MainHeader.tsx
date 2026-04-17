@@ -3,7 +3,7 @@ import { Home, BookOpen, Sparkles, LogOut, LogIn, GraduationCap } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useMemo } from "react";
+
 
 const getInitials = (email?: string | null, name?: string | null) => {
   const source = (name || email || "").trim();
