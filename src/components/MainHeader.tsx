@@ -3,18 +3,27 @@ import { Home, BookOpen, Sparkles, LogOut, LogIn, GraduationCap } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-
-const getInitials = (email?: string | null, name?: string | null) => {
-  const source = (name || email || "").trim();
-  if (!source) return "?";
-  // If name has spaces, take first letter of first 2 words
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
+const getInitials = (name?: string | null, email?: string | null) => {
+  const cleanName = (name || "").trim();
+  if (cleanName) {
+    const parts = cleanName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    if (parts.length === 1 && parts[0].length >= 2) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
   }
-  // Fallback: first 2 letters of email local-part
-  const local = source.split("@")[0];
+  const local = (email || "").split("@")[0];
+  if (!local) return "?";
+  // Try splitting email local-part on . _ -
+  const eparts = local.split(/[._-]+/).filter(Boolean);
+  if (eparts.length >= 2) {
+    return (eparts[0][0] + eparts[1][0]).toUpperCase();
+  }
   return local.slice(0, 2).toUpperCase();
 };
 
@@ -27,6 +36,32 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const [profileName, setProfileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setProfileName(null);
+      return;
+    }
+    const meta = (user.user_metadata || {}) as { full_name?: string; name?: string };
+    const metaName = meta.full_name || meta.name;
+    if (metaName) setProfileName(metaName);
+
+    let cancelled = false;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data?.display_name) {
+          setProfileName(data.display_name);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
@@ -114,7 +149,7 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
                 className="w-9 h-9 rounded-full bg-primary/90 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-lg ring-1 ring-white/20"
                 title={user.email ?? "Usuário"}
               >
-                {getInitials(user.email, (user.user_metadata as { full_name?: string; name?: string } | null)?.full_name ?? (user.user_metadata as { full_name?: string; name?: string } | null)?.name)}
+                {getInitials(profileName, user.email)}
               </div>
             ) : (
               <button
