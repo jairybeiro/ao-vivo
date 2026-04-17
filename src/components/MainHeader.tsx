@@ -36,6 +36,32 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const [profileName, setProfileName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setProfileName(null);
+      return;
+    }
+    const meta = (user.user_metadata || {}) as { full_name?: string; name?: string };
+    const metaName = meta.full_name || meta.name;
+    if (metaName) setProfileName(metaName);
+
+    let cancelled = false;
+    supabase
+      .from("profiles")
+      .select("display_name")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled && data?.display_name) {
+          setProfileName(data.display_name);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const isActive = (path: string) => {
     if (path === "/") return location.pathname === "/";
