@@ -138,7 +138,7 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
         <button
           onClick={toggleMute}
           aria-label={isMuted ? "Ativar som" : "Silenciar"}
-          className="absolute right-4 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/20 text-white shadow-lg active:scale-90 transition-transform"
+          className="absolute right-[64px] z-20 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/20 text-white shadow-lg active:scale-90 transition-transform"
           style={{ top: "calc(env(safe-area-inset-top, 0px) + 14px)" }}
         >
           {isMuted ? <VolumeX className="w-[18px] h-[18px]" strokeWidth={2.2} /> : <Volume2 className="w-[18px] h-[18px]" strokeWidth={2.2} />}
