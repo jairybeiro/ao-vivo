@@ -149,7 +149,7 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
                 className="w-9 h-9 rounded-full bg-primary/90 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-lg ring-1 ring-white/20"
                 title={user.email ?? "Usuário"}
               >
-                {getInitials(user.email, (user.user_metadata as { full_name?: string; name?: string } | null)?.full_name ?? (user.user_metadata as { full_name?: string; name?: string } | null)?.name)}
+                {getInitials(profileName, user.email)}
               </div>
             ) : (
               <button
