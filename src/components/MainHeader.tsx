@@ -3,6 +3,20 @@ import { Home, BookOpen, Sparkles, LogOut, LogIn, GraduationCap } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useMemo } from "react";
+
+const getInitials = (email?: string | null, name?: string | null) => {
+  const source = (name || email || "").trim();
+  if (!source) return "?";
+  // If name has spaces, take first letter of first 2 words
+  const parts = source.split(/[\s._-]+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  // Fallback: first 2 letters of email local-part
+  const local = source.split("@")[0];
+  return local.slice(0, 2).toUpperCase();
+};
 
 interface MainHeaderProps {
   transparent?: boolean;
