@@ -135,18 +135,20 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
         style={{ ...style, pointerEvents: mediaPointerEvents }}
       />
       {showControls && (
-        <div className="absolute bottom-3 right-3 flex items-center gap-2 z-10">
+        <div className="absolute top-4 right-4 flex items-center gap-2 z-10" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
           <button
             onClick={togglePlay}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/90 active:scale-90 transition-transform"
+            aria-label={isPlaying ? "Pausar" : "Reproduzir"}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/20 text-white shadow-lg active:scale-90 transition-transform"
           >
             {isPlaying ? <Pause className="w-4 h-4" fill="white" /> : <Play className="w-4 h-4" fill="white" />}
           </button>
           <button
             onClick={toggleMute}
-            className="w-9 h-9 flex items-center justify-center rounded-full bg-black/50 backdrop-blur-sm text-white/90 active:scale-90 transition-transform"
+            aria-label={isMuted ? "Ativar som" : "Silenciar"}
+            className="w-10 h-10 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-xl border border-white/20 text-white shadow-lg active:scale-90 transition-transform"
           >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {isMuted ? <VolumeX className="w-[18px] h-[18px]" strokeWidth={2.2} /> : <Volume2 className="w-[18px] h-[18px]" strokeWidth={2.2} />}
           </button>
         </div>
       )}
