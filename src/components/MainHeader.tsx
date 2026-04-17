@@ -57,9 +57,13 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
         <div className="flex items-center justify-between h-14">
           <button
             onClick={() => navigate("/")}
-            className="text-lg font-bold tracking-tight text-foreground hover:text-primary transition-colors"
+            className={cn(
+              "font-bold tracking-tight hover:text-primary transition-colors",
+              isMobile ? "text-2xl text-white drop-shadow-lg" : "text-lg text-foreground"
+            )}
+            style={isMobile ? { fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif", letterSpacing: "-0.02em" } : undefined}
           >
-            AO VIVO
+            C&B
           </button>
 
           {/* Desktop nav */}
