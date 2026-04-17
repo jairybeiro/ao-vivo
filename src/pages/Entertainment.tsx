@@ -195,6 +195,7 @@ const Entertainment = () => {
                 src={heroVideoUrl!}
                 poster={currentHero?.backdrop_url}
                 delayMs={2000}
+                showControls
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : heroYoutubeId ? (

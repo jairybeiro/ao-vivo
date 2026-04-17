@@ -4,6 +4,20 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+
+const getInitials = (email?: string | null, name?: string | null) => {
+  const source = (name || email || "").trim();
+  if (!source) return "?";
+  // If name has spaces, take first letter of first 2 words
+  const parts = source.split(/[\s._-]+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  // Fallback: first 2 letters of email local-part
+  const local = source.split("@")[0];
+  return local.slice(0, 2).toUpperCase();
+};
+
 interface MainHeaderProps {
   transparent?: boolean;
 }
@@ -43,9 +57,13 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
         <div className="flex items-center justify-between h-14">
           <button
             onClick={() => navigate("/")}
-            className="text-lg font-bold tracking-tight text-foreground hover:text-primary transition-colors"
+            className={cn(
+              "font-bold tracking-tight hover:text-primary transition-colors",
+              isMobile ? "text-2xl text-white drop-shadow-lg" : "text-lg text-foreground"
+            )}
+            style={isMobile ? { fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif", letterSpacing: "-0.02em" } : undefined}
           >
-            AO VIVO
+            C&B
           </button>
 
           {/* Desktop nav */}
@@ -90,7 +108,24 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
             )
           )}
 
-          {isMobile && <div className="w-8" />}
+          {isMobile && (
+            user ? (
+              <div
+                className="w-9 h-9 rounded-full bg-primary/90 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-lg ring-1 ring-white/20"
+                title={user.email ?? "Usuário"}
+              >
+                {getInitials(user.email, (user.user_metadata as { full_name?: string; name?: string } | null)?.full_name ?? (user.user_metadata as { full_name?: string; name?: string } | null)?.name)}
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white shadow-lg ring-1 ring-white/20 active:scale-95 transition-transform"
+                title="Entrar"
+              >
+                <LogIn className="w-4 h-4" />
+              </button>
+            )
+          )}
         </div>
       </div>
     </header>
