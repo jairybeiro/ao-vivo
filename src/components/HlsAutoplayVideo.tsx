@@ -135,7 +135,7 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
         style={{ ...style, pointerEvents: mediaPointerEvents }}
       />
       {showControls && (
-        <div className="absolute top-4 right-4 flex items-center gap-2 z-10" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+        <div className="absolute bottom-4 right-4 flex items-center gap-2 z-10">
           <button
             onClick={togglePlay}
             aria-label={isPlaying ? "Pausar" : "Reproduzir"}
