@@ -108,7 +108,24 @@ const MainHeader = ({ transparent = false }: MainHeaderProps) => {
             )
           )}
 
-          {isMobile && <div className="w-8" />}
+          {isMobile && (
+            user ? (
+              <div
+                className="w-9 h-9 rounded-full bg-primary/90 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold shadow-lg ring-1 ring-white/20"
+                title={user.email ?? "Usuário"}
+              >
+                {getInitials(user.email, (user.user_metadata as { full_name?: string; name?: string } | null)?.full_name ?? (user.user_metadata as { full_name?: string; name?: string } | null)?.name)}
+              </div>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md flex items-center justify-center text-white shadow-lg ring-1 ring-white/20 active:scale-95 transition-transform"
+                title="Entrar"
+              >
+                <LogIn className="w-4 h-4" />
+              </button>
+            )
+          )}
         </div>
       </div>
     </header>
