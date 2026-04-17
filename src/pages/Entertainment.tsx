@@ -156,7 +156,7 @@ const Entertainment = () => {
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroTransitioning, setHeroTransitioning] = useState(false);
 
-  // Auto-rotate hero every 6s
+  // Auto-rotate hero every 7s with smooth 1500ms transition
   useEffect(() => {
     if (heroCandidates.length <= 1) return;
     const timer = setInterval(() => {
@@ -164,8 +164,8 @@ const Entertainment = () => {
       setTimeout(() => {
         setHeroIndex((i) => (i + 1) % heroCandidates.length);
         setHeroTransitioning(false);
-      }, 400);
-    }, 6000);
+      }, 750);
+    }, 7000);
     return () => clearInterval(timer);
   }, [heroCandidates.length]);
 
@@ -186,10 +186,10 @@ const Entertainment = () => {
 
       {/* ===== HERO SECTION ===== */}
       {isMobile ? (
-        /* ====== MOBILE HERO - Immersive Full-bleed ====== */
-        <section className="relative w-full h-[100svh] overflow-hidden">
-          {/* Video/Image background - extends to top-0, behind header */}
-          <div className={`absolute inset-0 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
+        /* ====== MOBILE HERO - Immersive Full-bleed (Apple TV style) ====== */
+        <section className="relative w-full h-[100svh] overflow-hidden -mt-[env(safe-area-inset-top,0px)]">
+          {/* Video/Image background - true top-0, behind header & status bar */}
+          <div className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
             {heroIsDirectVideo ? (
               <HlsAutoplayVideo
                 src={heroVideoUrl!}
@@ -213,12 +213,13 @@ const Entertainment = () => {
             )}
           </div>
 
-          {/* Gradient overlays - Apple TV style */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
+          {/* Gradient overlays - Apple TV style (softer, lifted) */}
+          <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-background via-background/70 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/40 to-transparent" />
 
-          {/* Content overlay at bottom */}
-          <div className={`absolute bottom-0 left-0 right-0 z-20 p-5 pb-6 space-y-3 transition-opacity duration-500 ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
+          {/* Content overlay - lifted up to clear tab bar, Apple TV positioning */}
+          <div className={`absolute left-0 right-0 z-20 px-5 space-y-3 transition-opacity duration-[1500ms] ease-in-out ${heroTransitioning ? "opacity-0" : "opacity-100"}`}
+               style={{ bottom: `calc(env(safe-area-inset-bottom, 0px) + 88px)` }}>
             {/* Category badge */}
             {currentHero?.category && (
               <span className="inline-block px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-white/90 text-[11px] font-semibold tracking-wide uppercase border border-white/10">
