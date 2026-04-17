@@ -3,18 +3,27 @@ import { Home, BookOpen, Sparkles, LogOut, LogIn, GraduationCap } from "lucide-r
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-
-const getInitials = (email?: string | null, name?: string | null) => {
-  const source = (name || email || "").trim();
-  if (!source) return "?";
-  // If name has spaces, take first letter of first 2 words
-  const parts = source.split(/[\s._-]+/).filter(Boolean);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
+const getInitials = (name?: string | null, email?: string | null) => {
+  const cleanName = (name || "").trim();
+  if (cleanName) {
+    const parts = cleanName.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+    if (parts.length === 1 && parts[0].length >= 2) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
   }
-  // Fallback: first 2 letters of email local-part
-  const local = source.split("@")[0];
+  const local = (email || "").split("@")[0];
+  if (!local) return "?";
+  // Try splitting email local-part on . _ -
+  const eparts = local.split(/[._-]+/).filter(Boolean);
+  if (eparts.length >= 2) {
+    return (eparts[0][0] + eparts[1][0]).toUpperCase();
+  }
   return local.slice(0, 2).toUpperCase();
 };
 
