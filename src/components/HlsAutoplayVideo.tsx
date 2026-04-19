@@ -23,7 +23,7 @@ interface HlsAutoplayVideoProps {
  * Supports both MP4 (native) and HLS (.m3u8) via hls.js.
  * When poster + delayMs are provided, shows the poster image first, then fades into video.
  */
-const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showControls = false }: HlsAutoplayVideoProps) => {
+const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showControls = false, loop = true, onEnded }: HlsAutoplayVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [showPoster, setShowPoster] = useState(!!(poster && delayMs > 0));
