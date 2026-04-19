@@ -246,7 +246,7 @@ const CineBusinessDetail = () => {
             </button>
 
             {/* Overlay Content */}
-            <div className={`absolute bottom-0 left-0 right-0 z-20 ${isMobile ? 'p-4 pb-5' : 'p-8 pb-10'}`}>
+            <div className={`absolute bottom-0 left-0 right-0 z-20 ${isMobile ? 'p-4 pb-12' : 'p-8 pb-10'}`}>
               {/* Title and Rating */}
               <div className="flex items-end justify-between gap-3">
                 <div className="flex-1 min-w-0">
