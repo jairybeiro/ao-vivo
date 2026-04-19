@@ -155,19 +155,25 @@ const Entertainment = () => {
 
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroTransitioning, setHeroTransitioning] = useState(false);
+  // Apple TV phase machine: 'image' (poster) → 'video' (trailer) → 'image' → next
+  const [heroPhase, setHeroPhase] = useState<"image" | "video">("image");
 
-  // Auto-rotate hero every 7s with smooth 1500ms transition
-  useEffect(() => {
-    if (heroCandidates.length <= 1) return;
-    const timer = setInterval(() => {
-      setHeroTransitioning(true);
-      setTimeout(() => {
-        setHeroIndex((i) => (i + 1) % heroCandidates.length);
-        setHeroTransitioning(false);
-      }, 750);
-    }, 7000);
-    return () => clearInterval(timer);
+  const goToHero = useCallback((nextIndex: number) => {
+    setHeroTransitioning(true);
+    setTimeout(() => {
+      setHeroIndex((prev) => {
+        const len = heroCandidates.length || 1;
+        return ((nextIndex % len) + len) % len;
+      });
+      setHeroPhase("image");
+      setHeroTransitioning(false);
+    }, 750);
   }, [heroCandidates.length]);
+
+  // Reset phase to "image" whenever hero changes
+  useEffect(() => {
+    setHeroPhase("image");
+  }, [heroIndex]);
 
   const currentHero = heroCandidates[heroIndex] || heroItem;
 
@@ -176,6 +182,53 @@ const Entertainment = () => {
 
   const heroYoutubeId = extractYouTubeId(heroVideoUrl);
   const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
+  const hasTrailer = !!(heroIsDirectVideo || heroYoutubeId);
+
+  // Phase orchestration:
+  // - "image" phase: show backdrop ~3s, then switch to "video" if trailer exists
+  //   (or auto-advance after 7s if no trailer)
+  // - "video" phase: trailer plays once. For YouTube (no onEnded), fall back to 30s timer.
+  // - When video ends → return to "image" briefly (1.5s) → next slide
+  useEffect(() => {
+    if (heroCandidates.length === 0) return;
+    if (heroPhase === "image") {
+      if (!hasTrailer) {
+        // No trailer: rotate after 7s
+        const t = setTimeout(() => goToHero(heroIndex + 1), 7000);
+        return () => clearTimeout(t);
+      }
+      // Show poster ~2.5s, then play video
+      const t = setTimeout(() => setHeroPhase("video"), 2500);
+      return () => clearTimeout(t);
+    }
+    // heroPhase === "video"
+    if (heroYoutubeId && !heroIsDirectVideo) {
+      // YouTube embed has no reliable onEnded → fallback timer 30s
+      const t = setTimeout(() => goToHero(heroIndex + 1), 30000);
+      return () => clearTimeout(t);
+    }
+    // Direct video: onEnded handler will trigger next
+  }, [heroPhase, heroIndex, heroCandidates.length, hasTrailer, heroYoutubeId, heroIsDirectVideo, goToHero]);
+
+  const handleVideoEnded = useCallback(() => {
+    // Brief return to poster image, then advance
+    setHeroPhase("image");
+    setTimeout(() => goToHero(heroIndex + 1), 1500);
+  }, [heroIndex, goToHero]);
+
+  // Swipe handlers (mobile)
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0) goToHero(heroIndex + 1);
+    else goToHero(heroIndex - 1);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
