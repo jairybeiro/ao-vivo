@@ -132,9 +132,10 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
       <video
         ref={videoRef}
         muted
-        loop
+        loop={loop}
         playsInline
         autoPlay
+        onEnded={onEnded}
         className={className}
         style={{ ...style, pointerEvents: mediaPointerEvents }}
       />
