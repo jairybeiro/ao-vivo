@@ -147,11 +147,47 @@ const Entertainment = () => {
     return result;
   }, [seriesByCategory, seriesSearch, seriesCategory]);
 
-  // Hero carousel candidates (items with trailers or backdrops)
-  const heroCandidates = useMemo(() => {
+  // Hero "shuffle bag": pool of all eligible items, randomly draws up to 10 per cycle
+  // without repetition, then re-shuffles avoiding immediate repeats from the previous cycle.
+  const heroPool = useMemo(() => {
     const withTrailer = cineBusinessItems.filter((i) => i.trailer_mp4_url || i.trailer_url || i.backdrop_url);
-    return (withTrailer.length > 0 ? withTrailer : cineBusinessItems).slice(0, 5);
+    return withTrailer.length > 0 ? withTrailer : cineBusinessItems;
   }, [cineBusinessItems]);
+
+  const lastCycleIdsRef = useRef<Set<string>>(new Set());
+
+  const buildShuffledCycle = useCallback((pool: CineBusinessItem[]): CineBusinessItem[] => {
+    if (pool.length === 0) return [];
+    const MAX = 10;
+    const lastIds = lastCycleIdsRef.current;
+    // Prefer items NOT shown in the last cycle to avoid immediate repeats
+    const fresh = pool.filter((i) => !lastIds.has(i.id));
+    const recycled = pool.filter((i) => lastIds.has(i.id));
+    // Fisher–Yates shuffle helper
+    const shuffle = <T,>(arr: T[]): T[] => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    };
+    const cycle = [...shuffle(fresh), ...shuffle(recycled)].slice(0, MAX);
+    lastCycleIdsRef.current = new Set(cycle.map((i) => i.id));
+    return cycle;
+  }, []);
+
+  const [heroCandidates, setHeroCandidates] = useState<CineBusinessItem[]>([]);
+
+  // Build initial cycle when pool is ready, and rebuild whenever pool changes
+  useEffect(() => {
+    if (heroPool.length === 0) {
+      setHeroCandidates([]);
+      return;
+    }
+    lastCycleIdsRef.current = new Set();
+    setHeroCandidates(buildShuffledCycle(heroPool));
+  }, [heroPool, buildShuffledCycle]);
 
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroTransitioning, setHeroTransitioning] = useState(false);
