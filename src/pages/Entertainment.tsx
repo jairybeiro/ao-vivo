@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Film, ChevronRight, Play, Briefcase, Tv, Star, Search, X, ChevronDown } from "lucide-react";
@@ -155,19 +155,25 @@ const Entertainment = () => {
 
   const [heroIndex, setHeroIndex] = useState(0);
   const [heroTransitioning, setHeroTransitioning] = useState(false);
+  // Apple TV phase machine: 'image' (poster) → 'video' (trailer) → 'image' → next
+  const [heroPhase, setHeroPhase] = useState<"image" | "video">("image");
 
-  // Auto-rotate hero every 7s with smooth 1500ms transition
-  useEffect(() => {
-    if (heroCandidates.length <= 1) return;
-    const timer = setInterval(() => {
-      setHeroTransitioning(true);
-      setTimeout(() => {
-        setHeroIndex((i) => (i + 1) % heroCandidates.length);
-        setHeroTransitioning(false);
-      }, 750);
-    }, 7000);
-    return () => clearInterval(timer);
+  const goToHero = useCallback((nextIndex: number) => {
+    setHeroTransitioning(true);
+    setTimeout(() => {
+      setHeroIndex((prev) => {
+        const len = heroCandidates.length || 1;
+        return ((nextIndex % len) + len) % len;
+      });
+      setHeroPhase("image");
+      setHeroTransitioning(false);
+    }, 750);
   }, [heroCandidates.length]);
+
+  // Reset phase to "image" whenever hero changes
+  useEffect(() => {
+    setHeroPhase("image");
+  }, [heroIndex]);
 
   const currentHero = heroCandidates[heroIndex] || heroItem;
 
@@ -176,6 +182,53 @@ const Entertainment = () => {
 
   const heroYoutubeId = extractYouTubeId(heroVideoUrl);
   const heroIsDirectVideo = isDirectVideoUrl(heroVideoUrl);
+  const hasTrailer = !!(heroIsDirectVideo || heroYoutubeId);
+
+  // Phase orchestration:
+  // - "image" phase: show backdrop ~3s, then switch to "video" if trailer exists
+  //   (or auto-advance after 7s if no trailer)
+  // - "video" phase: trailer plays once. For YouTube (no onEnded), fall back to 30s timer.
+  // - When video ends → return to "image" briefly (1.5s) → next slide
+  useEffect(() => {
+    if (heroCandidates.length === 0) return;
+    if (heroPhase === "image") {
+      if (!hasTrailer) {
+        // No trailer: rotate after 7s
+        const t = setTimeout(() => goToHero(heroIndex + 1), 7000);
+        return () => clearTimeout(t);
+      }
+      // Show poster ~2.5s, then play video
+      const t = setTimeout(() => setHeroPhase("video"), 2500);
+      return () => clearTimeout(t);
+    }
+    // heroPhase === "video"
+    if (heroYoutubeId && !heroIsDirectVideo) {
+      // YouTube embed has no reliable onEnded → fallback timer 30s
+      const t = setTimeout(() => goToHero(heroIndex + 1), 30000);
+      return () => clearTimeout(t);
+    }
+    // Direct video: onEnded handler will trigger next
+  }, [heroPhase, heroIndex, heroCandidates.length, hasTrailer, heroYoutubeId, heroIsDirectVideo, goToHero]);
+
+  const handleVideoEnded = useCallback(() => {
+    // Brief return to poster image, then advance
+    setHeroPhase("image");
+    setTimeout(() => goToHero(heroIndex + 1), 1500);
+  }, [heroIndex, goToHero]);
+
+  // Swipe handlers (mobile)
+  const touchStartX = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    touchStartX.current = null;
+    if (Math.abs(dx) < 50) return;
+    if (dx < 0) goToHero(heroIndex + 1);
+    else goToHero(heroIndex - 1);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
@@ -187,30 +240,50 @@ const Entertainment = () => {
       {/* ===== HERO SECTION ===== */}
       {isMobile ? (
         /* ====== MOBILE HERO - Immersive Full-bleed (Apple TV style) ====== */
-        <section className="relative w-full h-[100svh] min-h-[100dvh] overflow-hidden -mt-[env(safe-area-inset-top,0px)]">
-          {/* Video/Image background - true top-0, behind header & status bar */}
+        <section
+          className="relative w-full h-[100svh] min-h-[100dvh] overflow-hidden -mt-[env(safe-area-inset-top,0px)]"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Background layers - Apple TV phase: image first, then video, then back to image */}
           <div className={`absolute inset-0 transition-opacity duration-[1500ms] ease-in-out ${heroTransitioning ? "opacity-0" : "opacity-100"}`}>
-            {heroIsDirectVideo ? (
-              <HlsAutoplayVideo
-                src={heroVideoUrl!}
-                poster={currentHero?.backdrop_url}
-                delayMs={2000}
-                showControls
-                className="absolute inset-0 w-full h-full object-cover"
+            {/* Backdrop image - always rendered, faded out when video is playing */}
+            {currentHero?.backdrop_url ? (
+              <img
+                src={currentHero.backdrop_url}
+                alt=""
+                className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ease-in-out ${heroPhase === "video" && hasTrailer ? "opacity-0" : "opacity-100"}`}
               />
-            ) : heroYoutubeId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
-                className="absolute inset-0 w-full h-full scale-[1.8]"
-                allow="autoplay; encrypted-media"
-                frameBorder="0"
-                style={{ pointerEvents: "none" }}
-                title={currentHero?.name || ""}
-              />
-            ) : currentHero?.backdrop_url ? (
-              <img src={currentHero.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
             ) : (
               <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-background" />
+            )}
+
+            {/* Trailer video - mounted only during "video" phase, plays once then triggers handleVideoEnded */}
+            {heroPhase === "video" && hasTrailer && (
+              <div className="absolute inset-0 transition-opacity duration-[1200ms] ease-in-out">
+                {heroIsDirectVideo ? (
+                  <HlsAutoplayVideo
+                    key={`hero-video-${heroIndex}`}
+                    src={heroVideoUrl!}
+                    poster={currentHero?.backdrop_url}
+                    delayMs={0}
+                    loop={false}
+                    onEnded={handleVideoEnded}
+                    showControls
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : heroYoutubeId ? (
+                  <iframe
+                    key={`hero-yt-${heroIndex}`}
+                    src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3&playsinline=1`}
+                    className="absolute inset-0 w-full h-full scale-[1.8]"
+                    allow="autoplay; encrypted-media"
+                    frameBorder="0"
+                    style={{ pointerEvents: "none" }}
+                    title={currentHero?.name || ""}
+                  />
+                ) : null}
+              </div>
             )}
           </div>
 
@@ -267,7 +340,7 @@ const Entertainment = () => {
                 {heroCandidates.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => { setHeroTransitioning(true); setTimeout(() => { setHeroIndex(i); setHeroTransitioning(false); }, 400); }}
+                    onClick={() => goToHero(i)}
                     className={`rounded-full transition-all duration-300 ${
                       i === heroIndex ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30"
                     }`}
@@ -294,26 +367,42 @@ const Entertainment = () => {
           {/* Player container */}
           <div className="relative z-10 flex items-center justify-center" style={{ minHeight: "70vh" }}>
             <div className="relative w-full max-w-5xl mx-auto aspect-video overflow-hidden rounded-xl border border-white/10">
-              {heroIsDirectVideo ? (
-                <HlsAutoplayVideo
-                  src={heroVideoUrl!}
-                  poster={currentHero?.backdrop_url}
-                  delayMs={3000}
-                  className="absolute inset-0 w-full h-full object-cover"
+              {/* Backdrop image - always rendered, faded out when video is playing */}
+              {currentHero?.backdrop_url ? (
+                <img
+                  src={currentHero.backdrop_url}
+                  alt=""
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ease-in-out ${heroPhase === "video" && hasTrailer ? "opacity-0" : "opacity-100"}`}
                 />
-              ) : heroYoutubeId ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
-                  className="absolute inset-0 w-full h-full object-cover scale-110"
-                  allow="autoplay; encrypted-media"
-                  frameBorder="0"
-                  style={{ pointerEvents: "none" }}
-                  title={currentHero?.name || ""}
-                />
-              ) : currentHero?.backdrop_url ? (
-                <img src={currentHero.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+              )}
+
+              {/* Trailer video - mounted only during "video" phase */}
+              {heroPhase === "video" && hasTrailer && (
+                <div className="absolute inset-0 transition-opacity duration-[1200ms] ease-in-out">
+                  {heroIsDirectVideo ? (
+                    <HlsAutoplayVideo
+                      key={`hero-video-d-${heroIndex}`}
+                      src={heroVideoUrl!}
+                      poster={currentHero?.backdrop_url}
+                      delayMs={0}
+                      loop={false}
+                      onEnded={handleVideoEnded}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : heroYoutubeId ? (
+                    <iframe
+                      key={`hero-yt-d-${heroIndex}`}
+                      src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
+                      className="absolute inset-0 w-full h-full object-cover scale-110"
+                      allow="autoplay; encrypted-media"
+                      frameBorder="0"
+                      style={{ pointerEvents: "none" }}
+                      title={currentHero?.name || ""}
+                    />
+                  ) : null}
+                </div>
               )}
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />

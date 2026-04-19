@@ -12,6 +12,10 @@ interface HlsAutoplayVideoProps {
   delayMs?: number;
   /** Show minimal pause/mute controls overlay */
   showControls?: boolean;
+  /** If false, video plays once instead of looping (Apple TV style). Default: true */
+  loop?: boolean;
+  /** Called when the video reaches its end (only fires when loop=false) */
+  onEnded?: () => void;
 }
 
 /**
@@ -19,7 +23,7 @@ interface HlsAutoplayVideoProps {
  * Supports both MP4 (native) and HLS (.m3u8) via hls.js.
  * When poster + delayMs are provided, shows the poster image first, then fades into video.
  */
-const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showControls = false }: HlsAutoplayVideoProps) => {
+const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showControls = false, loop = true, onEnded }: HlsAutoplayVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [showPoster, setShowPoster] = useState(!!(poster && delayMs > 0));
@@ -128,9 +132,10 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
       <video
         ref={videoRef}
         muted
-        loop
+        loop={loop}
         playsInline
         autoPlay
+        onEnded={onEnded}
         className={className}
         style={{ ...style, pointerEvents: mediaPointerEvents }}
       />
