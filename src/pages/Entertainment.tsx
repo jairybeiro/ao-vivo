@@ -340,7 +340,7 @@ const Entertainment = () => {
                 {heroCandidates.map((_, i) => (
                   <button
                     key={i}
-                    onClick={() => { setHeroTransitioning(true); setTimeout(() => { setHeroIndex(i); setHeroTransitioning(false); }, 400); }}
+                    onClick={() => goToHero(i)}
                     className={`rounded-full transition-all duration-300 ${
                       i === heroIndex ? "w-5 h-1.5 bg-white" : "w-1.5 h-1.5 bg-white/30"
                     }`}
