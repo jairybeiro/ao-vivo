@@ -206,7 +206,10 @@ const CineBusinessDetail = () => {
 
         {/* Player Area */}
         <div className={`relative z-10 ${isMobile ? '' : 'flex items-center justify-center'}`} style={isMobile ? {} : { minHeight: "70vh" }}>
-          <div className={`relative w-full ${isMobile ? 'aspect-video' : 'max-w-5xl mx-auto aspect-video overflow-hidden rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.6)] border border-white/10'}`}>
+          <div
+            className={`relative w-full ${isMobile ? '' : 'max-w-5xl mx-auto aspect-video overflow-hidden rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.6)] border border-white/10'}`}
+            style={isMobile ? { height: 'calc(100svh - 56px - env(safe-area-inset-bottom, 0px) - 64px)', minHeight: '500px' } : undefined}
+          >
             {isDirectVideo ? (
               <HlsAutoplayVideo
                 src={bgSource}
