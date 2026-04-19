@@ -367,26 +367,42 @@ const Entertainment = () => {
           {/* Player container */}
           <div className="relative z-10 flex items-center justify-center" style={{ minHeight: "70vh" }}>
             <div className="relative w-full max-w-5xl mx-auto aspect-video overflow-hidden rounded-xl border border-white/10">
-              {heroIsDirectVideo ? (
-                <HlsAutoplayVideo
-                  src={heroVideoUrl!}
-                  poster={currentHero?.backdrop_url}
-                  delayMs={3000}
-                  className="absolute inset-0 w-full h-full object-cover"
+              {/* Backdrop image - always rendered, faded out when video is playing */}
+              {currentHero?.backdrop_url ? (
+                <img
+                  src={currentHero.backdrop_url}
+                  alt=""
+                  className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-[1200ms] ease-in-out ${heroPhase === "video" && hasTrailer ? "opacity-0" : "opacity-100"}`}
                 />
-              ) : heroYoutubeId ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${heroYoutubeId}&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
-                  className="absolute inset-0 w-full h-full object-cover scale-110"
-                  allow="autoplay; encrypted-media"
-                  frameBorder="0"
-                  style={{ pointerEvents: "none" }}
-                  title={currentHero?.name || ""}
-                />
-              ) : currentHero?.backdrop_url ? (
-                <img src={currentHero.backdrop_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--secondary))] to-[#0f0f0f]" />
+              )}
+
+              {/* Trailer video - mounted only during "video" phase */}
+              {heroPhase === "video" && hasTrailer && (
+                <div className="absolute inset-0 transition-opacity duration-[1200ms] ease-in-out">
+                  {heroIsDirectVideo ? (
+                    <HlsAutoplayVideo
+                      key={`hero-video-d-${heroIndex}`}
+                      src={heroVideoUrl!}
+                      poster={currentHero?.backdrop_url}
+                      delayMs={0}
+                      loop={false}
+                      onEnded={handleVideoEnded}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : heroYoutubeId ? (
+                    <iframe
+                      key={`hero-yt-d-${heroIndex}`}
+                      src={`https://www.youtube.com/embed/${heroYoutubeId}?autoplay=1&mute=1&controls=0&modestbranding=1&showinfo=0&rel=0&iv_load_policy=3`}
+                      className="absolute inset-0 w-full h-full object-cover scale-110"
+                      allow="autoplay; encrypted-media"
+                      frameBorder="0"
+                      style={{ pointerEvents: "none" }}
+                      title={currentHero?.name || ""}
+                    />
+                  ) : null}
+                </div>
               )}
 
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
