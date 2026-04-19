@@ -197,14 +197,20 @@ const Entertainment = () => {
   const goToHero = useCallback((nextIndex: number) => {
     setHeroTransitioning(true);
     setTimeout(() => {
-      setHeroIndex((prev) => {
-        const len = heroCandidates.length || 1;
-        return ((nextIndex % len) + len) % len;
-      });
+      const len = heroCandidates.length || 1;
+      // When the cycle completes (forward past the last), draw a NEW random cycle
+      // from the pool — picking different items than the previous cycle when possible.
+      if (nextIndex >= len && heroPool.length > 0) {
+        const newCycle = buildShuffledCycle(heroPool);
+        setHeroCandidates(newCycle);
+        setHeroIndex(0);
+      } else {
+        setHeroIndex(((nextIndex % len) + len) % len);
+      }
       setHeroPhase("image");
       setHeroTransitioning(false);
     }, 750);
-  }, [heroCandidates.length]);
+  }, [heroCandidates.length, heroPool, buildShuffledCycle]);
 
   // Reset phase to "image" whenever hero changes
   useEffect(() => {
