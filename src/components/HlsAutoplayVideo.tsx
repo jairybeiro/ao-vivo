@@ -12,6 +12,10 @@ interface HlsAutoplayVideoProps {
   delayMs?: number;
   /** Show minimal pause/mute controls overlay */
   showControls?: boolean;
+  /** If false, video plays once instead of looping (Apple TV style). Default: true */
+  loop?: boolean;
+  /** Called when the video reaches its end (only fires when loop=false) */
+  onEnded?: () => void;
 }
 
 /**
