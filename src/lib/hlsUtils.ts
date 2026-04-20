@@ -4,7 +4,7 @@
 export const isStreamUrl = (url: string): boolean => {
   if (!url || url.trim() === "" || url === "placeholder") return false;
   const lower = url.toLowerCase();
-  return lower.includes(".m3u8") || lower.includes(".m3u") || lower.includes(".mp4");
+   return lower.includes(".m3u8") || lower.includes(".m3u") || lower.includes("format=m3u8") || lower.includes(".mp4");
 };
 
 /**
@@ -13,7 +13,7 @@ export const isStreamUrl = (url: string): boolean => {
 export const isHlsUrl = (url: string): boolean => {
   if (!url || url.trim() === "" || url === "placeholder") return false;
   const lower = url.toLowerCase();
-  return lower.includes(".m3u8") || lower.includes(".m3u");
+   return lower.includes(".m3u8") || lower.includes(".m3u") || lower.includes("format=m3u8");
 };
 
 /**

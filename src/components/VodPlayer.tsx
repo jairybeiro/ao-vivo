@@ -465,6 +465,16 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
     </svg>
   );
 
+  const retryPlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    setError(null);
+    setLoading(true);
+    video.pause();
+    video.load();
+    video.play().catch(() => {});
+  };
+
   return (
     <div
       ref={containerRef}
@@ -492,7 +502,7 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       {error && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 z-50">
           <p className="text-destructive text-sm">{error}</p>
-          <button onClick={() => { setError(null); videoRef.current?.load(); }} className="text-white underline text-sm">
+          <button onClick={retryPlayback} className="text-white underline text-sm">
             Tentar novamente
           </button>
         </div>
