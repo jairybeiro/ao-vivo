@@ -26,8 +26,14 @@ Deno.serve(async (req) => {
 
   try {
     const requestUrl = new URL(req.url);
-    const sourceUrl = requestUrl.searchParams.get("url")?.trim();
-    const format = requestUrl.searchParams.get("format");
+    let sourceUrl = requestUrl.searchParams.get("url")?.trim();
+    let format = requestUrl.searchParams.get("format");
+
+    if (req.method === "POST") {
+      const body = await req.json().catch(() => ({}));
+      sourceUrl = sourceUrl || body?.url?.trim();
+      format = format || body?.format || null;
+    }
 
     if (!sourceUrl) {
       return new Response(JSON.stringify({ error: "URL ausente" }), {
