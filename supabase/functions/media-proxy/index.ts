@@ -5,8 +5,11 @@ const corsHeaders = {
 };
 
 const playlistFor = (requestUrl: URL, sourceUrl: string) => {
-  const segmentUrl = new URL(requestUrl);
-  segmentUrl.searchParams.delete("format");
+  const segmentUrl = new URLSearchParams(requestUrl.searchParams);
+  segmentUrl.delete("format");
+  if (!segmentUrl.get("url")) {
+    segmentUrl.set("url", sourceUrl);
+  }
 
   return [
     "#EXTM3U",
@@ -14,7 +17,7 @@ const playlistFor = (requestUrl: URL, sourceUrl: string) => {
     "#EXT-X-TARGETDURATION:14400",
     "#EXT-X-MEDIA-SEQUENCE:0",
     `#EXTINF:14400.0,${sourceUrl}`,
-    segmentUrl.toString(),
+    `?${segmentUrl.toString()}`,
     "#EXT-X-ENDLIST",
   ].join("\n");
 };
