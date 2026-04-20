@@ -10,6 +10,16 @@ export const toProxyStreamUrl = (url: string): string => {
   return url;
 };
 
+export const createMediaProxyUrl = (url: string): string => {
+  const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+  return `${baseUrl}/functions/v1/media-proxy?url=${encodeURIComponent(url)}`;
+};
+
+export const createTransportPlaylistUrl = (url: string): string => {
+  const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+  return `${baseUrl}/functions/v1/media-proxy?url=${encodeURIComponent(url)}&format=m3u8`;
+};
+
 export const toProxyAssetUrl = (url: string | null): string | null => {
   if (!url) return url;
   if (url.startsWith("http://")) {
