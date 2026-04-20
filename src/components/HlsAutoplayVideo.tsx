@@ -144,7 +144,10 @@ const HlsAutoplayVideo = ({ src, className, style, poster, delayMs = 0, showCont
           onClick={toggleMute}
           aria-label={isMuted ? "Ativar som" : "Silenciar"}
           className="absolute right-4 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white shadow-lg backdrop-blur-xl transition-transform active:scale-90 md:right-[60px]"
-          style={{ top: "max(calc(env(safe-area-inset-top, 0px) + 12px), 12px)" }}
+          // Header is h-14 (56px) and uses padding-top: env(safe-area-inset-top).
+          // Header items are vertically centered → centered at 28px from the bottom of the safe-area inset.
+          // Button is 36px (h-9) → top = safe-area + (28 - 18) = safe-area + 10px to perfectly align with header items.
+          style={{ top: "calc(env(safe-area-inset-top, 0px) + 10px)" }}
         >
           {isMuted ? <VolumeX className="w-[18px] h-[18px]" strokeWidth={2.2} /> : <Volume2 className="w-[18px] h-[18px]" strokeWidth={2.2} />}
         </button>

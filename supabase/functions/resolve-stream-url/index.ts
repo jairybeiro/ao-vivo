@@ -4,7 +4,7 @@ const corsHeaders = {
 };
 
 const ACTIVATION_SOURCE_HOSTS = new Set(["ipsmart.icu"]);
-const HTTPS_DESTINATION_HOSTS = new Set(["vaicairmaisnao.xyz"]);
+const HTTPS_DESTINATION_HOSTS = new Set(["vaicairmaisnao.xyz", "newoneblue.site"]);
 
 const normalizeHost = (host: string) => host.replace(/^www\./i, "").toLowerCase();
 
@@ -97,13 +97,21 @@ Deno.serve(async (req) => {
 
     let resolvedUrl = result.finalUrl;
 
-    // Step 2: Upgrade to HTTPS if the destination host supports it
-    const finalHost = normalizeHost(new URL(resolvedUrl).hostname);
-    if (HTTPS_DESTINATION_HOSTS.has(finalHost) || resolvedUrl.startsWith("http://")) {
+    // Step 2: Always try to upgrade to HTTPS (required to avoid mixed-content blocks in browsers)
+    if (resolvedUrl.startsWith("http://")) {
       const httpsCandidate = withProtocol(resolvedUrl, "https:");
       const httpsCheck = await resolveRedirects(httpsCandidate, 1);
       if (httpsCheck.ok) {
         resolvedUrl = httpsCandidate;
+      } else {
+        // Force HTTPS even if HEAD probe fails — many CDNs accept HTTPS for media even when probes don't.
+        // Browsers will block mixed content otherwise.
+        const finalHost = normalizeHost(new URL(resolvedUrl).hostname);
+        if (HTTPS_DESTINATION_HOSTS.has(finalHost)) {
+          resolvedUrl = httpsCandidate;
+        } else {
+          resolvedUrl = httpsCandidate; // best-effort: prefer HTTPS to keep playback functional in HTTPS context
+        }
       }
     }
 
