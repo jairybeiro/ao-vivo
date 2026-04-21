@@ -26,9 +26,9 @@ interface XtreamCredentials {
 }
 
 const DEFAULT_CREDENTIALS: XtreamCredentials = {
-  host: "http://ipsmart.icu",
-  username: "5541996151706",
-  password: "5541996151706",
+  host: "http://smarters.sbs",
+  username: "1993119",
+  password: "6020464",
 };
 
 export const XtreamSearch = () => {
