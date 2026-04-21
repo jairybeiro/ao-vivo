@@ -127,10 +127,36 @@ const Entertainment = () => {
     setSeriesByCategory(grouped);
   }, []);
 
+  const fetchMoviesContent = useCallback(async () => {
+    // Sala 2: filmes regulares (importados via Xtream ou cadastrados manualmente),
+    // EXCLUINDO categorias de curadoria CineBusiness (que aparecem em "Inspirar").
+    const cineBusinessCategories = [
+      "Negócios", "Empreendedorismo", "Mentalidade", "Liderança", "Finanças",
+      "Marketing", "Produtividade", "Tecnologia", "Desenvolvimento Pessoal", "Startups",
+    ];
+    const { data } = await supabase
+      .from("vod_movies")
+      .select("id, name, category, cover_url, backdrop_url, rating, sinopse, stream_url, embed_url, trailer_mp4_url, trailer_url")
+      .not("category", "in", `(${cineBusinessCategories.map((c) => `"${c}"`).join(",")})`)
+      .eq("is_active", true)
+      .order("created_at", { ascending: false });
+
+    const items = (data || []) as MovieItem[];
+    setMovieItems(items);
+    const grouped: Record<string, MovieItem[]> = {};
+    items.forEach((item) => {
+      const cat = item.category || "Filmes";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(item);
+    });
+    setMovieByCategory(grouped);
+  }, []);
+
   useEffect(() => {
     fetchCineBusinessContent();
     fetchSeriesContent();
-  }, [fetchCineBusinessContent, fetchSeriesContent]);
+    fetchMoviesContent();
+  }, [fetchCineBusinessContent, fetchSeriesContent, fetchMoviesContent]);
 
   const handleCineBusinessClick = (item: CineBusinessItem) => {
     navigate(`/cinebusiness/${item.id}`);
