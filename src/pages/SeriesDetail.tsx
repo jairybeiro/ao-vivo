@@ -141,7 +141,6 @@ const SeriesDetail = () => {
               : null
           }
           onBack={() => setActiveEpisode(null)}
-          onEnded={() => { if (nextEpisode) setActiveEpisode(nextEpisode); }}
           overlayContent={
             <EpisodeOverlay
               seasons={seasons}
