@@ -560,27 +560,36 @@ const Entertainment = () => {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
             <button
-              onClick={() => setActiveTab("filmes")}
+              onClick={() => setActiveTab("inspirar")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
-                activeTab === "filmes" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+                activeTab === "inspirar" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Briefcase className="w-4 h-4" />
-              Filmes
+              <Sparkles className="w-4 h-4" />
+              Inspirar
             </button>
             <button
-              onClick={() => setActiveTab("series")}
+              onClick={() => setActiveTab("sala1")}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
-                activeTab === "series" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+                activeTab === "sala1" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Tv className="w-4 h-4" />
-              Séries
+              Sala 1
+            </button>
+            <button
+              onClick={() => setActiveTab("sala2")}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-md text-sm font-medium transition ${
+                activeTab === "sala2" ? "bg-primary text-primary-foreground shadow" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Clapperboard className="w-4 h-4" />
+              Sala 2
             </button>
           </div>
 
-          {/* Search + Category (visible only on Séries tab) */}
-          {activeTab === "series" && (
+          {/* Search + Category (visible only on Sala 1) */}
+          {activeTab === "sala1" && (
             <div className="flex items-center gap-2 flex-1 justify-end">
               {/* Search */}
               <div className="relative max-w-[220px] w-full">
