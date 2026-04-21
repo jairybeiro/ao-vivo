@@ -643,11 +643,11 @@ const Entertainment = () => {
 
         {loading ? (
           <div className="text-center text-muted-foreground py-16">Carregando conteúdos...</div>
-        ) : activeTab === "filmes" ? (
-          /* FILMES TAB */
+        ) : activeTab === "inspirar" ? (
+          /* INSPIRAR TAB (CineBusiness curated trailers) */
           cineBusinessItems.length === 0 ? (
             <div className="text-center text-muted-foreground py-16">
-              <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
               <p>Nenhum conteúdo disponível.</p>
             </div>
           ) : (
