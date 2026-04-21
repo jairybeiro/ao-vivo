@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 import { extractYouTubeId, isDirectVideoUrl } from "@/lib/videoSource";
+import { useResolvedStreamUrl } from "@/hooks/useResolvedStreamUrl";
 
 interface CineBusinessItem {
   id: string;
