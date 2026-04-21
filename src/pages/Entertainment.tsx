@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Film, ChevronRight, Play, Briefcase, Tv, Star, Search, X, ChevronDown } from "lucide-react";
+import { Film, ChevronRight, Play, Briefcase, Tv, Star, Search, X, ChevronDown, Sparkles, Clapperboard } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
 import CineBusinessCardPopover from "@/components/CineBusinessCardPopover";
 import CineBusinessCard from "@/components/CineBusinessCard";
@@ -34,14 +34,30 @@ interface SeriesItem {
   plot: string | null;
 }
 
+interface MovieItem {
+  id: string;
+  name: string;
+  category: string;
+  cover_url: string | null;
+  backdrop_url: string | null;
+  rating: number | null;
+  sinopse: string | null;
+  stream_url: string | null;
+  embed_url: string | null;
+  trailer_mp4_url: string | null;
+  trailer_url: string | null;
+}
+
 const Entertainment = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<"filmes" | "series">("filmes");
+  const [activeTab, setActiveTab] = useState<"inspirar" | "sala1" | "sala2">("inspirar");
   const [cineBusinessItems, setCineBusinessItems] = useState<CineBusinessItem[]>([]);
   const [cineBusinessByCategory, setCineBusinessByCategory] = useState<Record<string, CineBusinessItem[]>>({});
   const [seriesItems, setSeriesItems] = useState<SeriesItem[]>([]);
   const [seriesByCategory, setSeriesByCategory] = useState<Record<string, SeriesItem[]>>({});
+  const [movieItems, setMovieItems] = useState<MovieItem[]>([]);
+  const [movieByCategory, setMovieByCategory] = useState<Record<string, MovieItem[]>>({});
   const [loading, setLoading] = useState(true);
   const [heroItem, setHeroItem] = useState<CineBusinessItem | null>(null);
   const [isTrailerPlayerOpen, setIsTrailerPlayerOpen] = useState(false);
