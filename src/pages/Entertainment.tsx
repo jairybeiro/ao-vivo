@@ -713,8 +713,8 @@ const Entertainment = () => {
               ))}
             </div>
           )
-        ) : (
-          /* SÉRIES TAB */
+        ) : activeTab === "sala1" ? (
+          /* SALA 1 TAB (séries com episódios) */
           seriesItems.length === 0 ? (
             <div className="text-center text-muted-foreground py-16">
               <Tv className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -770,8 +770,71 @@ const Entertainment = () => {
               ))}
             </div>
           )
+        ) : (
+          /* SALA 2 TAB (filmes regulares) */
+          movieItems.length === 0 ? (
+            <div className="text-center text-muted-foreground py-16">
+              <Clapperboard className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Nenhum filme disponível.</p>
+            </div>
+          ) : (
+            <div className="space-y-10">
+              {Object.keys(movieByCategory).map((category) => (
+                <section key={category} className="space-y-3">
+                  <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+                    <span className="text-xl">🎬</span>
+                    {category}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {movieByCategory[category].map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedMovie(item)}
+                        className="cursor-pointer group"
+                      >
+                        <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative shadow-lg group-hover:scale-105 group-hover:shadow-2xl transition-all duration-300">
+                          {item.cover_url ? (
+                            <img src={item.cover_url} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
+                              <Clapperboard className="w-8 h-8 text-primary" />
+                            </div>
+                          )}
+                          {item.rating && item.rating > 0 && (
+                            <div className="absolute top-1.5 right-1.5 bg-background/80 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                              <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                              {Number(item.rating).toFixed(1)}
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                            <Play className="w-10 h-10 text-white opacity-0 group-hover:opacity-90 transition-opacity fill-white" />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <p className="text-xs font-medium truncate text-foreground">{item.name}</p>
+                          <p className="text-[10px] text-muted-foreground truncate">{item.category}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )
         )}
       </main>
+
+      {/* Movie Player (Sala 2) */}
+      <FullscreenTrailerPlayer
+        isOpen={!!selectedMovie}
+        onClose={() => setSelectedMovie(null)}
+        trailerUrl={selectedMovie?.trailer_mp4_url || selectedMovie?.trailer_url || selectedMovie?.stream_url || null}
+        embedUrl={selectedMovie?.embed_url || null}
+        contentUrl={selectedMovie?.stream_url || null}
+        title={selectedMovie?.name || "Filme"}
+        poster={selectedMovie?.cover_url || selectedMovie?.backdrop_url || undefined}
+      />
     </div>
   );
 };
