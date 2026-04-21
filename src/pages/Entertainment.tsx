@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import FullscreenTrailerPlayer from "@/components/FullscreenTrailerPlayer";
 import HlsAutoplayVideo from "@/components/HlsAutoplayVideo";
 import { extractYouTubeId, isDirectVideoUrl } from "@/lib/videoSource";
+import { useResolvedStreamUrl } from "@/hooks/useResolvedStreamUrl";
 
 interface CineBusinessItem {
   id: string;
@@ -66,6 +67,7 @@ const Entertainment = () => {
   const [seriesCategory, setSeriesCategory] = useState<string | null>(null);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<MovieItem | null>(null);
+  const { resolvedUrl: resolvedMovieUrl } = useResolvedStreamUrl(selectedMovie?.stream_url || null);
   const fetchCineBusinessContent = useCallback(async () => {
     setLoading(true);
 
@@ -829,9 +831,9 @@ const Entertainment = () => {
       <FullscreenTrailerPlayer
         isOpen={!!selectedMovie}
         onClose={() => setSelectedMovie(null)}
-        trailerUrl={selectedMovie?.trailer_mp4_url || selectedMovie?.trailer_url || selectedMovie?.stream_url || null}
+        trailerUrl={selectedMovie?.trailer_mp4_url || selectedMovie?.trailer_url || resolvedMovieUrl || selectedMovie?.stream_url || null}
         embedUrl={selectedMovie?.embed_url || null}
-        contentUrl={selectedMovie?.stream_url || null}
+        contentUrl={resolvedMovieUrl || selectedMovie?.stream_url || null}
         title={selectedMovie?.name || "Filme"}
         poster={selectedMovie?.cover_url || selectedMovie?.backdrop_url || undefined}
       />
