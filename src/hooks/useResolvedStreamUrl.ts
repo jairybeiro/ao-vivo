@@ -1,14 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { createTransportPlaylistUrl, toProxyStreamUrl } from "@/lib/streamProxy";
+import { toProxyStreamUrl } from "@/lib/streamProxy";
 
 const ACTIVATION_HOSTS = new Set(["ipsmart.icu", "vaicairmaisnao.xyz", "smarters.sbs"]);
 const resolvedUrlCache = new Map<string, string>();
-
-const shouldUseSeriesTransportProxy = (url?: string | null) => {
-  if (!url) return false;
-  return shouldResolveStreamUrl(url) && /\/series\//i.test(url);
-};
 
 const getHostname = (url: string) => {
   try {
@@ -26,10 +21,6 @@ export const shouldResolveStreamUrl = (url?: string | null) => {
 };
 
 export const resolvePlayableStreamUrl = async (sourceUrl: string) => {
-  if (shouldUseSeriesTransportProxy(sourceUrl)) {
-    return createTransportPlaylistUrl(sourceUrl);
-  }
-
   const fallbackUrl = toProxyStreamUrl(sourceUrl);
 
   if (!shouldResolveStreamUrl(sourceUrl)) {
@@ -69,12 +60,6 @@ export const useResolvedStreamUrl = (sourceUrl?: string | null) => {
 
     if (!sourceUrl) {
       setResolvedUrl(null);
-      setIsResolving(false);
-      return;
-    }
-
-    if (shouldUseSeriesTransportProxy(sourceUrl)) {
-      setResolvedUrl(createTransportPlaylistUrl(sourceUrl));
       setIsResolving(false);
       return;
     }
