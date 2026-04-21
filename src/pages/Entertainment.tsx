@@ -65,6 +65,7 @@ const Entertainment = () => {
   const [seriesSearch, setSeriesSearch] = useState("");
   const [seriesCategory, setSeriesCategory] = useState<string | null>(null);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<MovieItem | null>(null);
   const fetchCineBusinessContent = useCallback(async () => {
     setLoading(true);
 
