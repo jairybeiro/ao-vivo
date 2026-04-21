@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { createTransportPlaylistUrl, toProxyStreamUrl } from "@/lib/streamProxy";
 
-const ACTIVATION_HOSTS = new Set(["ipsmart.icu", "vaicairmaisnao.xyz"]);
+const ACTIVATION_HOSTS = new Set(["ipsmart.icu", "vaicairmaisnao.xyz", "smarters.sbs"]);
 const resolvedUrlCache = new Map<string, string>();
 
 const shouldUseSeriesTransportProxy = (url?: string | null) => {
