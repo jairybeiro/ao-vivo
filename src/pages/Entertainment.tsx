@@ -67,6 +67,7 @@ const Entertainment = () => {
   const [seriesCategory, setSeriesCategory] = useState<string | null>(null);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<MovieItem | null>(null);
+  const { resolvedUrl: resolvedMovieUrl } = useResolvedStreamUrl(selectedMovie?.stream_url || null);
   const fetchCineBusinessContent = useCallback(async () => {
     setLoading(true);
 
