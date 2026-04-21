@@ -831,9 +831,9 @@ const Entertainment = () => {
       <FullscreenTrailerPlayer
         isOpen={!!selectedMovie}
         onClose={() => setSelectedMovie(null)}
-        trailerUrl={selectedMovie?.trailer_mp4_url || selectedMovie?.trailer_url || selectedMovie?.stream_url || null}
+        trailerUrl={selectedMovie?.trailer_mp4_url || selectedMovie?.trailer_url || resolvedMovieUrl || selectedMovie?.stream_url || null}
         embedUrl={selectedMovie?.embed_url || null}
-        contentUrl={selectedMovie?.stream_url || null}
+        contentUrl={resolvedMovieUrl || selectedMovie?.stream_url || null}
         title={selectedMovie?.name || "Filme"}
         poster={selectedMovie?.cover_url || selectedMovie?.backdrop_url || undefined}
       />
