@@ -67,8 +67,8 @@ interface SeriesInfo {
 
 export const XtreamImporter = () => {
   const [showCredentials, setShowCredentials] = useState(false);
-  const [selectedPreset, setSelectedPreset] = useState("smarters");
-  const [credentials, setCredentials] = useState<XtreamCredentials>(API_PRESETS.smarters);
+  const [selectedPreset, setSelectedPreset] = useState("elitedns");
+  const [credentials, setCredentials] = useState<XtreamCredentials>(API_PRESETS.elitedns);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchType, setSearchType] = useState<"movie" | "series">("movie");
 
@@ -272,6 +272,7 @@ export const XtreamImporter = () => {
                 <SelectValue placeholder="Selecionar API" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="elitedns">elitedns.sbs (atual)</SelectItem>
                 <SelectItem value="smarters">smarters.sbs</SelectItem>
                 <SelectItem value="ipsmart">ipsmart.icu</SelectItem>
                 <SelectItem value="custom">Personalizado</SelectItem>
