@@ -17,6 +17,7 @@ interface XtreamCredentials {
 }
 
 const API_PRESETS: Record<string, XtreamCredentials> = {
+  elitedns: { host: "http://elitedns.sbs", username: "1993119", password: "6020464" },
   smarters: { host: "http://smarters.sbs", username: "1993119", password: "6020464" },
   ipsmart: { host: "http://ipsmart.icu", username: "5541996151706", password: "5541996151706" },
 };
