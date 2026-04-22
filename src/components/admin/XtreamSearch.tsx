@@ -26,7 +26,7 @@ interface XtreamCredentials {
 }
 
 const DEFAULT_CREDENTIALS: XtreamCredentials = {
-  host: "http://smarters.sbs",
+  host: "http://elitedns.sbs",
   username: "1993119",
   password: "6020464",
 };

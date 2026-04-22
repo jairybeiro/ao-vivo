@@ -3,8 +3,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ACTIVATION_SOURCE_HOSTS = new Set(["ipsmart.icu", "smarters.sbs"]);
-const HTTPS_DESTINATION_HOSTS = new Set(["vaicairmaisnao.xyz", "newoneblue.site", "smarters.sbs"]);
+const ACTIVATION_SOURCE_HOSTS = new Set([
+  "ipsmart.icu",
+  "smarters.sbs",
+  "elitedns.sbs",
+]);
+const HTTPS_DESTINATION_HOSTS = new Set([
+  "vaicairmaisnao.xyz",
+  "newoneblue.site",
+  "smarters.sbs",
+  "elitedns.sbs",
+]);
 
 const normalizeHost = (host: string) => host.replace(/^www\./i, "").toLowerCase();
 
