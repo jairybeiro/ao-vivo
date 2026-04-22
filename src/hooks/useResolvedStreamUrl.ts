@@ -2,7 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toProxyStreamUrl } from "@/lib/streamProxy";
 
-const ACTIVATION_HOSTS = new Set(["ipsmart.icu", "vaicairmaisnao.xyz", "smarters.sbs"]);
+const ACTIVATION_HOSTS = new Set([
+  "ipsmart.icu",
+  "vaicairmaisnao.xyz",
+  "smarters.sbs",
+  "elitedns.sbs",
+]);
 const resolvedUrlCache = new Map<string, string>();
 
 const getHostname = (url: string) => {
