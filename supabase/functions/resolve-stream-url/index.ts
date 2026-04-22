@@ -88,11 +88,20 @@ Deno.serve(async (req) => {
     const httpUrl = withProtocol(inputUrl, "http:");
     const result = await resolveRedirects(httpUrl);
 
+    // If activation probe fails (404, etc.), fall back to HTTPS-upgraded original URL.
+    // Many CDNs reject HEAD/Range probes but still serve the media on GET.
     if (!result.ok) {
-      return new Response(JSON.stringify({ error: result.error || "Falha ao ativar stream" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const fallbackUrl = withProtocol(inputUrl, "https:");
+      console.log(`Probe failed (${result.error}) for ${inputUrl} → fallback ${fallbackUrl}`);
+      return new Response(
+        JSON.stringify({
+          resolvedUrl: fallbackUrl,
+          activated: false,
+          fallback: true,
+          probeError: result.error,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     let resolvedUrl = result.finalUrl;
