@@ -452,16 +452,10 @@ const EpisodeOverlay = ({
   const [view, setView] = useState<"seasons" | "episodes">("episodes");
   const hasMultipleSeasons = seasons.length > 1;
 
-  // Show ALL episodes, scrollable. Active episode auto-scrolls into view.
-  const visibleEpisodes = seasonEpisodes;
+  // Active episode pinned at top as card. Others listed below in original order, scrollable.
+  const activeEp = seasonEpisodes.find((e) => e.id === activeEpisodeId) || null;
+  const otherEpisodes = seasonEpisodes.filter((e) => e.id !== activeEpisodeId);
   const listRef = useRef<HTMLDivElement | null>(null);
-  const activeRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (view === "episodes" && activeRef.current) {
-      activeRef.current.scrollIntoView({ block: "center", behavior: "auto" });
-    }
-  }, [view, activeEpisodeId]);
 
   // Season list view
   if (view === "seasons") {
@@ -504,64 +498,60 @@ const EpisodeOverlay = ({
         )}
         <h3 className="text-white font-bold text-base">Temporada {selectedSeason}</h3>
       </div>
+
+      {/* Pinned active episode card (always on top) */}
+      {activeEp && (
+        <div className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50 shrink-0">
+          <span className="w-5 text-center font-bold text-sm shrink-0 mt-3 text-primary">
+            {activeEp.episode_num}
+          </span>
+          <div className="relative w-28 aspect-video rounded overflow-hidden shrink-0 bg-white/5">
+            {activeEp.cover_url ? (
+              <img src={activeEp.cover_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-white/20">
+                <Play className="w-5 h-5" />
+              </div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+              <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
+                <Pause className="w-3.5 h-3.5 text-white fill-white" />
+              </div>
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
+              <div className="h-full bg-primary" style={{ width: "40%" }} />
+            </div>
+          </div>
+          <div className="flex-1 min-w-0 py-0.5">
+            <p className="text-sm font-medium text-white truncate">{activeEp.title}</p>
+            {activeEp.plot && (
+              <p className="text-[11px] text-white/40 mt-1 line-clamp-2 leading-relaxed">{activeEp.plot}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Other episodes list — ~6 visible, scrollable for more */}
       <div
         ref={listRef}
-        className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
+        className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 max-h-[240px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
+        style={{ scrollbarGutter: "stable" }}
       >
-        {visibleEpisodes.map((ep) => {
-          const isActive = ep.id === activeEpisodeId;
-          if (isActive) {
-            return (
-              <div
-                key={ep.id}
-                ref={activeRef}
-                className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50"
-              >
-                <span className="w-5 text-center font-bold text-sm shrink-0 mt-3 text-primary">
-                  {ep.episode_num}
-                </span>
-                <div className="relative w-28 aspect-video rounded overflow-hidden shrink-0 bg-white/5">
-                  {ep.cover_url ? (
-                    <img src={ep.cover_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/20">
-                      <Play className="w-5 h-5" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                    <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-                      <Pause className="w-3.5 h-3.5 text-white fill-white" />
-                    </div>
-                  </div>
-                  <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
-                    <div className="h-full bg-primary" style={{ width: "40%" }} />
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0 py-0.5">
-                  <p className="text-sm font-medium text-white truncate">{ep.title}</p>
-                  {ep.plot && (
-                    <p className="text-[11px] text-white/40 mt-1 line-clamp-2 leading-relaxed">{ep.plot}</p>
-                  )}
-                </div>
-              </div>
-            );
-          }
-          return (
-            <button
-              key={ep.id}
-              onClick={() => onSelectEpisode(ep)}
-              className="w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left hover:bg-white/5 transition"
-            >
-              <span className="w-5 text-center font-bold text-sm shrink-0 text-white/40">
-                {ep.episode_num}
-              </span>
-              <p className="text-sm text-white/70 truncate flex-1">{ep.title}</p>
-              {ep.duration_secs && (
-                <span className="text-[11px] text-white/30 shrink-0">{formatDuration(ep.duration_secs)}</span>
-              )}
-            </button>
-          );
-        })}
+        {otherEpisodes.map((ep) => (
+          <button
+            key={ep.id}
+            onClick={() => onSelectEpisode(ep)}
+            className="w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left hover:bg-white/5 transition"
+          >
+            <span className="w-5 text-center font-bold text-sm shrink-0 text-white/40">
+              {ep.episode_num}
+            </span>
+            <p className="text-sm text-white/70 truncate flex-1">{ep.title}</p>
+            {ep.duration_secs && (
+              <span className="text-[11px] text-white/30 shrink-0">{formatDuration(ep.duration_secs)}</span>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );
