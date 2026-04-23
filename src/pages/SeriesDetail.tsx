@@ -452,9 +452,12 @@ const EpisodeOverlay = ({
   const [view, setView] = useState<"seasons" | "episodes">("episodes");
   const hasMultipleSeasons = seasons.length > 1;
 
-  // Active episode pinned at top as card. Others listed below in original order, scrollable.
-  const activeEp = seasonEpisodes.find((e) => e.id === activeEpisodeId) || null;
-  const otherEpisodes = seasonEpisodes.filter((e) => e.id !== activeEpisodeId);
+  // Active episode highlighted as card in its natural numeric position.
+  // Episodes BEFORE it appear above; episodes AFTER it appear below.
+  const activeIndex = seasonEpisodes.findIndex((e) => e.id === activeEpisodeId);
+  const activeEp = activeIndex >= 0 ? seasonEpisodes[activeIndex] : null;
+  const episodesBefore = activeIndex >= 0 ? seasonEpisodes.slice(0, activeIndex) : [];
+  const episodesAfter = activeIndex >= 0 ? seasonEpisodes.slice(activeIndex + 1) : seasonEpisodes;
   const listRef = useRef<HTMLDivElement | null>(null);
 
   // Season list view
