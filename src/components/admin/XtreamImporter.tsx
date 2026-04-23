@@ -20,6 +20,7 @@ const API_PRESETS: Record<string, XtreamCredentials> = {
   elitedns: { host: "http://elitedns.sbs", username: "1993119", password: "6020464" },
   smarters: { host: "http://smarters.sbs", username: "1993119", password: "6020464" },
   ipsmart: { host: "http://ipsmart.icu", username: "5541996151706", password: "5541996151706" },
+  parceirobx: { host: "http://parceirobx.top", username: "269198972", password: "941862576" },
 };
 
 interface MovieResult {
@@ -275,6 +276,7 @@ export const XtreamImporter = () => {
                 <SelectItem value="elitedns">elitedns.sbs (atual)</SelectItem>
                 <SelectItem value="smarters">smarters.sbs</SelectItem>
                 <SelectItem value="ipsmart">ipsmart.icu</SelectItem>
+                <SelectItem value="parceirobx">parceirobx.top (novo)</SelectItem>
                 <SelectItem value="custom">Personalizado</SelectItem>
               </SelectContent>
             </Select>
