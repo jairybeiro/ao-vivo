@@ -452,20 +452,23 @@ const EpisodeOverlay = ({
   const [view, setView] = useState<"seasons" | "episodes">("episodes");
   const hasMultipleSeasons = seasons.length > 1;
 
-  const MAX_VISIBLE = 6;
-  const activeIdx = seasonEpisodes.findIndex(ep => ep.id === activeEpisodeId);
-  let startIdx = 0;
-  if (seasonEpisodes.length > MAX_VISIBLE && activeIdx >= 0) {
-    startIdx = Math.max(0, Math.min(activeIdx - 2, seasonEpisodes.length - MAX_VISIBLE));
-  }
-  const visibleEpisodes = seasonEpisodes.slice(startIdx, startIdx + MAX_VISIBLE);
+  // Show ALL episodes, scrollable. Active episode auto-scrolls into view.
+  const visibleEpisodes = seasonEpisodes;
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const activeRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (view === "episodes" && activeRef.current) {
+      activeRef.current.scrollIntoView({ block: "center", behavior: "auto" });
+    }
+  }, [view, activeEpisodeId]);
 
   // Season list view
   if (view === "seasons") {
     return (
-      <div className="space-y-3">
+      <div className="space-y-3 max-h-[70vh] flex flex-col">
         <h3 className="text-white font-bold text-base">Temporadas</h3>
-        <div className="space-y-1">
+        <div className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full">
           {seasons.map((s) => (
             <button
               key={s}
@@ -489,7 +492,7 @@ const EpisodeOverlay = ({
 
   // Episodes list view
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 max-h-[70vh] flex flex-col">
       <div className="flex items-center gap-2">
         {hasMultipleSeasons && (
           <button
@@ -501,13 +504,17 @@ const EpisodeOverlay = ({
         )}
         <h3 className="text-white font-bold text-base">Temporada {selectedSeason}</h3>
       </div>
-      <div className="space-y-1">
+      <div
+        ref={listRef}
+        className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
+      >
         {visibleEpisodes.map((ep) => {
           const isActive = ep.id === activeEpisodeId;
           if (isActive) {
             return (
               <div
                 key={ep.id}
+                ref={activeRef}
                 className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50"
               >
                 <span className="w-5 text-center font-bold text-sm shrink-0 mt-3 text-primary">
