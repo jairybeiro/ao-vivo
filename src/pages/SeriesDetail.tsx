@@ -535,7 +535,7 @@ const EpisodeOverlay = ({
 
         {/* Highlighted active episode card in its natural position */}
         {activeEp && (
-          <div className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50">
+          <div ref={activeCardRef} className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50">
           <span className="w-5 text-center font-bold text-sm shrink-0 mt-3 text-primary">
             {activeEp.episode_num}
           </span>
