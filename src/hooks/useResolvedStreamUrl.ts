@@ -7,6 +7,7 @@ const ACTIVATION_HOSTS = new Set([
   "vaicairmaisnao.xyz",
   "smarters.sbs",
   "elitedns.sbs",
+  "parceirobx.top",
 ]);
 const resolvedUrlCache = new Map<string, string>();
 
