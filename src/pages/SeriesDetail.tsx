@@ -452,10 +452,21 @@ const EpisodeOverlay = ({
   const [view, setView] = useState<"seasons" | "episodes">("episodes");
   const hasMultipleSeasons = seasons.length > 1;
 
-  // Active episode pinned at top as card. Others listed below in original order, scrollable.
-  const activeEp = seasonEpisodes.find((e) => e.id === activeEpisodeId) || null;
-  const otherEpisodes = seasonEpisodes.filter((e) => e.id !== activeEpisodeId);
+  // Active episode highlighted as card in its natural numeric position.
+  // Episodes BEFORE it appear above; episodes AFTER it appear below.
+  const activeIndex = seasonEpisodes.findIndex((e) => e.id === activeEpisodeId);
+  const activeEp = activeIndex >= 0 ? seasonEpisodes[activeIndex] : null;
+  const episodesBefore = activeIndex >= 0 ? seasonEpisodes.slice(0, activeIndex) : [];
+  const episodesAfter = activeIndex >= 0 ? seasonEpisodes.slice(activeIndex + 1) : seasonEpisodes;
   const listRef = useRef<HTMLDivElement | null>(null);
+  const activeCardRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll the active card into view (centered) when opening or switching episode.
+  useEffect(() => {
+    if (view === "episodes" && activeCardRef.current) {
+      activeCardRef.current.scrollIntoView({ block: "center", behavior: "auto" });
+    }
+  }, [view, activeEpisodeId]);
 
   // Season list view
   if (view === "seasons") {
@@ -499,9 +510,32 @@ const EpisodeOverlay = ({
         <h3 className="text-white font-bold text-base">Temporada {selectedSeason}</h3>
       </div>
 
-      {/* Pinned active episode card (always on top) */}
-      {activeEp && (
-        <div className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50 shrink-0">
+      {/* Scrollable list — active episode keeps its natural numeric position
+          with previous episodes above and following ones below. ~5 items visible. */}
+      <div
+        ref={listRef}
+        className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 max-h-[360px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
+        style={{ scrollbarGutter: "stable" }}
+      >
+        {episodesBefore.map((ep) => (
+          <button
+            key={ep.id}
+            onClick={() => onSelectEpisode(ep)}
+            className="w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left hover:bg-white/5 transition"
+          >
+            <span className="w-5 text-center font-bold text-sm shrink-0 text-white/40">
+              {ep.episode_num}
+            </span>
+            <p className="text-sm text-white/70 truncate flex-1">{ep.title}</p>
+            {ep.duration_secs && (
+              <span className="text-[11px] text-white/30 shrink-0">{formatDuration(ep.duration_secs)}</span>
+            )}
+          </button>
+        ))}
+
+        {/* Highlighted active episode card in its natural position */}
+        {activeEp && (
+          <div ref={activeCardRef} className="flex items-start gap-3 p-2 rounded-lg bg-white/10 ring-1 ring-primary/50">
           <span className="w-5 text-center font-bold text-sm shrink-0 mt-3 text-primary">
             {activeEp.episode_num}
           </span>
@@ -531,13 +565,7 @@ const EpisodeOverlay = ({
         </div>
       )}
 
-      {/* Other episodes list — ~6 visible, scrollable for more */}
-      <div
-        ref={listRef}
-        className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 max-h-[240px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
-        style={{ scrollbarGutter: "stable" }}
-      >
-        {otherEpisodes.map((ep) => (
+        {episodesAfter.map((ep) => (
           <button
             key={ep.id}
             onClick={() => onSelectEpisode(ep)}
