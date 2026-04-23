@@ -459,6 +459,14 @@ const EpisodeOverlay = ({
   const episodesBefore = activeIndex >= 0 ? seasonEpisodes.slice(0, activeIndex) : [];
   const episodesAfter = activeIndex >= 0 ? seasonEpisodes.slice(activeIndex + 1) : seasonEpisodes;
   const listRef = useRef<HTMLDivElement | null>(null);
+  const activeCardRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll the active card into view (centered) when opening or switching episode.
+  useEffect(() => {
+    if (view === "episodes" && activeCardRef.current) {
+      activeCardRef.current.scrollIntoView({ block: "center", behavior: "auto" });
+    }
+  }, [view, activeEpisodeId]);
 
   // Season list view
   if (view === "seasons") {
