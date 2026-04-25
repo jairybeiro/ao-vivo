@@ -93,7 +93,7 @@ const SeriesDetail = () => {
         let tmdbId: number | null = (series as any).tmdb_id ?? null;
         if (!tmdbId) {
           const { data: alt } = await supabase.functions
-            .invoke("tmdb-search", { body: { query: cleanName(series.name), type: "tv" } })
+            .invoke("tmdb-search", { body: { query: cleanName(series.name), type: "series" } })
             .catch(() => ({ data: null as any }));
           const first = alt?.results?.[0];
           if (first?.id) tmdbId = first.id;
