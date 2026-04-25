@@ -521,7 +521,7 @@ const EpisodeOverlay = ({
           with previous episodes above and following ones below. ~5 items visible. */}
       <div
         ref={listRef}
-        className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 max-h-[360px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
+        className="space-y-1 overflow-y-auto overscroll-contain pr-1 flex-1 max-h-[260px] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/20 [&::-webkit-scrollbar-thumb]:rounded-full"
         style={{ scrollbarGutter: "stable" }}
       >
         {episodesBefore.map((ep) => (
