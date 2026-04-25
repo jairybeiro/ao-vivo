@@ -72,6 +72,63 @@ const SeriesDetail = () => {
     fetchData();
   }, [fetchData]);
 
+  // Enrich episodes with TMDB still images when cover_url is missing.
+  // This is purely in-memory (no DB writes) and only affects display.
+  const tmdbFetchedSeasonsRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    if (!series) return;
+    const seasonsNeeding = Array.from(
+      new Set(
+        episodes
+          .filter((e) => !e.cover_url)
+          .map((e) => e.season)
+      )
+    ).filter((s) => !tmdbFetchedSeasonsRef.current.has(s));
+    if (seasonsNeeding.length === 0) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        // Resolve TMDB id (from series field or by search)
+        let tmdbId: number | null = (series as any).tmdb_id ?? null;
+        if (!tmdbId) {
+          const { data: alt } = await supabase.functions
+            .invoke("tmdb-search", { body: { query: cleanName(series.name), type: "series" } })
+            .catch(() => ({ data: null as any }));
+          const first = alt?.results?.[0];
+          if (first?.id) tmdbId = first.id;
+          if (!tmdbId) return;
+        }
+
+        for (const season of seasonsNeeding) {
+          tmdbFetchedSeasonsRef.current.add(season);
+          const { data } = await supabase.functions.invoke("tmdb-lookup", {
+            body: { tmdb_id: tmdbId, type: "series", season_number: season },
+          });
+          if (cancelled || !data?.episodes) continue;
+          const stillByNum = new Map<number, string>();
+          for (const ep of data.episodes) {
+            if (ep.still_path) stillByNum.set(ep.episode_number, ep.still_path);
+          }
+          if (stillByNum.size === 0) continue;
+          setEpisodes((prev) =>
+            prev.map((e) =>
+              e.season === season && !e.cover_url && stillByNum.has(e.episode_num)
+                ? { ...e, cover_url: stillByNum.get(e.episode_num)! }
+                : e
+            )
+          );
+        }
+      } catch (err) {
+        console.warn("[SeriesDetail] TMDB stills enrichment failed", err);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [series, episodes]);
+
   const seasons = [...new Set(episodes.map((e) => e.season))].sort((a, b) => a - b);
   const seasonEpisodes = episodes.filter((e) => e.season === selectedSeason);
   const visibleEpisodes = showAllEpisodes ? seasonEpisodes : seasonEpisodes.slice(0, 3);
