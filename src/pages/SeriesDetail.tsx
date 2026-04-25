@@ -92,17 +92,11 @@ const SeriesDetail = () => {
         // Resolve TMDB id (from series field or by search)
         let tmdbId: number | null = (series as any).tmdb_id ?? null;
         if (!tmdbId) {
-          const { data: searchData } = await supabase.functions.invoke("tmdb-lookup", {
-            body: { search_name: cleanName(series.name), type: "series" },
-          });
-          // tmdb-lookup search_name doesn't return id; use tmdb-search instead if available
-          if (!tmdbId) {
-            const { data: alt } = await supabase.functions.invoke("tmdb-search", {
-              body: { query: cleanName(series.name), type: "tv" },
-            }).catch(() => ({ data: null as any }));
-            const first = alt?.results?.[0];
-            if (first?.id) tmdbId = first.id;
-          }
+          const { data: alt } = await supabase.functions
+            .invoke("tmdb-search", { body: { query: cleanName(series.name), type: "tv" } })
+            .catch(() => ({ data: null as any }));
+          const first = alt?.results?.[0];
+          if (first?.id) tmdbId = first.id;
           if (!tmdbId) return;
         }
 
