@@ -14,6 +14,7 @@ import { CineBusinessForm } from "@/components/admin/CineBusinessForm";
 import { CourseManager } from "@/components/courses/CourseManager";
 import { XtreamImporter } from "@/components/admin/XtreamImporter";
 import { BulkContentCleaner } from "@/components/admin/BulkContentCleaner";
+import { SeriesManager } from "@/components/admin/SeriesManager";
 
 const Admin = () => {
   const { user, isAdmin, loading, adminCheckLoading, signOut } = useAuth();
@@ -130,6 +131,7 @@ const Admin = () => {
             <TabsContent value="cinebiz" className="space-y-6">
               <XtreamImporter />
               <BulkContentCleaner onCleared={fetchCineBusiness} />
+              <SeriesManager onChanged={fetchCineBusiness} />
               <div className="flex justify-between items-start">
                 <p className="text-sm text-muted-foreground">
                   Adicione conteúdos de negócios com busca TMDB e monetização integrada.
