@@ -452,8 +452,10 @@ const EpisodeOverlay = ({
   const [view, setView] = useState<"seasons" | "episodes">("episodes");
   const hasMultipleSeasons = seasons.length > 1;
 
-  // Active episode highlighted as card in its natural numeric position.
-  // Episodes BEFORE it appear above; episodes AFTER it appear below.
+  // Sliding window: always 1 episode above the active card + 3 below (5 total max).
+  // If active is the first episode → show it at the top with up to 4 episodes below.
+  // If active is the last → show up to 4 episodes above + active card.
+  // Full season list remains accessible via scroll.
   const activeIndex = seasonEpisodes.findIndex((e) => e.id === activeEpisodeId);
   const activeEp = activeIndex >= 0 ? seasonEpisodes[activeIndex] : null;
   const episodesBefore = activeIndex >= 0 ? seasonEpisodes.slice(0, activeIndex) : [];
@@ -461,10 +463,15 @@ const EpisodeOverlay = ({
   const listRef = useRef<HTMLDivElement | null>(null);
   const activeCardRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll the active card into view (centered) when opening or switching episode.
+  // Auto-scroll: pin the active card near the top (just one item above visible).
   useEffect(() => {
-    if (view === "episodes" && activeCardRef.current) {
-      activeCardRef.current.scrollIntoView({ block: "center", behavior: "auto" });
+    if (view === "episodes" && activeCardRef.current && listRef.current) {
+      const container = listRef.current;
+      const card = activeCardRef.current;
+      // Position the card so that ~1 row of context shows above it.
+      const offsetTop = card.offsetTop - container.offsetTop;
+      const oneRowApprox = 44; // px — height of a compact list row
+      container.scrollTo({ top: Math.max(0, offsetTop - oneRowApprox), behavior: "auto" });
     }
   }, [view, activeEpisodeId]);
 
