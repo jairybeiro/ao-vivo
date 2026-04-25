@@ -11,6 +11,8 @@ interface FullscreenTrailerPlayerProps {
   contentUrl?: string | null;
   title: string;
   poster?: string;
+  contentId?: string;
+  contentType?: "movie" | "episode";
 }
 
 /* ── Overlay de transição trailer → conteúdo completo ── */
@@ -92,6 +94,8 @@ const FullscreenTrailerPlayer = ({
   contentUrl,
   title,
   poster,
+  contentId,
+  contentType = "movie",
 }: FullscreenTrailerPlayerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -164,7 +168,10 @@ const FullscreenTrailerPlayer = ({
               src={effectiveUrl}
               title={activeSource === "content" ? `${title} · Conteúdo Completo` : title}
               poster={poster || undefined}
-              contentType="movie"
+              contentType={contentType}
+              contentId={activeSource === "content" ? contentId : undefined}
+              contentName={title}
+              contentCoverUrl={poster || undefined}
               onBack={onClose}
               onEnded={handleTrailerEnded}
             />
