@@ -388,6 +388,8 @@ const CineBusinessDetail = () => {
         contentUrl={hasFullContent ? item.stream_url : null}
         title={item.name}
         poster={item.cover_url || item.backdrop_url || undefined}
+        contentId={item.id}
+        contentType="movie"
       />
     </div>
   );
