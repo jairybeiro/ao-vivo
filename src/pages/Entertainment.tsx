@@ -554,6 +554,8 @@ const Entertainment = () => {
         contentUrl={currentHero?.stream_url || null}
         title={currentHero?.name || "Trailer"}
         poster={currentHero?.cover_url || currentHero?.backdrop_url || undefined}
+        contentId={currentHero?.id}
+        contentType="movie"
       />
 
       {/* ===== TABS + COLLECTIONS ===== */}
@@ -836,6 +838,8 @@ const Entertainment = () => {
         contentUrl={resolvedMovieUrl || selectedMovie?.stream_url || null}
         title={selectedMovie?.name || "Filme"}
         poster={selectedMovie?.cover_url || selectedMovie?.backdrop_url || undefined}
+        contentId={selectedMovie?.id}
+        contentType="movie"
       />
     </div>
   );
