@@ -63,6 +63,18 @@ const CourseDetail = () => {
     navigate(`/course/${course?.id}/checkout`);
   };
 
+  const handlePlayLesson = (lessonId: string) => {
+    if (!user) {
+      navigate("/login", { state: { from: `/course/${courseId}` } });
+      return;
+    }
+    if (!(hasAccess || isFree)) {
+      navigate(`/course/${course?.id}/checkout`);
+      return;
+    }
+    navigate(`/course/${course?.id}/player?lesson=${lessonId}`);
+  };
+
   const ctaLabel = !user
     ? "Criar Conta para Acessar"
     : hasAccess || isFree
@@ -207,77 +219,15 @@ const CourseDetail = () => {
           </div>
         )}
 
-        {/* Modules */}
+        {/* Modules / Lessons — Series-style */}
         <div className="px-5 pt-6">
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-primary" />
-            Conteúdo do Curso
-          </h3>
-          <div className="space-y-2">
-            {modules.map((mod, idx) => {
-              const modLessons = getLessonsForModule(mod.id);
-              const completedCount = modLessons.filter((l) => isLessonCompleted(l.id)).length;
-              const isExpanded = expandedModules.has(mod.id);
-
-              return (
-                <div key={mod.id} className="rounded-xl border border-white/5 bg-card/50 overflow-hidden">
-                  <button
-                    onClick={() => toggleModule(mod.id)}
-                    className="w-full flex items-center gap-3 p-4 text-left"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{mod.title}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {completedCount}/{modLessons.length} aulas
-                      </p>
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-3 space-y-1">
-                          {modLessons.map((lesson) => {
-                            const completed = isLessonCompleted(lesson.id);
-                            return (
-                              <div
-                                key={lesson.id}
-                                className="flex items-center gap-3 py-2.5 px-2 rounded-lg text-sm"
-                              >
-                                {completed ? (
-                                  <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                                ) : (
-                                  <div className="w-4 h-4 rounded-full border border-white/20 shrink-0" />
-                                )}
-                                <span className={`flex-1 truncate ${completed ? "text-muted-foreground" : ""}`}>
-                                  {lesson.title}
-                                </span>
-                                {lesson.durationMinutes && (
-                                  <span className="text-[10px] text-muted-foreground">{lesson.durationMinutes}m</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
+          <LessonsSeriesView
+            courseTitle={course.title}
+            modules={modules}
+            getLessonsForModule={getLessonsForModule}
+            isLessonCompleted={isLessonCompleted}
+            onPlayLesson={(l) => handlePlayLesson(l.id)}
+          />
         </div>
       </div>
     );
