@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MainHeader from "@/components/MainHeader";
 import PreviewPlayerModal from "@/components/courses/PreviewPlayerModal";
+import { LessonsSeriesView } from "@/components/courses/LessonsSeriesView";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -14,13 +15,11 @@ import {
   BookOpen,
   Clock,
   User,
-  ChevronDown,
-  CheckCircle2,
   GraduationCap,
   Layers,
   Monitor,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -39,7 +38,6 @@ const CourseDetail = () => {
   } = useCourseDetails(courseId);
 
   const [showPreview, setShowPreview] = useState(false);
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
   const totalLessons = lessons.length;
   const totalMinutes = useMemo(
@@ -47,14 +45,6 @@ const CourseDetail = () => {
     [lessons]
   );
   const progress = getCourseProgress();
-
-  const toggleModule = (moduleId: string) => {
-    setExpandedModules((prev) => {
-      const next = new Set(prev);
-      next.has(moduleId) ? next.delete(moduleId) : next.add(moduleId);
-      return next;
-    });
-  };
 
   const hasAccess = !!user && ownsCourse(courseId || "");
   const isPaid = !!(course as any)?.priceCents && (course as any).priceCents > 0;
