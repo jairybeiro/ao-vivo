@@ -308,6 +308,29 @@ export const SeriesManager = ({ onChanged, embedded = false }: { onChanged?: () 
           )}
         </DialogContent>
       </Dialog>
+  );
+
+  if (embedded) {
+    return (
+      <>
+        {body}
+        {dialog}
+      </>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Tv2 className="w-5 h-5" /> Gerenciar Séries
+        </CardTitle>
+        <CardDescription>
+          Edite ou exclua séries individualmente. Excluir remove todas as temporadas e episódios.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>{body}</CardContent>
+      {dialog}
     </Card>
   );
 };
