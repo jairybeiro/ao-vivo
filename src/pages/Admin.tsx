@@ -15,6 +15,7 @@ import { CourseManager } from "@/components/courses/CourseManager";
 import { XtreamImporter } from "@/components/admin/XtreamImporter";
 import { BulkContentCleaner } from "@/components/admin/BulkContentCleaner";
 import { SeriesManager } from "@/components/admin/SeriesManager";
+import { MoviesManager } from "@/components/admin/MoviesManager";
 
 const Admin = () => {
   const { user, isAdmin, loading, adminCheckLoading, signOut } = useAuth();
@@ -132,6 +133,7 @@ const Admin = () => {
               <XtreamImporter />
               <BulkContentCleaner onCleared={fetchCineBusiness} />
               <SeriesManager onChanged={fetchCineBusiness} />
+              <MoviesManager onChanged={fetchCineBusiness} />
               <div className="flex justify-between items-start">
                 <p className="text-sm text-muted-foreground">
                   Adicione conteúdos de negócios com busca TMDB e monetização integrada.
