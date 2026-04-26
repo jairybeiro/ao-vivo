@@ -202,9 +202,11 @@ export const SeriesManager = ({ onChanged, embedded = false }: { onChanged?: () 
             </table>
           </div>
         )}
-      </CardContent>
+    </div>
+  );
 
-      <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
+  const dialog = (
+    <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Série</DialogTitle>
