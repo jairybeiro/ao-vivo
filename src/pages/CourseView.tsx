@@ -11,6 +11,7 @@ import { ModuleAccordion } from "@/components/courses/ModuleAccordion";
 import { DesktopLessonPlayer } from "@/components/courses/DesktopLessonPlayer";
 import { MobileLessonPlayer } from "@/components/courses/MobileLessonPlayer";
 import { MobileCourseView } from "@/components/courses/MobileCourseView";
+import { LessonsOverlayPanel } from "@/components/courses/LessonsOverlayPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CourseView = () => {
@@ -173,7 +174,7 @@ const CourseView = () => {
         <aside className="hidden lg:flex w-80 border-r border-white/10 flex-col bg-card/95 backdrop-blur">
           <SidebarContent />
         </aside>
-        <main className="flex-1 h-screen">
+        <main className="flex-1 h-screen relative">
           <DesktopLessonPlayer
             key={currentLesson.id}
             lesson={currentLesson}
@@ -188,6 +189,14 @@ const CourseView = () => {
             onPrevious={handlePrevious}
             onTimeUpdate={handleTimeUpdate}
             onBack={() => navigate("/cursos")}
+          />
+          {/* Netflix-style modules/lessons overlay (mirrors SeriesDetail player) */}
+          <LessonsOverlayPanel
+            modules={modules}
+            getLessonsForModule={getLessonsForModule}
+            isLessonCompleted={isLessonCompleted}
+            currentLesson={currentLesson}
+            onSelectLesson={handleSelectLesson}
           />
         </main>
       </div>
