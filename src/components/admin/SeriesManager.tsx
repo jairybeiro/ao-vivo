@@ -39,7 +39,7 @@ interface SeriesRow {
   is_active: boolean | null;
 }
 
-export const SeriesManager = ({ onChanged }: { onChanged?: () => void }) => {
+export const SeriesManager = ({ onChanged, embedded = false }: { onChanged?: () => void; embedded?: boolean }) => {
   const [series, setSeries] = useState<SeriesRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -113,18 +113,9 @@ export const SeriesManager = ({ onChanged }: { onChanged?: () => void }) => {
     onChanged?.();
   };
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Tv2 className="w-5 h-5" /> Gerenciar Séries
-        </CardTitle>
-        <CardDescription>
-          Edite ou exclua séries individualmente. Excluir remove todas as temporadas e episódios.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="relative">
+  const body = (
+    <div className="space-y-4">
+      <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou categoria..."
