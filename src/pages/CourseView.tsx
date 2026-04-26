@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Menu, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +17,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 const CourseView = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedLessonId = searchParams.get("lesson");
   const { user, loading: authLoading } = useAuth();
   const {
     course,
@@ -48,6 +50,15 @@ const CourseView = () => {
   // Auto-select lesson
   useEffect(() => {
     if (!currentLesson && allLessonsOrdered.length > 0 && !userExitedPlayer) {
+      // 1) Honor explicit ?lesson=<id> from URL
+      if (requestedLessonId) {
+        const requested = allLessonsOrdered.find((l) => l.id === requestedLessonId);
+        if (requested) {
+          setCurrentLesson(requested);
+          return;
+        }
+      }
+
       const lessonInProgress = allLessonsOrdered.find((l) => {
         const watchedSeconds = getWatchedSeconds(l.id);
         return watchedSeconds > 0 && !isLessonCompleted(l.id);
@@ -59,7 +70,7 @@ const CourseView = () => {
 
       setCurrentLesson(allLessonsOrdered[0]);
     }
-  }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted, userExitedPlayer]);
+  }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted, userExitedPlayer, requestedLessonId]);
 
   const currentIndex = currentLesson
     ? allLessonsOrdered.findIndex((l) => l.id === currentLesson.id)
