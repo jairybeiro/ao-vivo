@@ -41,7 +41,7 @@ interface MovieRow {
   is_active: boolean | null;
 }
 
-export const MoviesManager = ({ onChanged }: { onChanged?: () => void }) => {
+export const MoviesManager = ({ onChanged, embedded = false }: { onChanged?: () => void; embedded?: boolean }) => {
   const [movies, setMovies] = useState<MovieRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -116,18 +116,9 @@ export const MoviesManager = ({ onChanged }: { onChanged?: () => void }) => {
     onChanged?.();
   };
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Film className="w-5 h-5" /> Gerenciar Filmes
-        </CardTitle>
-        <CardDescription>
-          Edite ou exclua filmes individualmente.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="relative">
+  const body = (
+    <div className="space-y-4">
+      <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou categoria..."
@@ -213,9 +204,11 @@ export const MoviesManager = ({ onChanged }: { onChanged?: () => void }) => {
             </table>
           </div>
         )}
-      </CardContent>
+    </div>
+  );
 
-      <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
+  const dialog = (
+    <Dialog open={!!editing} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Filme</DialogTitle>
@@ -333,7 +326,28 @@ export const MoviesManager = ({ onChanged }: { onChanged?: () => void }) => {
             </div>
           )}
         </DialogContent>
-      </Dialog>
+    </Dialog>
+  );
+
+  if (embedded) {
+    return (
+      <>
+        {body}
+        {dialog}
+      </>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Film className="w-5 h-5" /> Gerenciar Filmes
+        </CardTitle>
+        <CardDescription>Edite ou exclua filmes individualmente.</CardDescription>
+      </CardHeader>
+      <CardContent>{body}</CardContent>
+      {dialog}
     </Card>
   );
 };
