@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MainHeader from "@/components/MainHeader";
 import PreviewPlayerModal from "@/components/courses/PreviewPlayerModal";
+import { LessonsSeriesView } from "@/components/courses/LessonsSeriesView";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -14,13 +15,11 @@ import {
   BookOpen,
   Clock,
   User,
-  ChevronDown,
-  CheckCircle2,
   GraduationCap,
   Layers,
   Monitor,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 
 const CourseDetail = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -39,7 +38,6 @@ const CourseDetail = () => {
   } = useCourseDetails(courseId);
 
   const [showPreview, setShowPreview] = useState(false);
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
 
   const totalLessons = lessons.length;
   const totalMinutes = useMemo(
@@ -47,14 +45,6 @@ const CourseDetail = () => {
     [lessons]
   );
   const progress = getCourseProgress();
-
-  const toggleModule = (moduleId: string) => {
-    setExpandedModules((prev) => {
-      const next = new Set(prev);
-      next.has(moduleId) ? next.delete(moduleId) : next.add(moduleId);
-      return next;
-    });
-  };
 
   const hasAccess = !!user && ownsCourse(courseId || "");
   const isPaid = !!(course as any)?.priceCents && (course as any).priceCents > 0;
@@ -71,6 +61,18 @@ const CourseDetail = () => {
     }
     // Paid course, not owned → checkout
     navigate(`/course/${course?.id}/checkout`);
+  };
+
+  const handlePlayLesson = (lessonId: string) => {
+    if (!user) {
+      navigate("/login", { state: { from: `/course/${courseId}` } });
+      return;
+    }
+    if (!(hasAccess || isFree)) {
+      navigate(`/course/${course?.id}/checkout`);
+      return;
+    }
+    navigate(`/course/${course?.id}/player?lesson=${lessonId}`);
   };
 
   const ctaLabel = !user
@@ -217,77 +219,15 @@ const CourseDetail = () => {
           </div>
         )}
 
-        {/* Modules */}
+        {/* Modules / Lessons — Series-style */}
         <div className="px-5 pt-6">
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-primary" />
-            Conteúdo do Curso
-          </h3>
-          <div className="space-y-2">
-            {modules.map((mod, idx) => {
-              const modLessons = getLessonsForModule(mod.id);
-              const completedCount = modLessons.filter((l) => isLessonCompleted(l.id)).length;
-              const isExpanded = expandedModules.has(mod.id);
-
-              return (
-                <div key={mod.id} className="rounded-xl border border-white/5 bg-card/50 overflow-hidden">
-                  <button
-                    onClick={() => toggleModule(mod.id)}
-                    className="w-full flex items-center gap-3 p-4 text-left"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{mod.title}</p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {completedCount}/{modLessons.length} aulas
-                      </p>
-                    </div>
-                    <ChevronDown
-                      className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-4 pb-3 space-y-1">
-                          {modLessons.map((lesson) => {
-                            const completed = isLessonCompleted(lesson.id);
-                            return (
-                              <div
-                                key={lesson.id}
-                                className="flex items-center gap-3 py-2.5 px-2 rounded-lg text-sm"
-                              >
-                                {completed ? (
-                                  <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-                                ) : (
-                                  <div className="w-4 h-4 rounded-full border border-white/20 shrink-0" />
-                                )}
-                                <span className={`flex-1 truncate ${completed ? "text-muted-foreground" : ""}`}>
-                                  {lesson.title}
-                                </span>
-                                {lesson.durationMinutes && (
-                                  <span className="text-[10px] text-muted-foreground">{lesson.durationMinutes}m</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
+          <LessonsSeriesView
+            courseTitle={course.title}
+            modules={modules}
+            getLessonsForModule={getLessonsForModule}
+            isLessonCompleted={isLessonCompleted}
+            onPlayLesson={(l) => handlePlayLesson(l.id)}
+          />
         </div>
       </div>
     );
@@ -405,79 +345,21 @@ const CourseDetail = () => {
       {/* Course content */}
       <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Modules list */}
-          <div className="lg:col-span-2 space-y-3">
-            <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
-              <BookOpen className="w-5 h-5 text-primary" />
-              Conteúdo do Curso
-            </h2>
-
-            {modules.map((mod, idx) => {
-              const modLessons = getLessonsForModule(mod.id);
-              const completedCount = modLessons.filter((l) => isLessonCompleted(l.id)).length;
-              const isExpanded = expandedModules.has(mod.id);
-
-              return (
-                <div key={mod.id} className="rounded-xl border border-white/5 bg-card/50 overflow-hidden">
-                  <button
-                    onClick={() => toggleModule(mod.id)}
-                    className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/[0.02] transition-colors"
-                  >
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0">
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold">{mod.title}</p>
-                      {mod.description && (
-                        <p className="text-sm text-muted-foreground mt-0.5 line-clamp-1">{mod.description}</p>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap mr-2">
-                      {completedCount}/{modLessons.length} concluídas
-                    </span>
-                    <ChevronDown
-                      className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="px-5 pb-4 space-y-1 border-t border-white/5 pt-3">
-                          {modLessons.map((lesson) => {
-                            const completed = isLessonCompleted(lesson.id);
-                            return (
-                              <div
-                                key={lesson.id}
-                                className="flex items-center gap-3 py-3 px-3 rounded-lg hover:bg-white/[0.03] transition-colors"
-                              >
-                                {completed ? (
-                                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full border-2 border-white/15 shrink-0" />
-                                )}
-                                <span className={`flex-1 text-sm ${completed ? "text-muted-foreground" : ""}`}>
-                                  {lesson.title}
-                                </span>
-                                {lesson.durationMinutes && (
-                                  <span className="text-xs text-muted-foreground">{lesson.durationMinutes} min</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
+          {/* Modules / Lessons — Series-style */}
+          <div className="lg:col-span-2">
+            {course.description && (
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-foreground mb-3">Sinopse do conteúdo</h2>
+                <p className="text-muted-foreground text-sm leading-relaxed">{course.description}</p>
+              </div>
+            )}
+            <LessonsSeriesView
+              courseTitle={course.title}
+              modules={modules}
+              getLessonsForModule={getLessonsForModule}
+              isLessonCompleted={isLessonCompleted}
+              onPlayLesson={(l) => handlePlayLesson(l.id)}
+            />
           </div>
 
           {/* Sidebar card */}

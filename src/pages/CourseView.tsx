@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Menu, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -11,11 +11,14 @@ import { ModuleAccordion } from "@/components/courses/ModuleAccordion";
 import { DesktopLessonPlayer } from "@/components/courses/DesktopLessonPlayer";
 import { MobileLessonPlayer } from "@/components/courses/MobileLessonPlayer";
 import { MobileCourseView } from "@/components/courses/MobileCourseView";
+import { LessonsOverlayPanel } from "@/components/courses/LessonsOverlayPanel";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const CourseView = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const requestedLessonId = searchParams.get("lesson");
   const { user, loading: authLoading } = useAuth();
   const {
     course,
@@ -47,6 +50,15 @@ const CourseView = () => {
   // Auto-select lesson
   useEffect(() => {
     if (!currentLesson && allLessonsOrdered.length > 0 && !userExitedPlayer) {
+      // 1) Honor explicit ?lesson=<id> from URL
+      if (requestedLessonId) {
+        const requested = allLessonsOrdered.find((l) => l.id === requestedLessonId);
+        if (requested) {
+          setCurrentLesson(requested);
+          return;
+        }
+      }
+
       const lessonInProgress = allLessonsOrdered.find((l) => {
         const watchedSeconds = getWatchedSeconds(l.id);
         return watchedSeconds > 0 && !isLessonCompleted(l.id);
@@ -58,7 +70,7 @@ const CourseView = () => {
 
       setCurrentLesson(allLessonsOrdered[0]);
     }
-  }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted, userExitedPlayer]);
+  }, [allLessonsOrdered, currentLesson, getWatchedSeconds, isLessonCompleted, userExitedPlayer, requestedLessonId]);
 
   const currentIndex = currentLesson
     ? allLessonsOrdered.findIndex((l) => l.id === currentLesson.id)
@@ -173,7 +185,7 @@ const CourseView = () => {
         <aside className="hidden lg:flex w-80 border-r border-white/10 flex-col bg-card/95 backdrop-blur">
           <SidebarContent />
         </aside>
-        <main className="flex-1 h-screen">
+        <main className="flex-1 h-screen relative">
           <DesktopLessonPlayer
             key={currentLesson.id}
             lesson={currentLesson}
@@ -188,6 +200,14 @@ const CourseView = () => {
             onPrevious={handlePrevious}
             onTimeUpdate={handleTimeUpdate}
             onBack={() => navigate("/cursos")}
+          />
+          {/* Netflix-style modules/lessons overlay (mirrors SeriesDetail player) */}
+          <LessonsOverlayPanel
+            modules={modules}
+            getLessonsForModule={getLessonsForModule}
+            isLessonCompleted={isLessonCompleted}
+            currentLesson={currentLesson}
+            onSelectLesson={handleSelectLesson}
           />
         </main>
       </div>
