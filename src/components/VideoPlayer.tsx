@@ -2,6 +2,10 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Hls from "hls.js";
 import { Play, Pause, Loader2, Volume2, VolumeX, Volume1, RotateCcw, RotateCw } from "lucide-react";
 import { toProxyStreamUrl } from "@/lib/streamProxy";
+import {
+  resolvePlayableStreamUrl,
+  shouldResolveStreamUrl,
+} from "@/hooks/useResolvedStreamUrl";
 
 interface VideoPlayerProps {
   streamUrls: string[];
@@ -47,7 +51,40 @@ const VideoPlayer = ({
     () => streamUrls.map((url) => toProxyStreamUrl(url)),
     [streamUrls]
   );
-  const currentUrl = proxiedStreamUrls[currentUrlIndex];
+  const rawCurrentUrl = proxiedStreamUrls[currentUrlIndex];
+  const sourceCurrentUrl = streamUrls[currentUrlIndex];
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+
+  // Resolve redirects (e.g. elitedns.sbs/.m3u8 → CDN final HTTPS) BEFORE handing
+  // the URL to hls.js / native player. iOS Safari/PWA fails silently on cross-
+  // protocol redirects, so we must resolve them server-side first.
+  useEffect(() => {
+    let active = true;
+    if (!sourceCurrentUrl) {
+      setResolvedUrl(null);
+      return;
+    }
+    if (!shouldResolveStreamUrl(sourceCurrentUrl)) {
+      setResolvedUrl(rawCurrentUrl);
+      setIsResolving(false);
+      return;
+    }
+    setIsResolving(true);
+    setResolvedUrl(null);
+    void resolvePlayableStreamUrl(sourceCurrentUrl)
+      .then((finalUrl) => {
+        if (active) setResolvedUrl(finalUrl);
+      })
+      .finally(() => {
+        if (active) setIsResolving(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [sourceCurrentUrl, rawCurrentUrl]);
+
+  const currentUrl = resolvedUrl;
 
   const tryNextUrl = useCallback(() => {
     if (currentUrlIndex < proxiedStreamUrls.length - 1) {
@@ -73,10 +110,44 @@ const VideoPlayer = ({
       hlsRef.current = null;
     }
 
+    // iOS Safari (and iOS PWA) prefers native HLS — hls.js does not run on iOS
+    // Safari at all (no MSE for video). We always check native support first
+    // so that .m3u8 streams work in iOS standalone PWA.
+    const nativeHls = video.canPlayType("application/vnd.apple.mpegurl");
+
+    if (nativeHls && /iPad|iPhone|iPod/.test(navigator.userAgent)) {
+      // iOS: use native HLS path
+      video.src = currentUrl;
+
+      const handleNativeLoaded = () => {
+        setIsLoading(false);
+        if (initialTime > 0 && !hasSetInitialTime.current) {
+          video.currentTime = initialTime;
+          hasSetInitialTime.current = true;
+        }
+        if (video.videoWidth && video.videoHeight) {
+          const aspectRatio = video.videoWidth / video.videoHeight;
+          onAspectRatioDetected?.(aspectRatio < 1);
+        }
+        video.play().catch(() => setIsPlaying(false));
+      };
+
+      video.addEventListener("loadedmetadata", handleNativeLoaded);
+      video.addEventListener("error", () => tryNextUrl());
+      return;
+    }
+
     if (Hls.isSupported()) {
       const hls = new Hls({
         enableWorker: true,
-        lowLatencyMode: true,
+        lowLatencyMode: false,
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60,
+        backBufferLength: 30,
+        manifestLoadingTimeOut: 20000,
+        manifestLoadingMaxRetry: 3,
+        levelLoadingTimeOut: 20000,
+        fragLoadingTimeOut: 30000,
       });
 
       hls.loadSource(currentUrl);
