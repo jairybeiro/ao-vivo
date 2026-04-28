@@ -8,6 +8,7 @@ const ACTIVATION_SOURCE_HOSTS = new Set([
   "smarters.sbs",
   "elitedns.sbs",
   "parceirobx.top",
+  "w1.mgf.lat",
 ]);
 const HTTPS_DESTINATION_HOSTS = new Set([
   "vaicairmaisnao.xyz",
@@ -15,6 +16,7 @@ const HTTPS_DESTINATION_HOSTS = new Set([
   "smarters.sbs",
   "elitedns.sbs",
   "parceirobx.top",
+  "w1.mgf.lat",
 ]);
 
 const normalizeHost = (host: string) => host.replace(/^www\./i, "").toLowerCase();
