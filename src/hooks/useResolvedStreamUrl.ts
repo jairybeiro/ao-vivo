@@ -8,6 +8,7 @@ const ACTIVATION_HOSTS = new Set([
   "smarters.sbs",
   "elitedns.sbs",
   "parceirobx.top",
+  "w1.mgf.lat",
 ]);
 const resolvedUrlCache = new Map<string, string>();
 
