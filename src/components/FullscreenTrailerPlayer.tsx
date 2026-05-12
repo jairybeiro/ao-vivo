@@ -132,18 +132,23 @@ const FullscreenTrailerPlayer = ({
   }, [isOpen, onClose]);
 
   const trailerSource = pickPreferredMediaUrl(trailerUrl, embedUrl);
+  const resolvedContentUrl = pickPreferredMediaUrl(contentUrl);
+  // Quando não há trailer separado, o "trailer" cai por fallback para o próprio stream do filme.
+  // Nesse caso devemos salvar progresso desde o início (não apenas após o overlay).
+  const trailerIsContent =
+    !!trailerSource && !!resolvedContentUrl && trailerSource === resolvedContentUrl;
   const effectiveUrl = activeSource === "content"
-    ? pickPreferredMediaUrl(contentUrl)
+    ? resolvedContentUrl
     : trailerSource;
   const youtubeId = extractYouTubeId(effectiveUrl);
   const isDirectVideo = isDirectVideoUrl(effectiveUrl);
   const canWatchFullContent = isDirectVideoUrl(contentUrl);
 
   const handleTrailerEnded = useCallback(() => {
-    if (canWatchFullContent && activeSource === "trailer") {
+    if (canWatchFullContent && activeSource === "trailer" && !trailerIsContent) {
       setShowOverlay(true);
     }
-  }, [canWatchFullContent, activeSource]);
+  }, [canWatchFullContent, activeSource, trailerIsContent]);
 
   const handleWatchFull = useCallback(() => {
     setShowOverlay(false);
@@ -169,7 +174,7 @@ const FullscreenTrailerPlayer = ({
               title={activeSource === "content" ? `${title} · Conteúdo Completo` : title}
               poster={poster || undefined}
               contentType={contentType}
-              contentId={activeSource === "content" ? contentId : undefined}
+              contentId={activeSource === "content" || trailerIsContent ? contentId : undefined}
               contentName={title}
               contentCoverUrl={poster || undefined}
               onBack={onClose}
