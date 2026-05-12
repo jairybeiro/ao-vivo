@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Film, ChevronRight, Play, Briefcase, Tv, Star, Search, X, ChevronDown, Sparkles, Clapperboard } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
@@ -52,7 +52,31 @@ interface MovieItem {
 const Entertainment = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<"inspirar" | "sala1" | "sala2">("inspirar");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  const initialTab: "inspirar" | "sala1" | "sala2" =
+    tabFromUrl === "sala1" || tabFromUrl === "sala2" || tabFromUrl === "inspirar"
+      ? tabFromUrl
+      : "inspirar";
+  const [activeTab, setActiveTabState] = useState<"inspirar" | "sala1" | "sala2">(initialTab);
+
+  const setActiveTab = useCallback(
+    (tab: "inspirar" | "sala1" | "sala2") => {
+      setActiveTabState(tab);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (tab === "inspirar") next.delete("tab");
+          else next.set("tab", tab);
+          // Trocar de aba limpa o filme aberto
+          next.delete("movie");
+          return next;
+        },
+        { replace: false }
+      );
+    },
+    [setSearchParams]
+  );
   const [cineBusinessItems, setCineBusinessItems] = useState<CineBusinessItem[]>([]);
   const [cineBusinessByCategory, setCineBusinessByCategory] = useState<Record<string, CineBusinessItem[]>>({});
   const [seriesItems, setSeriesItems] = useState<SeriesItem[]>([]);
@@ -68,6 +92,53 @@ const Entertainment = () => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<MovieItem | null>(null);
   const { resolvedUrl: resolvedMovieUrl } = useResolvedStreamUrl(selectedMovie?.stream_url || null);
+
+  const openMovie = useCallback(
+    (item: MovieItem) => {
+      setSelectedMovie(item);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("movie", item.id);
+          return next;
+        },
+        { replace: false }
+      );
+    },
+    [setSearchParams]
+  );
+
+  const closeMovie = useCallback(() => {
+    setSelectedMovie(null);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("movie");
+        return next;
+      },
+      { replace: false }
+    );
+  }, [setSearchParams]);
+
+  // Sincroniza activeTab quando o usuário usa voltar/avançar do navegador
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    const next: "inspirar" | "sala1" | "sala2" =
+      t === "sala1" || t === "sala2" || t === "inspirar" ? t : "inspirar";
+    setActiveTabState((curr) => (curr === next ? curr : next));
+  }, [searchParams]);
+
+  // Abre o filme automaticamente quando ?movie=<id> está na URL
+  useEffect(() => {
+    const movieId = searchParams.get("movie");
+    if (!movieId) {
+      if (selectedMovie) setSelectedMovie(null);
+      return;
+    }
+    if (selectedMovie?.id === movieId) return;
+    const found = movieItems.find((m) => m.id === movieId);
+    if (found) setSelectedMovie(found);
+  }, [searchParams, movieItems, selectedMovie]);
   const fetchCineBusinessContent = useCallback(async () => {
     setLoading(true);
 
@@ -794,7 +865,7 @@ const Entertainment = () => {
                     {movieByCategory[category].map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => setSelectedMovie(item)}
+                        onClick={() => openMovie(item)}
                         className="cursor-pointer group"
                       >
                         <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative shadow-lg group-hover:scale-105 group-hover:shadow-2xl transition-all duration-300">
@@ -832,7 +903,7 @@ const Entertainment = () => {
       {/* Movie Player (Sala 2) */}
       <FullscreenTrailerPlayer
         isOpen={!!selectedMovie}
-        onClose={() => setSelectedMovie(null)}
+        onClose={closeMovie}
         trailerUrl={selectedMovie?.trailer_mp4_url || selectedMovie?.trailer_url || resolvedMovieUrl || selectedMovie?.stream_url || null}
         embedUrl={selectedMovie?.embed_url || null}
         contentUrl={resolvedMovieUrl || selectedMovie?.stream_url || null}
