@@ -21,7 +21,11 @@ const EmbedPlayer = ({ embedUrl, onBack }: EmbedPlayerProps) => {
         <button
           onClick={onBack}
           aria-label="Voltar"
-          className="absolute top-4 left-4 z-[10000] w-11 h-11 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+          style={{
+            top: "calc(env(safe-area-inset-top, 0px) + 16px)",
+            left: "calc(env(safe-area-inset-left, 0px) + 20px)",
+          }}
+          className="absolute z-[10000] w-11 h-11 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
         >
           <ArrowLeft className="w-6 h-6" strokeWidth={2.5} />
         </button>
