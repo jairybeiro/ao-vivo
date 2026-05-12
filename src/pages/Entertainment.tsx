@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Film, ChevronRight, Play, Briefcase, Tv, Star, Search, X, ChevronDown, Sparkles, Clapperboard } from "lucide-react";
 import MainHeader from "@/components/MainHeader";
@@ -52,7 +52,31 @@ interface MovieItem {
 const Entertainment = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [activeTab, setActiveTab] = useState<"inspirar" | "sala1" | "sala2">("inspirar");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  const initialTab: "inspirar" | "sala1" | "sala2" =
+    tabFromUrl === "sala1" || tabFromUrl === "sala2" || tabFromUrl === "inspirar"
+      ? tabFromUrl
+      : "inspirar";
+  const [activeTab, setActiveTabState] = useState<"inspirar" | "sala1" | "sala2">(initialTab);
+
+  const setActiveTab = useCallback(
+    (tab: "inspirar" | "sala1" | "sala2") => {
+      setActiveTabState(tab);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (tab === "inspirar") next.delete("tab");
+          else next.set("tab", tab);
+          // Trocar de aba limpa o filme aberto
+          next.delete("movie");
+          return next;
+        },
+        { replace: false }
+      );
+    },
+    [setSearchParams]
+  );
   const [cineBusinessItems, setCineBusinessItems] = useState<CineBusinessItem[]>([]);
   const [cineBusinessByCategory, setCineBusinessByCategory] = useState<Record<string, CineBusinessItem[]>>({});
   const [seriesItems, setSeriesItems] = useState<SeriesItem[]>([]);
