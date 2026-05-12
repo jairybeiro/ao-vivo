@@ -865,7 +865,7 @@ const Entertainment = () => {
                     {movieByCategory[category].map((item) => (
                       <div
                         key={item.id}
-                        onClick={() => setSelectedMovie(item)}
+                        onClick={() => openMovie(item)}
                         className="cursor-pointer group"
                       >
                         <div className="aspect-[2/3] bg-muted rounded-lg overflow-hidden relative shadow-lg group-hover:scale-105 group-hover:shadow-2xl transition-all duration-300">
@@ -903,7 +903,7 @@ const Entertainment = () => {
       {/* Movie Player (Sala 2) */}
       <FullscreenTrailerPlayer
         isOpen={!!selectedMovie}
-        onClose={() => setSelectedMovie(null)}
+        onClose={closeMovie}
         trailerUrl={selectedMovie?.trailer_mp4_url || selectedMovie?.trailer_url || resolvedMovieUrl || selectedMovie?.stream_url || null}
         embedUrl={selectedMovie?.embed_url || null}
         contentUrl={resolvedMovieUrl || selectedMovie?.stream_url || null}
