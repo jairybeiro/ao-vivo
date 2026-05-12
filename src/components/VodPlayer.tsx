@@ -501,9 +501,26 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
       {/* Error */}
       {error && (
         <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3 z-50">
+          <button
+            onClick={() => (onBack ? onBack() : navigate(-1))}
+            aria-label="Voltar"
+            style={{
+              top: "calc(env(safe-area-inset-top, 0px) + 16px)",
+              left: "calc(env(safe-area-inset-left, 0px) + 20px)",
+            }}
+            className="absolute w-11 h-11 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6" strokeWidth={2.5} />
+          </button>
           <p className="text-destructive text-sm">{error}</p>
           <button onClick={retryPlayback} className="text-white underline text-sm">
             Tentar novamente
+          </button>
+          <button
+            onClick={() => (onBack ? onBack() : navigate(-1))}
+            className="text-white/70 hover:text-white text-xs"
+          >
+            Voltar para a lista
           </button>
         </div>
       )}

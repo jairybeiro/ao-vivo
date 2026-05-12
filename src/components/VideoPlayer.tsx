@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Hls from "hls.js";
-import { Play, Pause, Loader2, Volume2, VolumeX, Volume1, RotateCcw, RotateCw } from "lucide-react";
+import { Play, Pause, Loader2, Volume2, VolumeX, Volume1, RotateCcw, RotateCw, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toProxyStreamUrl } from "@/lib/streamProxy";
 import {
   resolvePlayableStreamUrl,
@@ -26,6 +27,7 @@ const VideoPlayer = ({
   isVertical = false,
   onAspectRatioDetected
 }: VideoPlayerProps) => {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -476,6 +478,17 @@ const VideoPlayer = ({
       {/* Error Overlay */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-player-overlay/90 z-30">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Voltar"
+            style={{
+              top: "calc(env(safe-area-inset-top, 0px) + 16px)",
+              left: "calc(env(safe-area-inset-left, 0px) + 20px)",
+            }}
+            className="absolute z-[10000] w-11 h-11 flex items-center justify-center rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm text-white transition-colors"
+          >
+            <ArrowLeft className="w-6 h-6" strokeWidth={2.5} />
+          </button>
           <div className="text-center">
             <p className="text-destructive text-lg font-medium">{error}</p>
             <button
@@ -486,6 +499,12 @@ const VideoPlayer = ({
               className="mt-4 px-6 py-2 glass rounded-lg text-foreground hover:bg-glass/60 transition-colors"
             >
               Tentar novamente
+            </button>
+            <button
+              onClick={() => navigate(-1)}
+              className="mt-3 ml-2 px-6 py-2 rounded-lg text-foreground/80 hover:text-foreground underline text-sm transition-colors"
+            >
+              Voltar
             </button>
           </div>
         </div>
