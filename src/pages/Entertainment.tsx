@@ -92,6 +92,53 @@ const Entertainment = () => {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<MovieItem | null>(null);
   const { resolvedUrl: resolvedMovieUrl } = useResolvedStreamUrl(selectedMovie?.stream_url || null);
+
+  const openMovie = useCallback(
+    (item: MovieItem) => {
+      setSelectedMovie(item);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("movie", item.id);
+          return next;
+        },
+        { replace: false }
+      );
+    },
+    [setSearchParams]
+  );
+
+  const closeMovie = useCallback(() => {
+    setSelectedMovie(null);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("movie");
+        return next;
+      },
+      { replace: false }
+    );
+  }, [setSearchParams]);
+
+  // Sincroniza activeTab quando o usuário usa voltar/avançar do navegador
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    const next: "inspirar" | "sala1" | "sala2" =
+      t === "sala1" || t === "sala2" || t === "inspirar" ? t : "inspirar";
+    setActiveTabState((curr) => (curr === next ? curr : next));
+  }, [searchParams]);
+
+  // Abre o filme automaticamente quando ?movie=<id> está na URL
+  useEffect(() => {
+    const movieId = searchParams.get("movie");
+    if (!movieId) {
+      if (selectedMovie) setSelectedMovie(null);
+      return;
+    }
+    if (selectedMovie?.id === movieId) return;
+    const found = movieItems.find((m) => m.id === movieId);
+    if (found) setSelectedMovie(found);
+  }, [searchParams, movieItems, selectedMovie]);
   const fetchCineBusinessContent = useCallback(async () => {
     setLoading(true);
 
