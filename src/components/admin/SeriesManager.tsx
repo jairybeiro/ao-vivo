@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Pencil, Trash2, Tv2, Loader2, Search } from "lucide-react";
+import { Pencil, Trash2, Tv2, Loader2, Search, Link2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface SeriesRow {
@@ -39,6 +39,14 @@ interface SeriesRow {
   is_active: boolean | null;
 }
 
+interface EpisodeRow {
+  id: string;
+  season: number;
+  episode_num: number;
+  title: string;
+  stream_url: string;
+}
+
 export const SeriesManager = ({ onChanged, embedded = false }: { onChanged?: () => void; embedded?: boolean }) => {
   const [series, setSeries] = useState<SeriesRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,6 +54,57 @@ export const SeriesManager = ({ onChanged, embedded = false }: { onChanged?: () 
   const [editing, setEditing] = useState<SeriesRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [episodes, setEpisodes] = useState<EpisodeRow[]>([]);
+  const [loadingEpisodes, setLoadingEpisodes] = useState(false);
+  const [savingEpisodeId, setSavingEpisodeId] = useState<string | null>(null);
+  const [episodeSearch, setEpisodeSearch] = useState("");
+
+  useEffect(() => {
+    if (!editing) {
+      setEpisodes([]);
+      setEpisodeSearch("");
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setLoadingEpisodes(true);
+      const { data, error } = await supabase
+        .from("vod_episodes")
+        .select("id,season,episode_num,title,stream_url")
+        .eq("series_id", editing.id)
+        .order("season", { ascending: true })
+        .order("episode_num", { ascending: true })
+        .limit(2000);
+      if (cancelled) return;
+      if (error) {
+        toast({ title: "Erro ao carregar episódios", description: error.message, variant: "destructive" });
+      } else {
+        setEpisodes((data ?? []) as EpisodeRow[]);
+      }
+      setLoadingEpisodes(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [editing]);
+
+  const updateEpisodeField = (id: string, field: keyof EpisodeRow, value: string) => {
+    setEpisodes((prev) => prev.map((ep) => (ep.id === id ? { ...ep, [field]: value } : ep)));
+  };
+
+  const saveEpisode = async (ep: EpisodeRow) => {
+    setSavingEpisodeId(ep.id);
+    const { error } = await supabase
+      .from("vod_episodes")
+      .update({ stream_url: ep.stream_url, title: ep.title })
+      .eq("id", ep.id);
+    setSavingEpisodeId(null);
+    if (error) {
+      toast({ title: "Erro ao salvar episódio", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Episódio atualizado", description: `T${ep.season} E${ep.episode_num}` });
+  };
 
   const fetchSeries = useCallback(async () => {
     setLoading(true);
@@ -295,6 +354,85 @@ export const SeriesManager = ({ onChanged, embedded = false }: { onChanged?: () 
                   Série ativa (visível no catálogo)
                 </Label>
               </div>
+
+              <div className="border-t pt-4">
+                <div className="flex items-center justify-between mb-3">
+                  <Label className="flex items-center gap-2 text-base">
+                    <Link2 className="w-4 h-4" /> Episódios e links de stream
+                  </Label>
+                  <span className="text-xs text-muted-foreground">
+                    {episodes.length} episódio(s)
+                  </span>
+                </div>
+                <Input
+                  placeholder="Filtrar por título, temporada (T1) ou episódio (E2)..."
+                  value={episodeSearch}
+                  onChange={(e) => setEpisodeSearch(e.target.value)}
+                  className="mb-3"
+                />
+                {loadingEpisodes ? (
+                  <div className="text-center text-muted-foreground py-6 text-sm">
+                    Carregando episódios...
+                  </div>
+                ) : episodes.length === 0 ? (
+                  <div className="text-center text-muted-foreground py-6 text-sm">
+                    Nenhum episódio cadastrado
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                    {episodes
+                      .filter((ep) => {
+                        if (!episodeSearch.trim()) return true;
+                        const q = episodeSearch.toLowerCase();
+                        return (
+                          ep.title.toLowerCase().includes(q) ||
+                          `t${ep.season}`.includes(q) ||
+                          `e${ep.episode_num}`.includes(q) ||
+                          `t${ep.season} e${ep.episode_num}`.includes(q)
+                        );
+                      })
+                      .map((ep) => (
+                        <div
+                          key={ep.id}
+                          className="rounded-md border bg-muted/30 p-3 space-y-2"
+                        >
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="font-semibold text-foreground">
+                              T{ep.season} · E{ep.episode_num}
+                            </span>
+                            <Input
+                              value={ep.title}
+                              onChange={(e) => updateEpisodeField(ep.id, "title", e.target.value)}
+                              className="h-7 text-xs"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <Input
+                              value={ep.stream_url}
+                              onChange={(e) =>
+                                updateEpisodeField(ep.id, "stream_url", e.target.value)
+                              }
+                              placeholder="https://.../episodio.m3u8"
+                              className="font-mono text-xs"
+                            />
+                            <Button
+                              size="sm"
+                              onClick={() => saveEpisode(ep)}
+                              disabled={savingEpisodeId === ep.id}
+                            >
+                              {savingEpisodeId === ep.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                "Salvar"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
+              </div>
+
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>
                   Cancelar
