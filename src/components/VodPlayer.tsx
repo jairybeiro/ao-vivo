@@ -707,11 +707,22 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
               {overlayContent && (
                 <div
                   className="relative"
-                  onMouseEnter={() => { clearTimeout(overlayHideTimer.current); setShowOverlay(true); }}
-                  onMouseLeave={() => { overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600); }}
+                  onPointerEnter={(e) => {
+                    if (e.pointerType !== "mouse") return;
+                    clearTimeout(overlayHideTimer.current);
+                    setShowOverlay(true);
+                  }}
+                  onPointerLeave={(e) => {
+                    if (e.pointerType !== "mouse") return;
+                    overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600);
+                  }}
                 >
                   <button
-                    onClick={(e) => { e.stopPropagation(); setShowOverlay(prev => !prev); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearTimeout(overlayHideTimer.current);
+                      setShowOverlay(prev => !prev);
+                    }}
                     className={`hover:text-[hsl(var(--player-contrast)/0.82)] transition ${showOverlay ? "text-[hsl(var(--player-accent))]" : ""}`}
                     title="Episódios"
                   >
@@ -764,8 +775,14 @@ const VodPlayer = ({ src, title, subtitle, poster, contentType, contentId, conte
             pointerEvents: showOverlay ? "auto" : "none",
           }}
           onClick={(e) => e.stopPropagation()}
-          onMouseEnter={() => { clearTimeout(overlayHideTimer.current); }}
-          onMouseLeave={() => { overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600); }}
+          onPointerEnter={(e) => {
+            if (e.pointerType !== "mouse") return;
+            clearTimeout(overlayHideTimer.current);
+          }}
+          onPointerLeave={(e) => {
+            if (e.pointerType !== "mouse") return;
+            overlayHideTimer.current = setTimeout(() => setShowOverlay(false), 600);
+          }}
         >
           <div className="h-full bg-black/90 backdrop-blur-xl border-l border-t border-white/10 rounded-tl-xl flex flex-col overflow-hidden">
             {/* Panel content */}
