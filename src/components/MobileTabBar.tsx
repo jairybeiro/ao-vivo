@@ -15,6 +15,9 @@ const MobileTabBar = () => {
     return location.pathname.startsWith(path);
   };
 
+  // Hide tab bar on immersive Shorts route (vertical fullscreen player)
+  if (location.pathname.startsWith("/shorts")) return null;
+
   const tabs = [
     { path: "/", label: "Home", icon: Home },
     { path: "/shorts", label: "Shorts", icon: Film },
