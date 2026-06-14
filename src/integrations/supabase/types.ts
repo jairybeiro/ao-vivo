@@ -354,6 +354,39 @@ export type Database = {
         }
         Relationships: []
       }
+      shorts: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          media_url: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          media_url: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          media_url?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_courses: {
         Row: {
           course_id: string
