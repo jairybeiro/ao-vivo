@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, BookOpen, Search, User, LogOut, LogIn, GraduationCap } from "lucide-react";
+import { Home, BookOpen, Search, User, LogOut, LogIn, GraduationCap, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,11 +15,15 @@ const MobileTabBar = () => {
     return location.pathname.startsWith(path);
   };
 
+  // Hide tab bar on immersive Shorts route (vertical fullscreen player)
+  if (location.pathname.startsWith("/shorts")) return null;
+
   const tabs = [
     { path: "/", label: "Home", icon: Home },
+    { path: "/shorts", label: "Shorts", icon: Film },
     { path: "/cursos", label: "Cursos", icon: BookOpen },
     { path: "/entretenimento", label: "Busca", icon: Search },
-    ...(user ? [{ path: "/meus-cursos", label: "Meus Cursos", icon: GraduationCap }] : []),
+    ...(user ? [{ path: "/meus-cursos", label: "Cursos", icon: GraduationCap }] : []),
   ];
 
   return (

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Briefcase, BookOpen } from "lucide-react";
+import { Tv, LogOut, ArrowLeft, Plus, Megaphone, Briefcase, BookOpen, Film } from "lucide-react";
 import { AdForm } from "@/components/admin/AdForm";
 import { AdList } from "@/components/admin/AdList";
 import { CineBusinessForm } from "@/components/admin/CineBusinessForm";
@@ -15,6 +15,7 @@ import { CourseManager } from "@/components/courses/CourseManager";
 import { XtreamImporter } from "@/components/admin/XtreamImporter";
 import { BulkContentCleaner } from "@/components/admin/BulkContentCleaner";
 import { ContentManager } from "@/components/admin/ContentManager";
+import { ShortsManager } from "@/components/admin/ShortsManager";
 
 const Admin = () => {
   const { user, isAdmin, loading, adminCheckLoading, signOut } = useAuth();
@@ -112,7 +113,7 @@ const Admin = () => {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="cinebiz" className="space-y-6" onValueChange={setActiveTab} value={activeTab}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="cinebiz" className="flex items-center gap-1 text-xs md:text-sm">
                 <Briefcase className="w-3.5 h-3.5" />
                 <span>CineBusiness</span>
@@ -120,6 +121,10 @@ const Admin = () => {
               <TabsTrigger value="courses" className="flex items-center gap-1 text-xs md:text-sm">
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Cursos</span>
+              </TabsTrigger>
+              <TabsTrigger value="shorts" className="flex items-center gap-1 text-xs md:text-sm">
+                <Film className="w-3.5 h-3.5" />
+                <span>Shorts</span>
               </TabsTrigger>
               <TabsTrigger value="ads" className="flex items-center gap-1 text-xs md:text-sm">
                 <Megaphone className="w-3.5 h-3.5" />
@@ -207,6 +212,11 @@ const Admin = () => {
             {/* Courses */}
             <TabsContent value="courses" className="space-y-6">
               <CourseManager />
+            </TabsContent>
+
+            {/* Shorts */}
+            <TabsContent value="shorts" className="space-y-6">
+              <ShortsManager />
             </TabsContent>
 
             {/* Ads */}
