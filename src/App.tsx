@@ -22,6 +22,7 @@ import CheckoutReturn from "./pages/CheckoutReturn";
 import Entertainment from "./pages/Entertainment";
 import CineBusinessDetail from "./pages/CineBusinessDetail";
 import SeriesDetail from "./pages/SeriesDetail";
+import Shorts from "./pages/Shorts";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<Home />} />
           <Route path="/cursos" element={<Courses />} />
           <Route path="/entretenimento" element={<Entertainment />} />
+          <Route path="/shorts" element={<Shorts />} />
           <Route path="/course/:courseId" element={<CourseDetail />} />
           <Route path="/cinebusiness/:id" element={<CineBusinessDetail />} />
           <Route path="/series/:id" element={<SeriesDetail />} />
