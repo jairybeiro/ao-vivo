@@ -9,11 +9,10 @@ const EmbedPlayer = ({ embedUrl, onBack }: EmbedPlayerProps) => {
   return (
     <div className="relative w-full h-full">
       <iframe
-        src={embedUrl}
+        src={`${embedUrl}${embedUrl.includes('?') ? '&' : '?'}enablejsapi=1`}
         className="w-full h-full"
-        allow="autoplay; encrypted-media; fullscreen"
+        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
         allowFullScreen
-        sandbox="allow-scripts allow-same-origin allow-presentation"
         referrerPolicy="no-referrer"
         title="Embed Player"
       />
