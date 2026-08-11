@@ -9,7 +9,9 @@ const EmbedPlayer = ({ embedUrl, onBack }: EmbedPlayerProps) => {
   return (
     <div className="relative w-full h-full">
       <iframe
-        src={`${embedUrl}${embedUrl.includes('?') ? '&' : '?'}enablejsapi=1`}
+        src={embedUrl.includes('youtube.com') || embedUrl.includes('youtu.be') 
+          ? `${embedUrl}${embedUrl.includes('?') ? '&' : '?'}enablejsapi=1`
+          : embedUrl}
         className="w-full h-full"
         allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
         allowFullScreen
